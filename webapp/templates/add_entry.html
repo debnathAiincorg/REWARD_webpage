@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Add Entry — Daily Performance Bonus{% endblock %}
+{% block content %}
+<h2 class="page-title">Add Entry</h2>
+<p class="page-sub">writes directly into Table1 · updates the existing row instead of duplicating if this employee already has an entry for the chosen date</p>
+
+<div class="error-list" id="errorList"></div>
+
+<form class="entry-form" id="entryForm" method="post" action="{{ url_for('add_entry') }}">
+  <div class="field">
+    <label for="date">Date</label>
+    <input type="date" id="date" name="date" value="{{ today }}" required>
+  </div>
+
+  <div class="field">
+    <label for="name">Name</label>
+    <select id="name" name="name" required>
+      <option value="" disabled selected>Select employee</option>
+      {% for emp in employees %}
+      <option value="{{ emp }}">{{ emp }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  {% for cat in categories %}
+    {% set widget = known_widgets.get(cat, "number") %}
+
+    {% if widget == "toggle01" %}
+    <div class="field">
+      <label>{{ cat }}</label>
+      <div class="choice-row" data-field="cat__{{ cat }}">
+        <button type="button" data-value="0">0</button>
+        <button type="button" data-value="1">1</button>
+      </div>
+      <input type="hidden" name="cat__{{ cat }}" data-hidden-for="cat__{{ cat }}">
+    </div>
+
+    {% elif widget == "choice" %}
+    <div class="field">
+      <label>{{ cat }}</label>
+      <div class="choice-row wrap-grid" data-field="cat__{{ cat }}">
+        {% for v in extraordinary_choices %}
+        <button type="button" data-value="{{ v }}">{{ v }}</button>
+        {% endfor %}
+      </div>
+      <input type="hidden" name="cat__{{ cat }}" data-hidden-for="cat__{{ cat }}">
+    </div>
+
+    {% elif widget == "decimal" %}
+    <div class="field">
+      <label for="cat__{{ cat }}">{{ cat }} <span class="opt">optional</span></label>
+      <input type="number" id="cat__{{ cat }}" name="cat__{{ cat }}" step="0.5" min="0" value="0">
+    </div>
+
+    {% else %}
+    <div class="field">
+      <label for="cat__{{ cat }}">{{ cat }}</label>
+      <input type="number" id="cat__{{ cat }}" name="cat__{{ cat }}" step="1" min="0" value="0">
+    </div>
+    {% endif %}
+  {% endfor %}
+
+  <div class="submit-bar">
+    <button type="submit" class="primary" id="submitBtn">Save entry</button>
+    <span class="status" id="statusMsg"></span>
+  </div>
+</form>
+
+<script>
+  document.querySelectorAll('.choice-row').forEach(row => {
+    const hidden = row.parentElement.querySelector(`input[data-hidden-for="${row.dataset.field}"]`);
+    row.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        row.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        hidden.value = btn.dataset.value;
+      });
+    });
+    // Default every toggle/choice row to its first option so submission never
+    // sends an empty value for a row the user didn't touch.
+    const firstBtn = row.querySelector('button');
+    if (firstBtn) {
+      firstBtn.classList.add('selected');
+      hidden.value = firstBtn.dataset.value;
+    }
+  });
+
+  document.getElementById('entryForm').addEventListener('submit', (e) => {
+    const errorList = document.getElementById('errorList');
+    const missing = [];
+    if (!document.getElementById('name').value) missing.push('Select an employee.');
+    if (missing.length) {
+      e.preventDefault();
+      errorList.innerHTML = missing.map(m => `· ${m}`).join('<br>');
+      errorList.classList.add('show');
+    }
+  });
+</script>
+{% endblock %}

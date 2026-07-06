@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}History — Daily Performance Bonus{% endblock %}
+{% block content %}
+<h2 class="page-title">History</h2>
+<p class="page-sub">every row in Table1, filterable by employee and/or date range</p>
+
+{% if error %}
+  <div class="flash err">Could not load data: {{ error }}</div>
+{% else %}
+
+<form class="filter-bar" method="get" action="{{ url_for('history') }}">
+  <div class="field">
+    <label for="employee">Employee</label>
+    <select id="employee" name="employee">
+      <option value="">All employees</option>
+      {% for emp in employees %}
+      <option value="{{ emp }}" {% if emp == selected_employee %}selected{% endif %}>{{ emp }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="from">From</label>
+    <input type="date" id="from" name="from" value="{{ selected_from }}">
+  </div>
+  <div class="field">
+    <label for="to">To</label>
+    <input type="date" id="to" name="to" value="{{ selected_to }}">
+  </div>
+  <button type="submit">Filter</button>
+  <a class="clear-link" href="{{ url_for('history') }}">Clear</a>
+</form>
+
+{% if rows %}
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Name</th>
+      {% for cat in categories %}<th class="num">{{ cat }}</th>{% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.Date.isoformat() if r.Date else "" }}</td>
+      <td>{{ r.Name }}</td>
+      {% for cat in categories %}<td class="num">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty-note">No rows match the current filters.</p>
+{% endif %}
+
+{% endif %}
+{% endblock %}

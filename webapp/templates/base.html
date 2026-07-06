@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Daily Performance Bonus{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <h1>Daily Performance Bonus</h1>
+    <span class="tagline">Internal entry tool</span>
+  </div>
+  <nav class="site-nav">
+    <a href="{{ url_for('dashboard') }}" class="{{ 'active' if active_page == 'dashboard' }}">Dashboard</a>
+    <a href="{{ url_for('add_entry') }}" class="{{ 'active' if active_page == 'add' }}">Add Entry</a>
+    <a href="{{ url_for('history') }}" class="{{ 'active' if active_page == 'history' }}">History</a>
+  </nav>
+</header>
+
+<div class="wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash {{ 'ok' if category == 'ok' else 'err' }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</div>
+
+<footer class="site-footer">
+  {% if active_file == "DUMMY" %}
+    <div class="conn-banner dummy">Connected to: DUMMY file — safe for testing</div>
+  {% else %}
+    <div class="conn-banner main">Connected to: MAIN file — LIVE DATA</div>
+  {% endif %}
+</footer>
+
+</body>
+</html>

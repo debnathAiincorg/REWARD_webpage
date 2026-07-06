@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Daily Performance Bonus{% endblock %}
+{% block content %}
+<h2 class="page-title">Dashboard</h2>
+<p class="page-sub">
+  {% if week_start %}today: {{ today.isoformat() }} · week-to-date: {{ week_start.isoformat() }} to {{ today.isoformat() }}{% endif %}
+</p>
+
+{% if error %}
+  <div class="flash err">Could not load data: {{ error }}</div>
+{% else %}
+
+<div class="section-heading">Today's Submitted Entries</div>
+{% if today_entries %}
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      {% for cat in category_names %}<th class="num">{{ cat }}</th>{% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in today_entries %}
+    <tr>
+      <td>{{ r.Name }}</td>
+      {% for cat in category_names %}<td class="num">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty-note">No entries submitted yet today.</p>
+{% endif %}
+
+<div class="section-heading">Week-to-Date Totals</div>
+{% if totals %}
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th class="num">Points</th>
+      <th class="num">Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for t in totals %}
+    <tr>
+      <td>{{ t.name }}</td>
+      <td class="num">{{ t.points }}</td>
+      <td class="num">₹{{ t.amount }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty-note">No entries yet this week.</p>
+{% endif %}
+
+{% endif %}
+{% endblock %}
