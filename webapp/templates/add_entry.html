@@ -7,10 +7,11 @@
 <div class="card entry-card">
 <div class="error-list" id="errorList"></div>
 
-<form class="entry-form" id="entryForm" method="post" action="{{ url_for('add_entry') }}">
+<form class="entry-form" id="entryForm" method="post" action="{{ url_for('add_entry') }}" novalidate>
   <div class="field">
     <label for="date">Date</label>
     <input type="date" id="date" name="date" value="{{ today }}" required>
+    <span class="field-error" id="dateError">Enter a date.</span>
   </div>
 
   <div class="field">
@@ -21,6 +22,7 @@
       <option value="{{ emp }}">{{ emp }}</option>
       {% endfor %}
     </select>
+    <span class="field-error" id="nameError">Select an employee to continue.</span>
   </div>
 
   {% for cat in categories %}
@@ -96,12 +98,37 @@
 
   document.getElementById('entryForm').addEventListener('submit', (e) => {
     const errorList = document.getElementById('errorList');
+    const dateField = document.getElementById('date');
+    const nameField = document.getElementById('name');
+    const dateError = document.getElementById('dateError');
+    const nameError = document.getElementById('nameError');
+
+    dateField.classList.remove('invalid');
+    nameField.classList.remove('invalid');
+    dateError.classList.remove('show');
+    nameError.classList.remove('show');
+
     const missing = [];
-    if (!document.getElementById('name').value) missing.push('Select an employee.');
+    let firstInvalid = null;
+
+    if (!dateField.value) {
+      missing.push('Enter a date.');
+      dateField.classList.add('invalid');
+      dateError.classList.add('show');
+      firstInvalid = firstInvalid || dateField;
+    }
+    if (!nameField.value) {
+      missing.push('Select an employee.');
+      nameField.classList.add('invalid');
+      nameError.classList.add('show');
+      firstInvalid = firstInvalid || nameField;
+    }
+
     if (missing.length) {
       e.preventDefault();
       errorList.innerHTML = missing.map(m => `· ${m}`).join('<br>');
       errorList.classList.add('show');
+      firstInvalid.focus();
     }
   });
 </script>

@@ -52,7 +52,10 @@
 </div>
 
 <footer class="site-footer">
-  <span class="footer-note">Table1 · Daily Performance Bonus · {{ "DUMMY (test) file" if active_file == "DUMMY" else "MAIN (live) file" }}</span>
+  <div class="footer-inner">
+    <span class="footer-note">Connected to: <strong>{{ "DUMMY (test) file" if active_file == "DUMMY" else "MAIN (live) file" }}</strong> · Table1 · Daily Performance Bonus</span>
+    <span class="footer-version">v1.0</span>
+  </div>
 </footer>
 
 </body>

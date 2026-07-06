@@ -2,15 +2,16 @@
    Design tokens — daily performance ledger
    ============================================================ */
 :root {
-  /* Paper & ink */
-  --paper: #F7F5F0;
+  /* Paper & ink — pale sage page, white cards lifted off it */
+  --paper: #EEF3EA;
   --paper-raised: #FFFFFF;
-  --panel-tint: #EFEAE0;   /* toolbar / card-header bands — a step down from paper-raised */
+  --panel-tint: #E1E9DC;   /* toolbar / card-header bands — a step deeper than the page */
   --ink: #1C1B19;
-  --ink-soft: #5B5850;
-  --ink-faint: #9A9583;
+  --ink-soft: #545F4E;
+  --ink-faint: #8B968A;
 
-  /* Primary accent — forest green */
+  /* Primary accent — forest green. This is now the theme's own color,
+     not a contrast accent against a different-hued background. */
   --forest: #2F5233;
   --forest-dark: #223d26;
   --forest-soft: #E4EAE1;   /* faint hover tint */
@@ -20,8 +21,8 @@
   --brass: #B08D57;
 
   /* Structural lines vs. module boundaries — two different weights on purpose */
-  --hairline: #D8D3C8;      /* thin row/field dividers */
-  --card-border: #C7C0AC;   /* visible border around a whole module (card, table, toolbar) */
+  --hairline: #D3DDCF;      /* thin row/field dividers */
+  --card-border: #B9C5B2;   /* visible border around a whole module (card, table, toolbar) */
 
   /* Reserved exception accents — stamps only. Muted/desaturated ink tones,
      not bright alert colors — this is stamped ink, not a warning light. */
@@ -122,19 +123,19 @@ a { color: inherit; }
    ============================================================ */
 .site-header {
   position: relative;
-  border-bottom: 2px solid var(--ink);
-  background: var(--paper);
+  background: var(--paper-raised);
+  border-bottom: 3px solid var(--forest);
 }
 
 .site-header-inner {
   max-width: 900px;
   margin: 0 auto;
-  padding: var(--sp-6) var(--sp-5) var(--sp-4);
+  padding: var(--sp-6) var(--sp-5) var(--sp-5);
 }
 
 .site-header h1 {
   font-family: var(--font-display);
-  font-size: 1.65rem;
+  font-size: 1.75rem;
   font-weight: 600;
   margin: 0;
   letter-spacing: -0.01em;
@@ -143,19 +144,20 @@ a { color: inherit; }
 .site-header .tagline {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  margin-top: var(--sp-1);
+  margin-top: var(--sp-2);
 }
 
 nav.site-nav {
   max-width: 900px;
   margin: 0 auto;
-  padding: 0 var(--sp-5) var(--sp-4);
+  padding: var(--sp-3) var(--sp-5) var(--sp-4);
+  border-top: 1px solid var(--hairline);
   display: flex;
-  gap: var(--sp-5);
+  gap: var(--sp-2);
   flex-wrap: wrap;
 }
 
@@ -166,15 +168,20 @@ nav.site-nav a {
   text-transform: uppercase;
   color: var(--ink-soft);
   text-decoration: none;
-  padding-bottom: 5px;
-  border-bottom: 2px solid transparent;
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s ease, color 0.12s ease;
 }
 
-nav.site-nav a:hover { color: var(--ink); }
+nav.site-nav a:hover:not(.active) {
+  background: var(--forest-soft);
+  color: var(--forest-dark);
+}
 
 nav.site-nav a.active {
-  color: var(--forest);
-  border-bottom-color: var(--forest);
+  background: var(--forest);
+  color: var(--paper-raised);
+  font-weight: 700;
 }
 
 /* The signature element: an ink-stamp badge, pinned to the header's
@@ -247,15 +254,37 @@ nav.site-nav a.active {
   .site-header-inner { padding-bottom: var(--sp-2); }
 }
 
-/* Footer */
+/* Footer — a real bar, not a single faint line */
 footer.site-footer {
-  border-top: 1px solid var(--hairline);
+  background: var(--panel-tint);
+  border-top: 1px solid var(--card-border);
   margin-top: auto;
+}
+
+.footer-inner {
+  max-width: 900px;
+  margin: 0 auto;
   padding: var(--sp-4) var(--sp-5);
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
 }
 
 footer.site-footer .footer-note {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+
+footer.site-footer .footer-note strong {
+  color: var(--forest-dark);
+  font-weight: 700;
+}
+
+footer.site-footer .footer-version {
   font-family: var(--font-mono);
   font-size: 0.68rem;
   letter-spacing: 0.05em;
@@ -405,6 +434,24 @@ input:focus, select:focus {
   border-color: var(--forest);
   box-shadow: 0 0 0 2px var(--forest-soft);
 }
+
+/* Styled inline validation — replaces the browser's default constraint-
+   validation tooltip (the form carries novalidate; this is the whole
+   error UI for a required field left empty). */
+input.invalid, select.invalid {
+  border-color: var(--stamp-live);
+  box-shadow: 0 0 0 2px rgba(122, 58, 48, 0.15);
+}
+
+.field-error {
+  display: none;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--stamp-live);
+  margin-top: var(--sp-1);
+}
+
+.field-error.show { display: block; }
 
 /* Segmented control (0/1 toggles, multi-choice rows) — adjacent cells
    divided by hairlines, not a pill. The active option gets a real,
@@ -579,7 +626,7 @@ table.data-table tfoot td.amount { color: var(--brass); }
   overflow-y: auto;
 }
 
-table.register tbody tr:nth-child(even) td { background: rgba(199, 192, 172, 0.14); }
+table.register tbody tr:nth-child(even) td { background: rgba(185, 197, 178, 0.16); }
 table.register tbody tr:hover td { background: var(--forest-soft); }
 
 table.register thead th {
