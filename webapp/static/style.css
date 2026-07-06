@@ -24,16 +24,15 @@
   --hairline: #D3DDCF;      /* thin row/field dividers */
   --card-border: #B9C5B2;   /* visible border around a whole module (card, table, toolbar) */
 
-  /* Reserved exception accents — stamps only. Muted/desaturated ink tones,
-     not bright alert colors — this is stamped ink, not a warning light. */
-  --stamp-test: #8C4A3B;   /* DUMMY / test copy */
+  /* Reserved exception accents — the DUMMY/MAIN data-source indicator
+     and error states. Muted/desaturated tones, not bright alert colors. */
+  --stamp-test: #8C4A3B;   /* DUMMY / test data */
   --stamp-live: #7A3A30;   /* MAIN / live data, and error states */
 
   /* Type */
   --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
   --font-body: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  --font-stamp: "Courier New", Courier, monospace;
 
   /* Corner radius scale — small and precise, never a soft consumer-app round */
   --radius-sm: 2px;
@@ -119,143 +118,86 @@ a { color: inherit; }
 .table-card { overflow: hidden; }
 
 /* ============================================================
-   Header, nav, signature stamp
+   Header, nav — plain and minimal, one row, no boxes/pills/dividers
    ============================================================ */
 .site-header {
-  position: relative;
   background: var(--paper-raised);
-  border-bottom: 3px solid var(--forest);
 }
 
 .site-header-inner {
   max-width: 900px;
   margin: 0 auto;
-  padding: var(--sp-6) var(--sp-5) var(--sp-5);
+  padding: var(--sp-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
 }
 
-/* ADIRI is the company wordmark — the one dominant brand mark on the
-   page. Uppercase display serif with wide tracking reads as a proper
-   letterhead logotype, not just a bigger version of the page title. */
-.site-header h1 {
-  font-family: var(--font-display);
-  font-size: 2.1rem;
-  font-weight: 700;
-  text-transform: uppercase;
+.brand { display: flex; flex-direction: column; }
+
+.brand-name {
   margin: 0;
-  letter-spacing: 0.05em;
-  color: var(--ink);
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-family: var(--font-body);
 }
+
+.brand-name a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.brand-name a:hover { color: var(--forest-dark); }
 
 .site-header .tagline {
   display: block;
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  letter-spacing: 0.06em;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
   color: var(--ink-soft);
-  margin-top: var(--sp-2);
+  margin-top: 2px;
 }
 
-nav.site-nav {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: var(--sp-3) var(--sp-5) var(--sp-4);
-  border-top: 1px solid var(--hairline);
+.header-right {
   display: flex;
-  gap: var(--sp-2);
+  align-items: center;
+  gap: var(--sp-5);
   flex-wrap: wrap;
 }
 
+nav.site-nav {
+  display: flex;
+  gap: var(--sp-4);
+}
+
 nav.site-nav a {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
   color: var(--ink-soft);
   text-decoration: none;
-  padding: 9px 16px;
-  border-radius: var(--radius-sm);
-  transition: background 0.12s ease, color 0.12s ease;
 }
 
-nav.site-nav a:hover:not(.active) {
-  background: var(--forest-soft);
-  color: var(--forest-dark);
-}
+nav.site-nav a:hover { color: var(--ink); text-decoration: underline; }
 
 nav.site-nav a.active {
-  background: var(--forest);
-  color: var(--paper-raised);
+  color: var(--ink);
   font-weight: 700;
+  text-decoration: underline;
 }
 
-/* The signature element: an ink-stamp badge, pinned to the header's
-   top-right corner on every page. A crisp double ring with only a
-   faint hint of texture (the SVG filter in base.html is tuned subtle
-   on purpose) plus mix-blend-mode read as a proper stamp pressed onto
-   letterhead — not a hand-scribbled sticker. */
-.stamp {
-  --stamp-color: var(--stamp-test);
-  position: absolute;
-  top: var(--sp-5);
-  right: var(--sp-5);
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 9px 16px 8px;
-  transform: rotate(-6deg);
-  color: var(--stamp-color);
-  mix-blend-mode: multiply;
-  opacity: 0.9;
-  text-align: center;
-  pointer-events: none;
+/* Data-source indicator — plain text only, no box/border/rotation.
+   Still colored so it stays noticeable; that's the whole safety net. */
+.data-indicator {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--stamp-test);
 }
 
-.stamp::before,
-.stamp::after {
-  content: "";
-  position: absolute;
-  border: 2px solid var(--stamp-color);
-  border-radius: var(--radius-md);
-  filter: url(#stampRough);
-}
-
-.stamp::before { inset: 0; }
-.stamp::after { inset: 4px; border-width: 1px; }
-
-.stamp .stamp-main,
-.stamp .stamp-sub {
-  position: relative;
-  z-index: 1;
-}
-
-.stamp.is-live { --stamp-color: var(--stamp-live); }
-
-.stamp .stamp-main {
-  font-family: var(--font-stamp);
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  line-height: 1.1;
-}
-
-.stamp .stamp-sub {
-  font-family: var(--font-stamp);
-  font-size: 0.58rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-top: 3px;
-}
-
-@media (max-width: 640px) {
-  .stamp {
-    position: static;
-    transform: rotate(-5deg);
-    margin: var(--sp-4) var(--sp-5) 0;
-    align-self: flex-start;
-  }
-  .site-header-inner { padding-bottom: var(--sp-2); }
+.data-indicator.is-live {
+  color: var(--stamp-live);
+  font-weight: 600;
 }
 
 /* Footer — a real bar, not a single faint line */
