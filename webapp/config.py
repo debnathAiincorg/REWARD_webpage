@@ -4,8 +4,8 @@
 ACTIVE_FILE = "DUMMY"  # "DUMMY" or "MAIN"
 
 # Fill these in with your dummy/test file's IDs before running the app.
-DUMMY_DRIVE_ID = "PUT_DUMMY_DRIVE_ID_HERE"
-DUMMY_ITEM_ID = "PUT_DUMMY_ITEM_ID_HERE"
+DUMMY_DRIVE_ID = "b!ncIFrojL106h53P8D_qyinjcKBnN9CFGrFJ26Ac7DPP-kaV-qe0HS73NEabHbqpx"
+DUMMY_ITEM_ID = "01ZAECLIXEJYLGEVLWOZB2FQXRBJRJEBV7"
 
 # Leave these as None until dummy-file testing is complete and you explicitly
 # provide the production file's IDs for cutover.
