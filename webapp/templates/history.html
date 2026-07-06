@@ -31,12 +31,14 @@
 </form>
 
 {% if rows %}
-<table class="data-table">
+<div class="table-scroll register-scroll">
+<table class="data-table register">
   <thead>
     <tr>
       <th>Date</th>
       <th>Name</th>
       {% for cat in categories %}<th class="num">{{ cat }}</th>{% endfor %}
+      {% for tf in text_names %}<th>{{ tf }}</th>{% endfor %}
     </tr>
   </thead>
   <tbody>
@@ -45,10 +47,12 @@
       <td>{{ r.Date.isoformat() if r.Date else "" }}</td>
       <td>{{ r.Name }}</td>
       {% for cat in categories %}<td class="num">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
+      {% for tf in text_names %}<td class="notes">{{ r.get(tf, "") or "" }}</td>{% endfor %}
     </tr>
     {% endfor %}
   </tbody>
 </table>
+</div>
 {% else %}
 <p class="empty-note">No rows match the current filters.</p>
 {% endif %}

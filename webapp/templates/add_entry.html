@@ -4,6 +4,7 @@
 <h2 class="page-title">Add Entry</h2>
 <p class="page-sub">writes directly into Table1 · updates the existing row instead of duplicating if this employee already has an entry for the chosen date</p>
 
+<div class="entry-card">
 <div class="error-list" id="errorList"></div>
 
 <form class="entry-form" id="entryForm" method="post" action="{{ url_for('add_entry') }}">
@@ -28,7 +29,7 @@
     {% if widget == "toggle01" %}
     <div class="field">
       <label>{{ cat }}</label>
-      <div class="choice-row" data-field="cat__{{ cat }}">
+      <div class="segmented" data-field="cat__{{ cat }}">
         <button type="button" data-value="0">0</button>
         <button type="button" data-value="1">1</button>
       </div>
@@ -38,7 +39,7 @@
     {% elif widget == "choice" %}
     <div class="field">
       <label>{{ cat }}</label>
-      <div class="choice-row wrap-grid" data-field="cat__{{ cat }}">
+      <div class="segmented" data-field="cat__{{ cat }}">
         {% for v in extraordinary_choices %}
         <button type="button" data-value="{{ v }}">{{ v }}</button>
         {% endfor %}
@@ -60,14 +61,22 @@
     {% endif %}
   {% endfor %}
 
+  {% for tf in text_fields %}
+  <div class="field">
+    <label for="txt__{{ tf }}">{{ tf }} <span class="opt">optional</span></label>
+    <input type="text" id="txt__{{ tf }}" name="txt__{{ tf }}">
+  </div>
+  {% endfor %}
+
   <div class="submit-bar">
     <button type="submit" class="primary" id="submitBtn">Save entry</button>
     <span class="status" id="statusMsg"></span>
   </div>
 </form>
+</div>
 
 <script>
-  document.querySelectorAll('.choice-row').forEach(row => {
+  document.querySelectorAll('.segmented').forEach(row => {
     const hidden = row.parentElement.querySelector(`input[data-hidden-for="${row.dataset.field}"]`);
     row.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -76,7 +85,7 @@
         hidden.value = btn.dataset.value;
       });
     });
-    // Default every toggle/choice row to its first option so submission never
+    // Default every segmented row to its first option so submission never
     // sends an empty value for a row the user didn't touch.
     const firstBtn = row.querySelector('button');
     if (firstBtn) {

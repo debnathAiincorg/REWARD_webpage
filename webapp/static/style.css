@@ -1,18 +1,43 @@
+/* ============================================================
+   Design tokens — daily performance ledger
+   ============================================================ */
 :root {
-  --ink: #1c2a24;
-  --paper: #f6f4ef;
-  --line: #d8d3c4;
-  --accent: #2f6b4f;
-  --accent-soft: #e4ede7;
-  --error: #a33a2f;
-  --warn-bg: #fbe8c9;
-  --warn-border: #c9821a;
-  --warn-ink: #6b4a0c;
-  --danger-bg: #fbdcd9;
-  --danger-border: #a33a2f;
-  --danger-ink: #7a2419;
-  --mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
-  --serif: "Source Serif 4", Georgia, serif;
+  /* Paper & ink */
+  --paper: #F7F5F0;
+  --paper-raised: #FFFFFF;
+  --ink: #1C1B19;
+  --ink-soft: #5B5850;
+  --ink-faint: #9A9583;
+
+  /* Primary accent — forest green */
+  --forest: #2F5233;
+  --forest-dark: #223d26;
+  --forest-soft: #E4EAE1;
+
+  /* Currency / amount accent — muted brass */
+  --brass: #B08D57;
+
+  /* Structural lines */
+  --hairline: #D8D3C8;
+
+  /* Reserved exception accents — stamps only */
+  --stamp-test: #B3402A;   /* DUMMY / test copy */
+  --stamp-live: #A33A2F;   /* MAIN / live data, and error states */
+
+  /* Type */
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-body: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  /* Spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
 }
 
 * { box-sizing: border-box; }
@@ -22,7 +47,9 @@ html, body {
   min-height: 100%;
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--serif);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -31,152 +58,230 @@ body {
   flex-direction: column;
 }
 
+a { color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .wrap {
   max-width: 900px;
   width: 100%;
   margin: 0 auto;
-  padding: 32px 24px 64px;
+  padding: var(--sp-6) var(--sp-5) var(--sp-8);
   flex: 1;
 }
 
-/* Header + nav */
+/* ============================================================
+   Header, nav, signature stamp
+   ============================================================ */
 .site-header {
+  position: relative;
   border-bottom: 2px solid var(--ink);
+  background: var(--paper);
 }
 
 .site-header-inner {
   max-width: 900px;
   margin: 0 auto;
-  padding: 20px 24px 14px;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  padding: var(--sp-6) var(--sp-5) var(--sp-4);
 }
 
 .site-header h1 {
-  font-size: 1.4rem;
+  font-family: var(--font-display);
+  font-size: 1.65rem;
   font-weight: 600;
   margin: 0;
   letter-spacing: -0.01em;
 }
 
 .site-header .tagline {
-  font-family: var(--mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #6b6657;
+  color: var(--ink-soft);
+  margin-top: var(--sp-1);
 }
 
 nav.site-nav {
   max-width: 900px;
   margin: 0 auto;
-  padding: 0 24px 14px;
+  padding: 0 var(--sp-5) var(--sp-4);
   display: flex;
-  gap: 18px;
+  gap: var(--sp-5);
+  flex-wrap: wrap;
 }
 
 nav.site-nav a {
-  font-family: var(--mono);
-  font-size: 0.82rem;
-  letter-spacing: 0.03em;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--ink);
+  color: var(--ink-soft);
   text-decoration: none;
-  padding-bottom: 4px;
+  padding-bottom: 5px;
   border-bottom: 2px solid transparent;
 }
 
-nav.site-nav a:hover,
+nav.site-nav a:hover { color: var(--ink); }
+
 nav.site-nav a.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
+  color: var(--forest);
+  border-bottom-color: var(--forest);
 }
 
-/* Footer / connection banner */
+/* The signature element: an ink-stamp badge, pinned to the header's
+   top-right corner on every page. Rotated and double-ringed like a
+   real rubber stamp; mix-blend-mode lets it read as ink pressed onto
+   the paper rather than a flat colored sticker. */
+.stamp {
+  --stamp-color: var(--stamp-test);
+  position: absolute;
+  top: var(--sp-5);
+  right: var(--sp-5);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 16px 8px;
+  border: 3px solid var(--stamp-color);
+  border-radius: 8px;
+  transform: rotate(-6deg);
+  color: var(--stamp-color);
+  mix-blend-mode: multiply;
+  text-align: center;
+  pointer-events: none;
+}
+
+.stamp::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid var(--stamp-color);
+  border-radius: 5px;
+}
+
+.stamp.is-live { --stamp-color: var(--stamp-live); }
+
+.stamp .stamp-main {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.stamp .stamp-sub {
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  margin-top: 3px;
+  opacity: 0.9;
+}
+
+@media (max-width: 640px) {
+  .stamp {
+    position: static;
+    transform: rotate(-3deg);
+    margin: var(--sp-4) var(--sp-5) 0;
+    align-self: flex-start;
+  }
+  .site-header-inner { padding-bottom: var(--sp-2); }
+}
+
+/* Footer */
 footer.site-footer {
-  border-top: 2px solid var(--ink);
+  border-top: 1px solid var(--hairline);
   margin-top: auto;
+  padding: var(--sp-4) var(--sp-5);
+  text-align: center;
 }
 
-.conn-banner {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 12px 24px;
-  font-family: var(--mono);
-  font-size: 0.8rem;
-  letter-spacing: 0.02em;
-  border-top: 3px solid;
+footer.site-footer .footer-note {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint);
 }
 
-.conn-banner.dummy {
-  background: var(--warn-bg);
-  border-color: var(--warn-border);
-  color: var(--warn-ink);
-}
-
-.conn-banner.main {
-  background: var(--danger-bg);
-  border-color: var(--danger-border);
-  color: var(--danger-ink);
-  font-weight: 600;
-}
-
-/* Flash messages */
+/* ============================================================
+   Flash messages
+   ============================================================ */
 .flash {
   border-radius: 4px;
   padding: 12px 14px;
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   font-size: 0.82rem;
-  margin-bottom: 20px;
+  margin-bottom: var(--sp-5);
+  border: 1px solid;
 }
 
 .flash.ok {
-  background: var(--accent-soft);
-  border: 1px solid var(--accent);
-  color: var(--accent);
+  background: var(--forest-soft);
+  border-color: var(--forest);
+  color: var(--forest-dark);
 }
 
 .flash.err {
-  background: #fbeceA;
-  border: 1px solid var(--error);
-  color: var(--error);
+  background: #FBEAE7;
+  border-color: var(--stamp-live);
+  color: var(--stamp-live);
 }
 
+/* ============================================================
+   Page headings
+   ============================================================ */
 h2.page-title {
-  font-size: 1.55rem;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
   font-weight: 600;
-  margin: 0 0 6px;
+  margin: 0 0 var(--sp-1);
   letter-spacing: -0.01em;
 }
 
 p.page-sub {
-  font-family: var(--mono);
-  font-size: 0.78rem;
-  color: #6b6657;
-  margin: 0 0 32px;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+  margin: 0 0 var(--sp-6);
 }
 
-/* Entry form */
+/* ============================================================
+   Add Entry — centered ledger card
+   ============================================================ */
+.entry-card {
+  max-width: 640px;
+  margin: 0 auto;
+  background: var(--paper-raised);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  padding: var(--sp-7) var(--sp-6);
+}
+
 form.entry-form {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  max-width: 640px;
+  gap: var(--sp-6);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--sp-2);
 }
 
 .field label {
-  font-family: var(--mono);
-  font-size: 0.74rem;
-  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: #5a5648;
+  color: var(--ink-soft);
   display: flex;
   justify-content: space-between;
 }
@@ -185,93 +290,100 @@ form.entry-form {
   text-transform: none;
   font-style: italic;
   letter-spacing: 0;
-  color: #9a9583;
+  color: var(--ink-faint);
 }
 
 input[type="date"],
 input[type="number"],
 input[type="text"],
 select {
-  font-family: var(--serif);
-  font-size: 1rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
   padding: 11px 12px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: #fff;
+  border: 1px solid var(--hairline);
+  border-radius: 5px;
+  background: var(--paper-raised);
   color: var(--ink);
   width: 100%;
 }
 
+input[type="number"] {
+  font-family: var(--font-mono);
+  text-align: right;
+}
+
 input:focus, select:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-  border-color: var(--accent);
+  outline: none;
+  border-color: var(--forest);
+  box-shadow: 0 0 0 3px var(--forest-soft);
 }
 
-.choice-row {
+/* Segmented pill control (0/1 toggles, multi-choice rows) */
+.segmented {
   display: flex;
-  gap: 8px;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 3px;
 }
 
-.choice-row button {
+.segmented button {
   flex: 1;
-  font-family: var(--mono);
-  font-size: 0.95rem;
-  padding: 10px 0;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: #fff;
-  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  padding: 9px 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
   cursor: pointer;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  transition: background 0.12s ease, color 0.12s ease;
 }
 
-.choice-row button:hover { border-color: var(--accent); }
+.segmented button:hover { color: var(--ink); }
 
-.choice-row button.selected {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+.segmented button.selected {
+  background: var(--forest);
+  color: var(--paper-raised);
+  font-weight: 600;
 }
-
-.choice-row.wrap-grid { flex-wrap: wrap; }
-
-.choice-row.wrap-grid button { flex: 0 0 calc(33.33% - 6px); }
 
 .submit-bar {
-  margin-top: 14px;
+  margin-top: var(--sp-2);
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--sp-4);
 }
 
 button.primary {
-  font-family: var(--mono);
-  font-size: 0.85rem;
-  letter-spacing: 0.04em;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--forest);
+  color: var(--paper-raised);
   border: none;
   padding: 13px 26px;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
+  transition: background 0.12s ease;
 }
 
 button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
-button.primary:hover:not(:disabled) { background: var(--accent); }
+button.primary:hover:not(:disabled) { background: var(--forest-dark); }
 
-.status { font-family: var(--mono); font-size: 0.8rem; }
-.status.ok { color: var(--accent); }
-.status.err { color: var(--error); }
+.status { font-family: var(--font-mono); font-size: 0.8rem; }
+.status.ok { color: var(--forest); }
+.status.err { color: var(--stamp-live); }
 
 .error-list {
-  background: #fbeceA;
-  border: 1px solid var(--error);
-  color: var(--error);
+  background: #FBEAE7;
+  border: 1px solid var(--stamp-live);
+  color: var(--stamp-live);
   border-radius: 4px;
   padding: 12px 14px;
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   font-size: 0.78rem;
   line-height: 1.6;
   display: none;
@@ -279,87 +391,144 @@ button.primary:hover:not(:disabled) { background: var(--accent); }
 
 .error-list.show { display: block; }
 
-/* Tables (dashboard totals, history) */
+/* ============================================================
+   Ledger tables (Dashboard, History)
+   ============================================================ */
+.section-heading {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--forest);
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: var(--sp-2);
+  margin: var(--sp-7) 0 var(--sp-4);
+}
+
+.section-heading:first-of-type { margin-top: 0; }
+
+.table-scroll {
+  overflow-x: auto;
+  margin-bottom: var(--sp-6);
+}
+
 table.data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
-  margin-bottom: 32px;
+  font-size: 0.88rem;
 }
 
 table.data-table th,
 table.data-table td {
-  border-bottom: 1px solid var(--line);
-  padding: 9px 10px;
+  border-bottom: 1px solid var(--hairline);
+  padding: 10px 12px;
   text-align: left;
+  white-space: nowrap;
 }
 
 table.data-table th {
-  font-family: var(--mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #5a5648;
+  color: var(--ink-soft);
+  font-weight: 600;
 }
 
 table.data-table td.num,
 table.data-table th.num {
   text-align: right;
-  font-family: var(--mono);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
-table.data-table tr:hover td { background: var(--accent-soft); }
+table.data-table td.amount { color: var(--brass); font-weight: 600; }
 
-.section-heading {
-  font-family: var(--mono);
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--accent);
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 6px;
-  margin: 36px 0 14px;
+table.data-table td.notes {
+  white-space: normal;
+  color: var(--ink-soft);
+  font-style: italic;
+  max-width: 220px;
 }
+
+table.data-table tbody tr:hover td { background: var(--forest-soft); }
+
+/* Ledger TOTAL row — double rule like a closed ledger line */
+table.data-table tfoot td {
+  border-top: 3px double var(--ink);
+  border-bottom: none;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+table.data-table tfoot td.amount { color: var(--brass); }
 
 .empty-note {
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   font-size: 0.82rem;
-  color: #9a9583;
-  padding: 12px 0;
+  color: var(--ink-faint);
+  padding: var(--sp-3) 0 var(--sp-5);
 }
 
-/* History filter bar */
+/* History: bounded, independently-scrolling register with a frozen header row.
+   (A plain overflow-x:auto wrapper isn't enough — per the CSS overflow spec,
+   setting only overflow-x forces overflow-y to auto too, which hands the
+   sticky header's scroll container to an element that never actually scrolls,
+   so it silently stops sticking. A real max-height + overflow-y:auto fixes it,
+   and reads like a proper spreadsheet frozen header besides.) */
+.register-scroll {
+  max-height: 70vh;
+  overflow-y: auto;
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+}
+
+table.register tbody tr:nth-child(even) td { background: rgba(216, 211, 200, 0.16); }
+table.register tbody tr:hover td { background: var(--forest-soft); }
+
+table.register thead th {
+  position: sticky;
+  top: 0;
+  background: var(--paper);
+  box-shadow: 0 1px 0 var(--ink);
+}
+
+table.register tbody tr:first-child td { border-top: none; }
+
+/* Filter toolbar */
 form.filter-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--sp-4);
   align-items: flex-end;
-  margin-bottom: 24px;
-  padding: 16px;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 4px;
+  margin-bottom: var(--sp-5);
+  padding-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--hairline);
 }
 
-form.filter-bar .field { min-width: 160px; flex: 1; }
+form.filter-bar .field { min-width: 160px; flex: 1 1 160px; gap: var(--sp-1); }
 
 form.filter-bar button {
-  font-family: var(--mono);
-  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 11px 18px;
-  border: 1px solid var(--ink);
-  border-radius: 4px;
-  background: var(--ink);
-  color: var(--paper);
+  padding: 11px 20px;
+  border: 1px solid var(--forest);
+  border-radius: 5px;
+  background: var(--forest);
+  color: var(--paper-raised);
   cursor: pointer;
   height: 42px;
+  transition: background 0.12s ease;
 }
 
+form.filter-bar button:hover { background: var(--forest-dark); }
+
 form.filter-bar a.clear-link {
-  font-family: var(--mono);
-  font-size: 0.8rem;
-  color: #6b6657;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-soft);
   text-decoration: underline;
   align-self: center;
   height: 42px;
@@ -369,4 +538,9 @@ form.filter-bar a.clear-link {
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
+}
+
+@media (max-width: 560px) {
+  .entry-card { padding: var(--sp-5) var(--sp-4); }
+  .wrap { padding: var(--sp-5) var(--sp-4) var(--sp-7); }
 }

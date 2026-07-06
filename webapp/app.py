@@ -44,7 +44,7 @@ def dashboard():
         return render_template(
             "dashboard.html", active_page="dashboard", error=str(e),
             today=date.today(), week_start=None, today_entries=[],
-            category_names=[], totals=[],
+            category_names=[], text_names=[], totals=[], totals_row=None,
         )
 
     today = date.today()
@@ -55,10 +55,15 @@ def dashboard():
         [{"name": n, **v} for n, v in totals.items()],
         key=lambda x: (-x["amount"], x["name"]),
     )
+    totals_row = {
+        "points": sum(t["points"] for t in totals_list),
+        "amount": sum(t["amount"] for t in totals_list),
+    } if totals_list else None
     return render_template(
         "dashboard.html", active_page="dashboard", error=None,
         today=today, week_start=monday, today_entries=today_entries,
-        category_names=cols["category_names"], totals=totals_list,
+        category_names=cols["category_names"], text_names=cols["text_names"],
+        totals=totals_list, totals_row=totals_row,
     )
 
 
@@ -69,13 +74,14 @@ def add_entry():
     except GraphError as e:
         flash(str(e), "err")
         return render_template(
-            "add_entry.html", active_page="add", employees=[], categories=[],
+            "add_entry.html", active_page="add", employees=[], categories=[], text_fields=[],
             known_widgets=KNOWN_WIDGETS, extraordinary_choices=EXTRAORDINARY_CHOICES,
             today=date.today().isoformat(),
         )
 
     employees = logic.distinct_employees(records)
     categories = cols["category_names"]
+    text_fields = cols["text_names"]
 
     if request.method == "POST":
         name = (request.form.get("name") or "").strip()
@@ -92,6 +98,8 @@ def add_entry():
         for cat in categories:
             raw = request.form.get(f"cat__{cat}")
             values_by_column[cat] = logic.to_number(raw)
+        for tf in text_fields:
+            values_by_column[tf] = (request.form.get(f"txt__{tf}") or "").strip()
 
         if not errors:
             try:
@@ -101,9 +109,14 @@ def add_entry():
                 payload["Date"] = entry_date.isoformat()
 
                 if existing_index is not None:
+                    existing_record = next(r for r in records if r["_row_index"] == existing_index)
                     if cols["index_idx"] is not None:
-                        existing_record = next(r for r in records if r["_row_index"] == existing_index)
                         payload["Index"] = existing_record.get("Index")
+                    # A blank text field means "didn't touch it" — keep the sheet's
+                    # existing note instead of wiping it with an empty string.
+                    for tf in text_fields:
+                        if not payload[tf]:
+                            payload[tf] = existing_record.get(tf) or ""
                     update_table_row(existing_index, payload)
                     flash(f"Updated existing entry — {name}, {date_str}", "ok")
                 else:
@@ -120,8 +133,8 @@ def add_entry():
 
     return render_template(
         "add_entry.html", active_page="add", employees=employees, categories=categories,
-        known_widgets=KNOWN_WIDGETS, extraordinary_choices=EXTRAORDINARY_CHOICES,
-        today=date.today().isoformat(),
+        text_fields=text_fields, known_widgets=KNOWN_WIDGETS,
+        extraordinary_choices=EXTRAORDINARY_CHOICES, today=date.today().isoformat(),
     )
 
 
@@ -132,7 +145,7 @@ def history():
     except GraphError as e:
         return render_template(
             "history.html", active_page="history", error=str(e),
-            rows=[], employees=[], categories=[],
+            rows=[], employees=[], categories=[], text_names=[],
             selected_employee="", selected_from="", selected_to="",
         )
 
@@ -148,7 +161,7 @@ def history():
     return render_template(
         "history.html", active_page="history", error=None,
         rows=filtered, employees=logic.distinct_employees(records),
-        categories=cols["category_names"],
+        categories=cols["category_names"], text_names=cols["text_names"],
         selected_employee=employee or "", selected_from=from_str, selected_to=to_str,
     )
 

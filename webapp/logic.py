@@ -6,15 +6,21 @@ from datetime import date, datetime, timedelta
 
 RESERVED_HEADERS = {"date", "name", "index"}
 
+# Known free-text columns (e.g. "Notes") — carried through as-is, never summed
+# into points, never overwritten with a number input.
+TEXT_FIELD_NAMES = {"notes", "comment", "comments", "remark", "remarks"}
+
 
 def detect_columns(headers):
-    """Classify header names into date/name/index positions plus category columns.
+    """Classify header names into date/name/index/text positions plus category columns.
 
-    Returns {"date_idx", "name_idx", "index_idx", "category_names"}. Indices are
-    0-based positions into a row's values list; category_names preserves sheet order.
+    Returns {"date_idx", "name_idx", "index_idx", "category_names", "text_names"}.
+    Indices are 0-based positions into a row's values list; category_names and
+    text_names preserve sheet order.
     """
     date_idx = name_idx = index_idx = None
     category_names = []
+    text_names = []
     for i, h in enumerate(headers):
         if h is None or str(h).strip() == "":
             continue
@@ -26,10 +32,13 @@ def detect_columns(headers):
             name_idx = i
         elif hl == "index":
             index_idx = i
+        elif hl in TEXT_FIELD_NAMES:
+            text_names.append(clean)
         else:
             category_names.append(clean)
     return {
         "date_idx": date_idx,
+        "text_names": text_names,
         "name_idx": name_idx,
         "index_idx": index_idx,
         "category_names": category_names,

@@ -11,13 +11,25 @@
 <header class="site-header">
   <div class="site-header-inner">
     <h1>Daily Performance Bonus</h1>
-    <span class="tagline">Internal entry tool</span>
+    <span class="tagline">Internal entry ledger</span>
   </div>
   <nav class="site-nav">
     <a href="{{ url_for('dashboard') }}" class="{{ 'active' if active_page == 'dashboard' }}">Dashboard</a>
     <a href="{{ url_for('add_entry') }}" class="{{ 'active' if active_page == 'add' }}">Add Entry</a>
     <a href="{{ url_for('history') }}" class="{{ 'active' if active_page == 'history' }}">History</a>
   </nav>
+
+  {% if active_file == "DUMMY" %}
+    <div class="stamp" aria-label="Connected to the DUMMY test file — safe for testing">
+      <span class="stamp-main">Test Copy</span>
+      <span class="stamp-sub">Safe for testing</span>
+    </div>
+  {% else %}
+    <div class="stamp is-live" aria-label="Connected to the MAIN file — live data">
+      <span class="stamp-main">Live File</span>
+      <span class="stamp-sub">Real payouts</span>
+    </div>
+  {% endif %}
 </header>
 
 <div class="wrap">
@@ -33,11 +45,7 @@
 </div>
 
 <footer class="site-footer">
-  {% if active_file == "DUMMY" %}
-    <div class="conn-banner dummy">Connected to: DUMMY file — safe for testing</div>
-  {% else %}
-    <div class="conn-banner main">Connected to: MAIN file — LIVE DATA</div>
-  {% endif %}
+  <span class="footer-note">Table1 · Daily Performance Bonus · {{ "DUMMY (test) file" if active_file == "DUMMY" else "MAIN (live) file" }}</span>
 </footer>
 
 </body>

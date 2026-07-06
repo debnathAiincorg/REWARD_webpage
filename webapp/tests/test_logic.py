@@ -47,6 +47,23 @@ def test_detect_columns_picks_up_new_column():
     assert "Team Spirit" in cols["category_names"]
 
 
+def test_detect_columns_separates_notes_as_text():
+    cols = detect_columns(HEADERS + ["Notes"])
+    assert "Notes" in cols["text_names"]
+    assert "Notes" not in cols["category_names"]
+
+
+def test_totals_by_employee_ignores_text_fields():
+    headers = HEADERS + ["Notes"]
+    rows = [{"index": 0, "values": [1, "2026-07-01", "Alice", 1, 1, 0, 0, 0, 0, "late"]}]
+    records = rows_to_records(headers, rows)
+    cols = detect_columns(headers)
+    totals = totals_by_employee(
+        records, date(2026, 7, 1), date(2026, 7, 1), cols["category_names"]
+    )
+    assert totals["Alice"]["points"] == 2
+
+
 def test_parse_date_value_iso_string():
     assert parse_date_value("2026-07-01") == date(2026, 7, 1)
 

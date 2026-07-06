@@ -12,11 +12,13 @@
 
 <div class="section-heading">Today's Submitted Entries</div>
 {% if today_entries %}
+<div class="table-scroll">
 <table class="data-table">
   <thead>
     <tr>
       <th>Name</th>
       {% for cat in category_names %}<th class="num">{{ cat }}</th>{% endfor %}
+      {% for tf in text_names %}<th>{{ tf }}</th>{% endfor %}
     </tr>
   </thead>
   <tbody>
@@ -24,16 +26,19 @@
     <tr>
       <td>{{ r.Name }}</td>
       {% for cat in category_names %}<td class="num">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
+      {% for tf in text_names %}<td class="notes">{{ r.get(tf, "") or "" }}</td>{% endfor %}
     </tr>
     {% endfor %}
   </tbody>
 </table>
+</div>
 {% else %}
 <p class="empty-note">No entries submitted yet today.</p>
 {% endif %}
 
 <div class="section-heading">Week-to-Date Totals</div>
 {% if totals %}
+<div class="table-scroll">
 <table class="data-table">
   <thead>
     <tr>
@@ -47,11 +52,21 @@
     <tr>
       <td>{{ t.name }}</td>
       <td class="num">{{ t.points }}</td>
-      <td class="num">₹{{ t.amount }}</td>
+      <td class="num amount">₹{{ t.amount }}</td>
     </tr>
     {% endfor %}
   </tbody>
+  {% if totals_row %}
+  <tfoot>
+    <tr>
+      <td>TOTAL</td>
+      <td class="num">{{ totals_row.points }}</td>
+      <td class="num amount">₹{{ totals_row.amount }}</td>
+    </tr>
+  </tfoot>
+  {% endif %}
 </table>
+</div>
 {% else %}
 <p class="empty-note">No entries yet this week.</p>
 {% endif %}
