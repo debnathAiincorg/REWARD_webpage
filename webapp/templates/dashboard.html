@@ -10,66 +10,92 @@
   <div class="flash err">Could not load data: {{ error }}</div>
 {% else %}
 
-<div class="section-heading">Today's Submitted Entries</div>
-{% if today_entries %}
-<div class="table-scroll">
-<table class="data-table">
-  <thead>
-    <tr>
-      <th>Name</th>
-      {% for cat in category_names %}<th class="num">{{ cat }}</th>{% endfor %}
-      {% for tf in text_names %}<th>{{ tf }}</th>{% endfor %}
-    </tr>
-  </thead>
-  <tbody>
-    {% for r in today_entries %}
-    <tr>
-      <td>{{ r.Name }}</td>
-      {% for cat in category_names %}<td class="num">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
-      {% for tf in text_names %}<td class="notes">{{ r.get(tf, "") or "" }}</td>{% endfor %}
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-</div>
-{% else %}
-<p class="empty-note">No entries submitted yet today.</p>
-{% endif %}
-
-<div class="section-heading">Week-to-Date Totals</div>
-{% if totals %}
-<div class="table-scroll">
-<table class="data-table">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th class="num">Points</th>
-      <th class="num">Amount</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for t in totals %}
-    <tr>
-      <td>{{ t.name }}</td>
-      <td class="num">{{ t.points }}</td>
-      <td class="num amount">₹{{ t.amount }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-  {% if totals_row %}
-  <tfoot>
-    <tr>
-      <td>TOTAL</td>
-      <td class="num">{{ totals_row.points }}</td>
-      <td class="num amount">₹{{ totals_row.amount }}</td>
-    </tr>
-  </tfoot>
+<div class="card section-card">
+  <div class="card-header">Today's Submitted Entries</div>
+  <div class="card-body">
+  {% if today_entries %}
+  <div class="table-scroll">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        {% for cat in category_names %}<th class="num">{{ cat }}</th>{% endfor %}
+        {% for tf in text_names %}<th>{{ tf }}</th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in today_entries %}
+      <tr>
+        <td>{{ r.Name }}</td>
+        {% for cat in category_names %}<td class="num">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
+        {% for tf in text_names %}<td class="notes">{{ r.get(tf, "") or "" }}</td>{% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <svg class="empty-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="9" y="6" width="30" height="36" rx="2" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="15" y1="16" x2="33" y2="16" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="15" y1="23" x2="33" y2="23" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="15" y1="30" x2="25" y2="30" stroke="currentColor" stroke-width="1.5"/>
+    </svg>
+    <p class="empty-title">No entries submitted yet today</p>
+    <p class="empty-hint">Rows added on the Add Entry page for {{ today.isoformat() }} will appear here.</p>
+  </div>
   {% endif %}
-</table>
+  </div>
 </div>
-{% else %}
-<p class="empty-note">No entries yet this week.</p>
-{% endif %}
+
+<div class="card section-card">
+  <div class="card-header">Week-to-Date Totals</div>
+  <div class="card-body">
+  {% if totals %}
+  <div class="table-scroll">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th class="num">Points</th>
+        <th class="num">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in totals %}
+      <tr>
+        <td>{{ t.name }}</td>
+        <td class="num">{{ t.points }}</td>
+        <td class="num amount">₹{{ t.amount }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    {% if totals_row %}
+    <tfoot>
+      <tr>
+        <td>TOTAL</td>
+        <td class="num">{{ totals_row.points }}</td>
+        <td class="num amount">₹{{ totals_row.amount }}</td>
+      </tr>
+    </tfoot>
+    {% endif %}
+  </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <svg class="empty-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="9" y="6" width="30" height="36" rx="2" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="15" y1="16" x2="33" y2="16" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="15" y1="23" x2="33" y2="23" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="15" y1="30" x2="25" y2="30" stroke="currentColor" stroke-width="1.5"/>
+    </svg>
+    <p class="empty-title">No entries yet this week</p>
+    <p class="empty-hint">Week-to-date totals for {{ week_start.isoformat() if week_start else "" }} onward will appear here.</p>
+  </div>
+  {% endif %}
+  </div>
+</div>
 
 {% endif %}
 {% endblock %}

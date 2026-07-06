@@ -5,6 +5,7 @@
   /* Paper & ink */
   --paper: #F7F5F0;
   --paper-raised: #FFFFFF;
+  --panel-tint: #EFEAE0;   /* toolbar / card-header bands — a step down from paper-raised */
   --ink: #1C1B19;
   --ink-soft: #5B5850;
   --ink-faint: #9A9583;
@@ -12,22 +13,33 @@
   /* Primary accent — forest green */
   --forest: #2F5233;
   --forest-dark: #223d26;
-  --forest-soft: #E4EAE1;
+  --forest-soft: #E4EAE1;   /* faint hover tint */
+  --forest-tint: #D2E2D5;   /* visible selected-state tint — a real wash, not a whisper */
 
   /* Currency / amount accent — muted brass */
   --brass: #B08D57;
 
-  /* Structural lines */
-  --hairline: #D8D3C8;
+  /* Structural lines vs. module boundaries — two different weights on purpose */
+  --hairline: #D8D3C8;      /* thin row/field dividers */
+  --card-border: #C7C0AC;   /* visible border around a whole module (card, table, toolbar) */
 
-  /* Reserved exception accents — stamps only */
-  --stamp-test: #B3402A;   /* DUMMY / test copy */
-  --stamp-live: #A33A2F;   /* MAIN / live data, and error states */
+  /* Reserved exception accents — stamps only. Muted/desaturated ink tones,
+     not bright alert colors — this is stamped ink, not a warning light. */
+  --stamp-test: #8C4A3B;   /* DUMMY / test copy */
+  --stamp-live: #7A3A30;   /* MAIN / live data, and error states */
 
   /* Type */
   --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
   --font-body: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --font-stamp: "Courier New", Courier, monospace;
+
+  /* Corner radius scale — small and precise, never a soft consumer-app round */
+  --radius-sm: 2px;
+  --radius-md: 3px;
+
+  /* Card depth — soft but real, a module lifted slightly off the page */
+  --shadow-card: 0 3px 10px rgba(28, 27, 25, 0.09), 0 1px 3px rgba(28, 27, 25, 0.07);
 
   /* Spacing scale */
   --sp-1: 4px;
@@ -73,6 +85,37 @@ a { color: inherit; }
   padding: var(--sp-6) var(--sp-5) var(--sp-8);
   flex: 1;
 }
+
+/* ============================================================
+   Shared card system — every major content block (the entry form,
+   each dashboard section, the history table) is a distinct module:
+   a visible border plus a soft, real shadow, not a hairline pretending
+   to be a boundary.
+   ============================================================ */
+.card {
+  background: var(--paper-raised);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.card-header {
+  background: var(--panel-tint);
+  border-bottom: 1px solid var(--card-border);
+  padding: var(--sp-3) var(--sp-5);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--forest-dark);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.card-body { padding: var(--sp-5); }
+
+/* Table cards clip their contents so the table's edges respect the
+   card's rounded corners instead of poking a square table out past them. */
+.table-card { overflow: hidden; }
 
 /* ============================================================
    Header, nav, signature stamp
@@ -135,9 +178,10 @@ nav.site-nav a.active {
 }
 
 /* The signature element: an ink-stamp badge, pinned to the header's
-   top-right corner on every page. Rotated and double-ringed like a
-   real rubber stamp; mix-blend-mode lets it read as ink pressed onto
-   the paper rather than a flat colored sticker. */
+   top-right corner on every page. The rings sit on ::before/::after so
+   an SVG turbulence filter (defined once in base.html) can rough up
+   their edges without warping the text; mix-blend-mode plus a muted
+   ink tone read as a stamp pressed onto paper, not a colored sticker. */
 .stamp {
   --stamp-color: var(--stamp-test);
   position: absolute;
@@ -147,48 +191,56 @@ nav.site-nav a.active {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 9px 16px 8px;
-  border: 3px solid var(--stamp-color);
-  border-radius: 8px;
-  transform: rotate(-6deg);
+  padding: 7px 13px 6px;
+  transform: rotate(-8deg) skewX(-1.5deg);
   color: var(--stamp-color);
   mix-blend-mode: multiply;
+  opacity: 0.88;
   text-align: center;
   pointer-events: none;
 }
 
-.stamp::before {
+.stamp::before,
+.stamp::after {
   content: "";
   position: absolute;
-  inset: 3px;
-  border: 1px solid var(--stamp-color);
-  border-radius: 5px;
+  border: 1.5px solid var(--stamp-color);
+  border-radius: var(--radius-md);
+  filter: url(#stampRough);
+}
+
+.stamp::before { inset: 0; }
+.stamp::after { inset: 3px; border-width: 1px; }
+
+.stamp .stamp-main,
+.stamp .stamp-sub {
+  position: relative;
+  z-index: 1;
 }
 
 .stamp.is-live { --stamp-color: var(--stamp-live); }
 
 .stamp .stamp-main {
-  font-family: var(--font-mono);
-  font-size: 1rem;
+  font-family: var(--font-stamp);
+  font-size: 0.95rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   line-height: 1.1;
 }
 
 .stamp .stamp-sub {
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
-  letter-spacing: 0.09em;
+  font-family: var(--font-stamp);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   margin-top: 3px;
-  opacity: 0.9;
 }
 
 @media (max-width: 640px) {
   .stamp {
     position: static;
-    transform: rotate(-3deg);
+    transform: rotate(-4deg) skewX(-1deg);
     margin: var(--sp-4) var(--sp-5) 0;
     align-self: flex-start;
   }
@@ -214,7 +266,7 @@ footer.site-footer .footer-note {
    Flash messages
    ============================================================ */
 .flash {
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 12px 14px;
   font-family: var(--font-mono);
   font-size: 0.82rem;
@@ -249,8 +301,47 @@ p.page-sub {
   font-family: var(--font-mono);
   font-size: 0.76rem;
   color: var(--ink-soft);
-  margin: 0 0 var(--sp-6);
+  margin: 0 0 var(--sp-5);
 }
+
+/* ============================================================
+   Shared button system — one primary (filled forest) and one
+   secondary (outlined neutral) style, used identically everywhere
+   a button appears (Save Entry, Filter, Clear).
+   ============================================================ */
+.btn {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0 22px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--forest);
+  border-color: var(--forest);
+  color: var(--paper-raised);
+}
+
+.btn-primary:hover:not(:disabled) { background: var(--forest-dark); border-color: var(--forest-dark); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-secondary {
+  background: var(--paper-raised);
+  border-color: var(--card-border);
+  color: var(--ink-soft);
+}
+
+.btn-secondary:hover { color: var(--ink); border-color: var(--ink-soft); }
 
 /* ============================================================
    Add Entry — centered ledger card
@@ -258,22 +349,19 @@ p.page-sub {
 .entry-card {
   max-width: 640px;
   margin: 0 auto;
-  background: var(--paper-raised);
-  border: 1px solid var(--hairline);
-  border-radius: 6px;
-  padding: var(--sp-7) var(--sp-6);
+  padding: var(--sp-6);
 }
 
 form.entry-form {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-6);
+  gap: var(--sp-4);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
+  gap: var(--sp-1);
 }
 
 .field label {
@@ -298,10 +386,10 @@ input[type="number"],
 input[type="text"],
 select {
   font-family: var(--font-body);
-  font-size: 0.95rem;
-  padding: 11px 12px;
+  font-size: 0.92rem;
+  padding: 9px 10px;
   border: 1px solid var(--hairline);
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   background: var(--paper-raised);
   color: var(--ink);
   width: 100%;
@@ -315,63 +403,60 @@ input[type="number"] {
 input:focus, select:focus {
   outline: none;
   border-color: var(--forest);
-  box-shadow: 0 0 0 3px var(--forest-soft);
+  box-shadow: 0 0 0 2px var(--forest-soft);
 }
 
-/* Segmented pill control (0/1 toggles, multi-choice rows) */
+/* Segmented control (0/1 toggles, multi-choice rows) — adjacent cells
+   divided by hairlines, not a pill. The active option gets a real,
+   visible tint plus a thin underline — unmistakable at a glance,
+   short of going back to a solid fill block. */
 .segmented {
   display: flex;
-  background: var(--paper);
   border: 1px solid var(--hairline);
-  border-radius: 999px;
-  padding: 3px;
-  gap: 3px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
 }
 
 .segmented button {
   flex: 1;
   font-family: var(--font-mono);
-  font-size: 0.9rem;
-  padding: 9px 0;
+  font-size: 0.82rem;
+  padding: 7px 0 8px;
   border: none;
-  border-radius: 999px;
-  background: transparent;
+  border-right: 1px solid var(--hairline);
+  background: var(--paper-raised);
   color: var(--ink-soft);
   cursor: pointer;
+  position: relative;
   transition: background 0.12s ease, color 0.12s ease;
 }
+
+.segmented button:last-child { border-right: none; }
 
 .segmented button:hover { color: var(--ink); }
 
 .segmented button.selected {
+  color: var(--forest-dark);
+  font-weight: 700;
+  background: var(--forest-tint);
+}
+
+.segmented button.selected::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
   background: var(--forest);
-  color: var(--paper-raised);
-  font-weight: 600;
 }
 
 .submit-bar {
-  margin-top: var(--sp-2);
+  margin-top: var(--sp-1);
   display: flex;
   align-items: center;
   gap: var(--sp-4);
 }
-
-button.primary {
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  background: var(--forest);
-  color: var(--paper-raised);
-  border: none;
-  padding: 13px 26px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.12s ease;
-}
-
-button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
-button.primary:hover:not(:disabled) { background: var(--forest-dark); }
 
 .status { font-family: var(--font-mono); font-size: 0.8rem; }
 .status.ok { color: var(--forest); }
@@ -381,7 +466,7 @@ button.primary:hover:not(:disabled) { background: var(--forest-dark); }
   background: #FBEAE7;
   border: 1px solid var(--stamp-live);
   color: var(--stamp-live);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 12px 14px;
   font-family: var(--font-mono);
   font-size: 0.78rem;
@@ -394,23 +479,10 @@ button.primary:hover:not(:disabled) { background: var(--forest-dark); }
 /* ============================================================
    Ledger tables (Dashboard, History)
    ============================================================ */
-.section-heading {
-  font-family: var(--font-mono);
-  font-size: 0.76rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--forest);
-  border-bottom: 1px solid var(--hairline);
-  padding-bottom: var(--sp-2);
-  margin: var(--sp-7) 0 var(--sp-4);
-}
+.section-card { margin-bottom: var(--sp-5); }
+.section-card:last-child { margin-bottom: 0; }
 
-.section-heading:first-of-type { margin-top: 0; }
-
-.table-scroll {
-  overflow-x: auto;
-  margin-bottom: var(--sp-6);
-}
+.table-scroll { overflow-x: auto; }
 
 table.data-table {
   width: 100%;
@@ -451,6 +523,7 @@ table.data-table td.notes {
   max-width: 220px;
 }
 
+table.data-table tbody tr:last-child td { border-bottom: none; }
 table.data-table tbody tr:hover td { background: var(--forest-soft); }
 
 /* Ledger TOTAL row — double rule like a closed ledger line */
@@ -463,11 +536,36 @@ table.data-table tfoot td {
 
 table.data-table tfoot td.amount { color: var(--brass); }
 
-.empty-note {
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
+/* Empty states — a proper module, not a lone italic sentence */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--sp-6) var(--sp-5);
   color: var(--ink-faint);
-  padding: var(--sp-3) 0 var(--sp-5);
+}
+
+.empty-state .empty-icon {
+  width: 34px;
+  height: 34px;
+  color: var(--ink-faint);
+  margin-bottom: var(--sp-3);
+}
+
+.empty-state .empty-title {
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin: 0 0 4px;
+}
+
+.empty-state .empty-hint {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--ink-faint);
+  margin: 0;
 }
 
 /* History: bounded, independently-scrolling register with a frozen header row.
@@ -479,61 +577,38 @@ table.data-table tfoot td.amount { color: var(--brass); }
 .register-scroll {
   max-height: 70vh;
   overflow-y: auto;
-  border: 1px solid var(--hairline);
-  border-radius: 6px;
 }
 
-table.register tbody tr:nth-child(even) td { background: rgba(216, 211, 200, 0.16); }
+table.register tbody tr:nth-child(even) td { background: rgba(199, 192, 172, 0.14); }
 table.register tbody tr:hover td { background: var(--forest-soft); }
 
 table.register thead th {
   position: sticky;
   top: 0;
-  background: var(--paper);
-  box-shadow: 0 1px 0 var(--ink);
+  background: var(--panel-tint);
+  box-shadow: 0 1px 0 var(--card-border);
 }
 
-table.register tbody tr:first-child td { border-top: none; }
-
-/* Filter toolbar */
-form.filter-bar {
+/* Filter toolbar — one cohesive tinted bar, not floating boxes */
+.filter-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: var(--sp-4);
   align-items: flex-end;
+  background: var(--panel-tint);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4) var(--sp-5);
   margin-bottom: var(--sp-5);
-  padding-bottom: var(--sp-5);
-  border-bottom: 1px solid var(--hairline);
 }
 
-form.filter-bar .field { min-width: 160px; flex: 1 1 160px; gap: var(--sp-1); }
+.filter-toolbar .field { min-width: 160px; flex: 1 1 160px; gap: var(--sp-1); }
 
-form.filter-bar button {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 11px 20px;
-  border: 1px solid var(--forest);
-  border-radius: 5px;
-  background: var(--forest);
-  color: var(--paper-raised);
-  cursor: pointer;
-  height: 42px;
-  transition: background 0.12s ease;
-}
+.filter-toolbar .field label { color: var(--forest-dark); }
 
-form.filter-bar button:hover { background: var(--forest-dark); }
-
-form.filter-bar a.clear-link {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  color: var(--ink-soft);
-  text-decoration: underline;
-  align-self: center;
-  height: 42px;
-  display: inline-flex;
-  align-items: center;
+.filter-toolbar input,
+.filter-toolbar select {
+  background: var(--paper-raised);
 }
 
 @media (prefers-reduced-motion: reduce) {

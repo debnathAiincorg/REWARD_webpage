@@ -4,7 +4,7 @@
 <h2 class="page-title">Add Entry</h2>
 <p class="page-sub">writes directly into Table1 · updates the existing row instead of duplicating if this employee already has an entry for the chosen date</p>
 
-<div class="entry-card">
+<div class="card entry-card">
 <div class="error-list" id="errorList"></div>
 
 <form class="entry-form" id="entryForm" method="post" action="{{ url_for('add_entry') }}">
@@ -69,7 +69,7 @@
   {% endfor %}
 
   <div class="submit-bar">
-    <button type="submit" class="primary" id="submitBtn">Save entry</button>
+    <button type="submit" class="btn btn-primary" id="submitBtn">Save entry</button>
     <span class="status" id="statusMsg"></span>
   </div>
 </form>

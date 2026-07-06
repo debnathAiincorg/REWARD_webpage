@@ -8,7 +8,7 @@
   <div class="flash err">Could not load data: {{ error }}</div>
 {% else %}
 
-<form class="filter-bar" method="get" action="{{ url_for('history') }}">
+<form class="filter-toolbar" method="get" action="{{ url_for('history') }}">
   <div class="field">
     <label for="employee">Employee</label>
     <select id="employee" name="employee">
@@ -26,36 +26,48 @@
     <label for="to">To</label>
     <input type="date" id="to" name="to" value="{{ selected_to }}">
   </div>
-  <button type="submit">Filter</button>
-  <a class="clear-link" href="{{ url_for('history') }}">Clear</a>
+  <button type="submit" class="btn btn-primary">Filter</button>
+  <a class="btn btn-secondary" href="{{ url_for('history') }}">Clear</a>
 </form>
 
-{% if rows %}
-<div class="table-scroll register-scroll">
-<table class="data-table register">
-  <thead>
-    <tr>
-      <th>Date</th>
-      <th>Name</th>
-      {% for cat in categories %}<th class="num">{{ cat }}</th>{% endfor %}
-      {% for tf in text_names %}<th>{{ tf }}</th>{% endfor %}
-    </tr>
-  </thead>
-  <tbody>
-    {% for r in rows %}
-    <tr>
-      <td>{{ r.Date.isoformat() if r.Date else "" }}</td>
-      <td>{{ r.Name }}</td>
-      {% for cat in categories %}<td class="num">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
-      {% for tf in text_names %}<td class="notes">{{ r.get(tf, "") or "" }}</td>{% endfor %}
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="card table-card">
+  <div class="card-header">Register</div>
+  {% if rows %}
+  <div class="table-scroll register-scroll">
+  <table class="data-table register">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Name</th>
+        {% for cat in categories %}<th class="num">{{ cat }}</th>{% endfor %}
+        {% for tf in text_names %}<th>{{ tf }}</th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.Date.isoformat() if r.Date else "" }}</td>
+        <td>{{ r.Name }}</td>
+        {% for cat in categories %}<td class="num">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
+        {% for tf in text_names %}<td class="notes">{{ r.get(tf, "") or "" }}</td>{% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <svg class="empty-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="9" y="6" width="30" height="36" rx="2" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="15" y1="16" x2="33" y2="16" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="15" y1="23" x2="33" y2="23" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="15" y1="30" x2="25" y2="30" stroke="currentColor" stroke-width="1.5"/>
+    </svg>
+    <p class="empty-title">No rows match the current filters</p>
+    <p class="empty-hint">Try widening the date range or clearing the employee filter.</p>
+  </div>
+  {% endif %}
 </div>
-{% else %}
-<p class="empty-note">No rows match the current filters.</p>
-{% endif %}
 
 {% endif %}
 {% endblock %}
