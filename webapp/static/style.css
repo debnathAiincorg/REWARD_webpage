@@ -133,20 +133,24 @@ a { color: inherit; }
   padding: var(--sp-6) var(--sp-5) var(--sp-5);
 }
 
+/* ADIRI is the company wordmark — the one dominant brand mark on the
+   page. Uppercase display serif with wide tracking reads as a proper
+   letterhead logotype, not just a bigger version of the page title. */
 .site-header h1 {
   font-family: var(--font-display);
-  font-size: 1.75rem;
-  font-weight: 600;
+  font-size: 2.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.05em;
+  color: var(--ink);
 }
 
 .site-header .tagline {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
   color: var(--ink-soft);
   margin-top: var(--sp-2);
 }
@@ -185,10 +189,10 @@ nav.site-nav a.active {
 }
 
 /* The signature element: an ink-stamp badge, pinned to the header's
-   top-right corner on every page. The rings sit on ::before/::after so
-   an SVG turbulence filter (defined once in base.html) can rough up
-   their edges without warping the text; mix-blend-mode plus a muted
-   ink tone read as a stamp pressed onto paper, not a colored sticker. */
+   top-right corner on every page. A crisp double ring with only a
+   faint hint of texture (the SVG filter in base.html is tuned subtle
+   on purpose) plus mix-blend-mode read as a proper stamp pressed onto
+   letterhead — not a hand-scribbled sticker. */
 .stamp {
   --stamp-color: var(--stamp-test);
   position: absolute;
@@ -198,11 +202,11 @@ nav.site-nav a.active {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 7px 13px 6px;
-  transform: rotate(-8deg) skewX(-1.5deg);
+  padding: 9px 16px 8px;
+  transform: rotate(-6deg);
   color: var(--stamp-color);
   mix-blend-mode: multiply;
-  opacity: 0.88;
+  opacity: 0.9;
   text-align: center;
   pointer-events: none;
 }
@@ -211,13 +215,13 @@ nav.site-nav a.active {
 .stamp::after {
   content: "";
   position: absolute;
-  border: 1.5px solid var(--stamp-color);
+  border: 2px solid var(--stamp-color);
   border-radius: var(--radius-md);
   filter: url(#stampRough);
 }
 
 .stamp::before { inset: 0; }
-.stamp::after { inset: 3px; border-width: 1px; }
+.stamp::after { inset: 4px; border-width: 1px; }
 
 .stamp .stamp-main,
 .stamp .stamp-sub {
@@ -247,7 +251,7 @@ nav.site-nav a.active {
 @media (max-width: 640px) {
   .stamp {
     position: static;
-    transform: rotate(-4deg) skewX(-1deg);
+    transform: rotate(-5deg);
     margin: var(--sp-4) var(--sp-5) 0;
     align-self: flex-start;
   }
@@ -378,8 +382,9 @@ p.page-sub {
 .entry-card {
   max-width: 640px;
   margin: 0 auto;
-  padding: var(--sp-6);
 }
+
+.entry-card .card-body { padding: var(--sp-6); }
 
 form.entry-form {
   display: flex;
@@ -663,6 +668,6 @@ table.register thead th {
 }
 
 @media (max-width: 560px) {
-  .entry-card { padding: var(--sp-5) var(--sp-4); }
+  .entry-card .card-body { padding: var(--sp-5) var(--sp-4); }
   .wrap { padding: var(--sp-5) var(--sp-4) var(--sp-7); }
 }

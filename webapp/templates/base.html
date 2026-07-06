@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,16 +10,16 @@
 <body>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <filter id="stampRough" x="-30%" y="-30%" width="160%" height="160%">
-    <feTurbulence type="fractalNoise" baseFrequency="0.045 0.09" numOctaves="2" seed="7" result="noise"/>
-    <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.5" xChannelSelector="R" yChannelSelector="G"/>
+  <filter id="stampRough" x="-20%" y="-20%" width="140%" height="140%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.3 0.35" numOctaves="2" seed="7" result="noise"/>
+    <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.2" xChannelSelector="R" yChannelSelector="G"/>
   </filter>
 </svg>
 
 <header class="site-header">
   <div class="site-header-inner">
-    <h1>Daily Performance Bonus</h1>
-    <span class="tagline">Internal entry ledger</span>
+    <h1>ADIRI</h1>
+    <span class="tagline">Daily Performance Bonus — Internal Ledger</span>
   </div>
   <nav class="site-nav">
     <a href="{{ url_for('dashboard') }}" class="{{ 'active' if active_page == 'dashboard' }}">Dashboard</a>

@@ -5,6 +5,8 @@
 <p class="page-sub">writes directly into Table1 · updates the existing row instead of duplicating if this employee already has an entry for the chosen date</p>
 
 <div class="card entry-card">
+<div class="card-header">Daily Performance Bonus</div>
+<div class="card-body">
 <div class="error-list" id="errorList"></div>
 
 <form class="entry-form" id="entryForm" method="post" action="{{ url_for('add_entry') }}" novalidate>
@@ -75,6 +77,7 @@
     <span class="status" id="statusMsg"></span>
   </div>
 </form>
+</div>
 </div>
 
 <script>
