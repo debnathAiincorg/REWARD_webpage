@@ -5,28 +5,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}Daily Performance Bonus{% endblock %}</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ style_version }}">
 </head>
 <body>
 
 <header class="site-header">
   <div class="site-header-inner">
     <div class="brand">
-      <h1 class="brand-name"><a href="{{ url_for('dashboard') }}">ADIRI</a></h1>
-      <span class="tagline">Daily Performance Bonus — Internal Ledger</span>
+      <h1 class="brand-name"><a href="{{ url_for('home') }}">ADIRI</a></h1>
+      <span class="tagline">Daily Performance Bonus</span>
     </div>
-    <div class="header-right">
-      <nav class="site-nav">
-        <a href="{{ url_for('dashboard') }}" class="{{ 'active' if active_page == 'dashboard' }}">Dashboard</a>
-        <a href="{{ url_for('add_entry') }}" class="{{ 'active' if active_page == 'add' }}">Add Entry</a>
-        <a href="{{ url_for('history') }}" class="{{ 'active' if active_page == 'history' }}">History</a>
-      </nav>
-      {% if active_file == "DUMMY" %}
-        <span class="data-indicator">Test Data</span>
-      {% else %}
-        <span class="data-indicator is-live">Live Data</span>
-      {% endif %}
-    </div>
+    <nav class="site-nav">
+      <a href="{{ url_for('home') }}" class="{{ 'active' if active_page == 'home' }}">Home</a>
+      <a href="{{ url_for('dashboard') }}" class="{{ 'active' if active_page == 'dashboard' }}">Dashboard</a>
+      <a href="{{ url_for('add_entry') }}" class="{{ 'active' if active_page == 'add' }}">Add Entry</a>
+      <a href="{{ url_for('history') }}" class="{{ 'active' if active_page == 'history' }}">History</a>
+    </nav>
   </div>
 </header>
 
@@ -44,8 +38,8 @@
 
 <footer class="site-footer">
   <div class="footer-inner">
-    <span class="footer-note">Connected to: <strong>{{ "DUMMY (test) file" if active_file == "DUMMY" else "MAIN (live) file" }}</strong> · Table1 · Daily Performance Bonus</span>
-    <span class="footer-version">v1.0</span>
+    <span class="footer-brand">&copy; {{ current_year }} ADIRI · Daily Performance Bonus</span>
+    <span class="footer-version">Version 1.0</span>
   </div>
 </footer>
 

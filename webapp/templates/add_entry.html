@@ -12,16 +12,16 @@
 <form class="entry-form" id="entryForm" method="post" action="{{ url_for('add_entry') }}" novalidate>
   <div class="field">
     <label for="date">Date</label>
-    <input type="date" id="date" name="date" value="{{ today }}" required>
+    <input type="date" id="date" name="date" value="{{ prefill.get('date', today) }}" required>
     <span class="field-error" id="dateError">Enter a date.</span>
   </div>
 
   <div class="field">
     <label for="name">Name</label>
     <select id="name" name="name" required>
-      <option value="" disabled selected>Select employee</option>
+      <option value="" disabled {% if not prefill.get('name') %}selected{% endif %}>Select employee</option>
       {% for emp in employees %}
-      <option value="{{ emp }}">{{ emp }}</option>
+      <option value="{{ emp }}" {% if prefill.get('name') == emp %}selected{% endif %}>{{ emp }}</option>
       {% endfor %}
     </select>
     <span class="field-error" id="nameError">Select an employee to continue.</span>
@@ -37,38 +37,27 @@
         <button type="button" data-value="0">0</button>
         <button type="button" data-value="1">1</button>
       </div>
-      <input type="hidden" name="cat__{{ cat }}" data-hidden-for="cat__{{ cat }}">
-    </div>
-
-    {% elif widget == "choice" %}
-    <div class="field">
-      <label>{{ cat }}</label>
-      <div class="segmented" data-field="cat__{{ cat }}">
-        {% for v in extraordinary_choices %}
-        <button type="button" data-value="{{ v }}">{{ v }}</button>
-        {% endfor %}
-      </div>
-      <input type="hidden" name="cat__{{ cat }}" data-hidden-for="cat__{{ cat }}">
+      <input type="hidden" name="cat__{{ cat }}" data-hidden-for="cat__{{ cat }}" value="{{ prefill.get('cat__' ~ cat, '') }}">
     </div>
 
     {% elif widget == "decimal" %}
     <div class="field">
       <label for="cat__{{ cat }}">{{ cat }} <span class="opt">optional</span></label>
-      <input type="number" id="cat__{{ cat }}" name="cat__{{ cat }}" step="0.5" min="0" value="0">
+      <input type="number" id="cat__{{ cat }}" name="cat__{{ cat }}" step="0.5" min="0" value="{{ prefill.get('cat__' ~ cat, 0) }}">
     </div>
 
     {% else %}
     <div class="field">
       <label for="cat__{{ cat }}">{{ cat }}</label>
-      <input type="number" id="cat__{{ cat }}" name="cat__{{ cat }}" step="1" min="0" value="0">
+      <input type="number" id="cat__{{ cat }}" name="cat__{{ cat }}" step="1" min="0" max="100" value="{{ prefill.get('cat__' ~ cat, 0) }}">
     </div>
     {% endif %}
   {% endfor %}
 
   {% for tf in text_fields %}
   <div class="field">
-    <label for="txt__{{ tf }}">{{ tf }} <span class="opt">optional</span></label>
-    <input type="text" id="txt__{{ tf }}" name="txt__{{ tf }}">
+    <label for="txt__{{ tf }}">{{ field_labels.get(tf, tf) }} <span class="opt">optional</span></label>
+    <input type="text" id="txt__{{ tf }}" name="txt__{{ tf }}" value="{{ prefill.get('txt__' ~ tf, '') }}">
   </div>
   {% endfor %}
 
@@ -90,12 +79,15 @@
         hidden.value = btn.dataset.value;
       });
     });
-    // Default every segmented row to its first option so submission never
-    // sends an empty value for a row the user didn't touch.
-    const firstBtn = row.querySelector('button');
-    if (firstBtn) {
-      firstBtn.classList.add('selected');
-      hidden.value = firstBtn.dataset.value;
+    // Default to the hidden input's pre-filled value (set server-side when
+    // editing an existing row via History); otherwise fall back to the
+    // first option, so submission never sends an empty value for a row
+    // the user didn't touch.
+    const matchingBtn = hidden.value !== '' ? row.querySelector(`button[data-value="${hidden.value}"]`) : null;
+    const activeBtn = matchingBtn || row.querySelector('button');
+    if (activeBtn) {
+      activeBtn.classList.add('selected');
+      hidden.value = activeBtn.dataset.value;
     }
   });
 

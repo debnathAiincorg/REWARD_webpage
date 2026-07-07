@@ -2,10 +2,12 @@
    Design tokens — daily performance ledger
    ============================================================ */
 :root {
-  /* Paper & ink — pale sage page, white cards lifted off it */
-  --paper: #EEF3EA;
+  /* Paper & ink — sage page, white cards lifted off it. Deep enough to
+     read as green at a glance, not just an off-white. */
+  --paper: #B8C9AC;
   --paper-raised: #FFFFFF;
-  --panel-tint: #E1E9DC;   /* toolbar / card-header bands — a step deeper than the page */
+  --panel-tint: #DCE7D5;   /* toolbar / card-header bands — a step deeper than the page */
+  --chrome-bg: #DEDDD8;    /* header/footer — deeper warm cream (~10% darker than #F7F5F0), distinct from the sage page */
   --ink: #1C1B19;
   --ink-soft: #545F4E;
   --ink-faint: #8B968A;
@@ -24,10 +26,9 @@
   --hairline: #D3DDCF;      /* thin row/field dividers */
   --card-border: #B9C5B2;   /* visible border around a whole module (card, table, toolbar) */
 
-  /* Reserved exception accents — the DUMMY/MAIN data-source indicator
-     and error states. Muted/desaturated tones, not bright alert colors. */
-  --stamp-test: #8C4A3B;   /* DUMMY / test data */
-  --stamp-live: #7A3A30;   /* MAIN / live data, and error states */
+  /* Reserved exception accent — error states. Muted/desaturated tone,
+     not a bright alert color. */
+  --stamp-live: #7A3A30;
 
   /* Type */
   --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
@@ -39,7 +40,7 @@
   --radius-md: 3px;
 
   /* Card depth — soft but real, a module lifted slightly off the page */
-  --shadow-card: 0 3px 10px rgba(28, 27, 25, 0.09), 0 1px 3px rgba(28, 27, 25, 0.07);
+  --shadow-card: 0 4px 14px rgba(28, 27, 25, 0.12), 0 1px 4px rgba(28, 27, 25, 0.08);
 
   /* Spacing scale */
   --sp-1: 4px;
@@ -56,12 +57,12 @@
 
 html, body {
   margin: 0;
-  min-height: 100%;
+  min-height: 100vh;
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 17px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -79,10 +80,10 @@ a { color: inherit; }
 }
 
 .wrap {
-  max-width: 900px;
+  max-width: 1600px;
   width: 100%;
   margin: 0 auto;
-  padding: var(--sp-6) var(--sp-5) var(--sp-8);
+  padding: var(--sp-6) var(--sp-7);
   flex: 1;
 }
 
@@ -102,32 +103,36 @@ a { color: inherit; }
 .card-header {
   background: var(--panel-tint);
   border-bottom: 1px solid var(--card-border);
-  padding: var(--sp-3) var(--sp-5);
+  border-top: 3px solid var(--forest);
+  padding: var(--sp-4) var(--sp-5);
   font-family: var(--font-mono);
-  font-size: 0.74rem;
-  letter-spacing: 0.07em;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--forest-dark);
   border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
-.card-body { padding: var(--sp-5); }
+.card-body { padding: var(--sp-6) var(--sp-5); }
 
 /* Table cards clip their contents so the table's edges respect the
    card's rounded corners instead of poking a square table out past them. */
 .table-card { overflow: hidden; }
 
 /* ============================================================
-   Header, nav — plain and minimal, one row, no boxes/pills/dividers
+   Header, nav — a full-width anchored chrome bar. Deliberately
+   heavier than the (centered, narrower) content column below it.
    ============================================================ */
 .site-header {
-  background: var(--paper-raised);
+  background: var(--chrome-bg);
+  border-bottom: 2px solid var(--card-border);
+  box-shadow: 0 2px 10px rgba(28, 27, 25, 0.05);
 }
 
 .site-header-inner {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: var(--sp-5);
+  width: 100%;
+  padding: 12px var(--sp-7);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -135,19 +140,27 @@ a { color: inherit; }
   gap: var(--sp-4);
 }
 
-.brand { display: flex; flex-direction: column; }
+.brand {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
 
 .brand-name {
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  font-family: var(--font-body);
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1;
 }
 
 .brand-name a {
   color: var(--ink);
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
 }
 
 .brand-name a:hover { color: var(--forest-dark); }
@@ -155,86 +168,77 @@ a { color: inherit; }
 .site-header .tagline {
   display: block;
   font-family: var(--font-body);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
+  line-height: 1;
   color: var(--ink-soft);
-  margin-top: 2px;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-5);
-  flex-wrap: wrap;
+  margin-top: 0;
 }
 
 nav.site-nav {
   display: flex;
-  gap: var(--sp-4);
+  align-items: center;
+  gap: var(--sp-1);
 }
 
 nav.site-nav a {
   font-family: var(--font-body);
-  font-size: 0.92rem;
+  font-size: 0.9rem;
+  line-height: 1;
   color: var(--ink-soft);
   text-decoration: none;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s ease, color 0.12s ease;
 }
 
-nav.site-nav a:hover { color: var(--ink); text-decoration: underline; }
+nav.site-nav a:hover {
+  background: var(--forest-soft);
+  color: var(--ink);
+}
 
 nav.site-nav a.active {
-  color: var(--ink);
+  background: var(--forest);
+  color: var(--paper-raised);
   font-weight: 700;
-  text-decoration: underline;
 }
 
-/* Data-source indicator — plain text only, no box/border/rotation.
-   Still colored so it stays noticeable; that's the whole safety net. */
-.data-indicator {
-  font-family: var(--font-body);
-  font-size: 0.82rem;
-  color: var(--stamp-test);
+nav.site-nav a.active:hover {
+  background: var(--forest-dark);
+  color: var(--paper-raised);
 }
 
-.data-indicator.is-live {
-  color: var(--stamp-live);
-  font-weight: 600;
-}
-
-/* Footer — a real bar, not a single faint line */
+/* Footer — the header's mirror image: same full-width chrome
+   treatment, so both ends of the page feel equally finished. */
 footer.site-footer {
-  background: var(--panel-tint);
-  border-top: 1px solid var(--card-border);
+  background: var(--chrome-bg);
+  border-top: 2px solid var(--card-border);
+  box-shadow: 0 -2px 10px rgba(28, 27, 25, 0.05);
   margin-top: auto;
 }
 
 .footer-inner {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: var(--sp-4) var(--sp-5);
+  width: 100%;
+  padding: var(--sp-4) var(--sp-7);
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: var(--sp-2);
+  gap: var(--sp-4);
 }
 
-footer.site-footer .footer-note {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  color: var(--ink-soft);
-}
-
-footer.site-footer .footer-note strong {
-  color: var(--forest-dark);
-  font-weight: 700;
-}
-
+footer.site-footer .footer-brand,
 footer.site-footer .footer-version {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.05em;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
   color: var(--ink-faint);
+}
+
+footer.site-footer .footer-brand {
+  font-size: 0.95rem;
 }
 
 /* ============================================================
@@ -242,9 +246,9 @@ footer.site-footer .footer-version {
    ============================================================ */
 .flash {
   border-radius: var(--radius-sm);
-  padding: 12px 14px;
+  padding: 14px 16px;
   font-family: var(--font-mono);
-  font-size: 0.82rem;
+  font-size: 0.92rem;
   margin-bottom: var(--sp-5);
   border: 1px solid;
 }
@@ -266,17 +270,18 @@ footer.site-footer .footer-version {
    ============================================================ */
 h2.page-title {
   font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-size: 2.1rem;
   font-weight: 600;
+  color: var(--forest-dark);
   margin: 0 0 var(--sp-1);
   letter-spacing: -0.01em;
 }
 
 p.page-sub {
   font-family: var(--font-mono);
-  font-size: 0.76rem;
+  font-size: 0.88rem;
   color: var(--ink-soft);
-  margin: 0 0 var(--sp-5);
+  margin: 0 0 var(--sp-6);
 }
 
 /* ============================================================
@@ -286,11 +291,11 @@ p.page-sub {
    ============================================================ */
 .btn {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 0 22px;
-  height: 40px;
+  padding: 0 24px;
+  height: 44px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   display: inline-flex;
@@ -342,8 +347,8 @@ form.entry-form {
 
 .field label {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.07em;
+  font-size: 0.84rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-soft);
   display: flex;
@@ -362,8 +367,8 @@ input[type="number"],
 input[type="text"],
 select {
   font-family: var(--font-body);
-  font-size: 0.92rem;
-  padding: 9px 10px;
+  font-size: 1rem;
+  padding: 11px 12px;
   border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);
   background: var(--paper-raised);
@@ -393,7 +398,7 @@ input.invalid, select.invalid {
 .field-error {
   display: none;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.84rem;
   color: var(--stamp-live);
   margin-top: var(--sp-1);
 }
@@ -414,8 +419,8 @@ input.invalid, select.invalid {
 .segmented button {
   flex: 1;
   font-family: var(--font-mono);
-  font-size: 0.82rem;
-  padding: 7px 0 8px;
+  font-size: 0.92rem;
+  padding: 9px 0 10px;
   border: none;
   border-right: 1px solid var(--hairline);
   background: var(--paper-raised);
@@ -452,7 +457,7 @@ input.invalid, select.invalid {
   gap: var(--sp-4);
 }
 
-.status { font-family: var(--font-mono); font-size: 0.8rem; }
+.status { font-family: var(--font-mono); font-size: 0.9rem; }
 .status.ok { color: var(--forest); }
 .status.err { color: var(--stamp-live); }
 
@@ -461,9 +466,9 @@ input.invalid, select.invalid {
   border: 1px solid var(--stamp-live);
   color: var(--stamp-live);
   border-radius: var(--radius-sm);
-  padding: 12px 14px;
+  padding: 14px 16px;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.88rem;
   line-height: 1.6;
   display: none;
 }
@@ -473,7 +478,7 @@ input.invalid, select.invalid {
 /* ============================================================
    Ledger tables (Dashboard, History)
    ============================================================ */
-.section-card { margin-bottom: var(--sp-5); }
+.section-card { margin-bottom: var(--sp-6); }
 .section-card:last-child { margin-bottom: 0; }
 
 .table-scroll { overflow-x: auto; }
@@ -481,24 +486,24 @@ input.invalid, select.invalid {
 table.data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.88rem;
+  font-size: 0.98rem;
 }
 
 table.data-table th,
 table.data-table td {
   border-bottom: 1px solid var(--hairline);
-  padding: 10px 12px;
+  padding: 12px 14px;
   text-align: left;
   white-space: nowrap;
 }
 
 table.data-table th {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.06em;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--ink-soft);
-  font-weight: 600;
+  color: var(--forest-dark);
+  font-weight: 700;
 }
 
 table.data-table td.num,
@@ -516,6 +521,53 @@ table.data-table td.notes {
   font-style: italic;
   max-width: 220px;
 }
+
+/* History row actions — secondary, per-row controls, but styled as real
+   compact buttons (same visual weight as the nav's active-page button)
+   rather than plain links so they read as clickable actions at a glance.
+   Edit uses the site's primary forest-green; Delete uses the existing
+   muted brick-red error tone so it's clearly distinct as destructive. Both
+   sized to fit the fixed 130px Actions column side by side. */
+td.row-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  white-space: nowrap;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.delete-form { margin: 0; }
+
+.action-edit,
+.action-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  color: var(--paper-raised);
+  text-decoration: none;
+  cursor: pointer;
+  transition: filter 0.12s ease;
+}
+
+.action-edit {
+  background: var(--forest);
+}
+
+.action-edit:hover { filter: brightness(0.88); }
+
+.action-delete {
+  background: var(--stamp-live);
+}
+
+.action-delete:hover { filter: brightness(0.88); }
 
 table.data-table tbody tr:last-child td { border-bottom: none; }
 table.data-table tbody tr:hover td { background: var(--forest-soft); }
@@ -549,7 +601,7 @@ table.data-table tfoot td.amount { color: var(--brass); }
 
 .empty-state .empty-title {
   font-family: var(--font-body);
-  font-size: 0.92rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--ink-soft);
   margin: 0 0 4px;
@@ -557,7 +609,7 @@ table.data-table tfoot td.amount { color: var(--brass); }
 
 .empty-state .empty-hint {
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.86rem;
   color: var(--ink-faint);
   margin: 0;
 }
@@ -573,14 +625,78 @@ table.data-table tfoot td.amount { color: var(--brass); }
   overflow-y: auto;
 }
 
+/* Fixed, hand-picked column widths — no JS, no drag-resize, no localStorage.
+   table-layout:fixed makes these the literal column widths; col-flex (Notes)
+   gets no explicit width and absorbs whatever space is left. Sized so every
+   header fits on one line, except the two-word "narrow" numeric headers
+   (Fluency Compliance) which get a clean 2-line wrap at the natural word
+   break — never a mid-word break. */
+table.register {
+  table-layout: fixed;
+}
+
+table.register col.col-date { width: 110px; }
+table.register col.col-name { width: 170px; }
+table.register col.col-num-narrow { width: 120px; }
+table.register col.col-num-wide { width: 145px; }
+table.register col.col-actions { width: 130px; }
+/* col.col-flex (Notes): intentionally no width — fills remaining space. */
+
+table.register th,
+table.register td {
+  white-space: normal;
+  padding: 18px 10px;
+  line-height: 1.5;
+}
+
+/* Never break a word mid-character — a header/value either fits on one
+   line, wraps at a real space, or (for Date) never wraps at all. */
+table.register th,
+table.register td.notes {
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+
+/* Date is a fixed-format YYYY-MM-DD string — never wrap it at all. */
+table.register th:first-child,
+table.register td:first-child {
+  white-space: nowrap;
+}
+
 table.register tbody tr:nth-child(even) td { background: rgba(185, 197, 178, 0.16); }
 table.register tbody tr:hover td { background: var(--forest-soft); }
+
+/* border-collapse:collapse (inherited from .data-table) combined with
+   position:sticky on individual th cells is a known browser compositing
+   bug — scrolled body content can "ghost" through the sticky header layer
+   during scroll. border-collapse:separate is the standard fix. Cells only
+   ever set border-bottom (never border-top), so switching models doesn't
+   create doubled borders. */
+table.register {
+  border-collapse: separate;
+  border-spacing: 0;
+}
 
 table.register thead th {
   position: sticky;
   top: 0;
+  z-index: 1;
   background: var(--panel-tint);
   box-shadow: 0 1px 0 var(--card-border);
+}
+
+/* Masks a 1-2px sub-pixel gap under the sticky header where the scrolled
+   row underneath can otherwise peek through during scroll (rounding
+   error between the sticky offset and row heights). Paints a sliver of
+   the header's own background just past its bottom edge. */
+table.register thead th::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 6px;
+  background: var(--panel-tint);
 }
 
 /* Filter toolbar — one cohesive tinted bar, not floating boxes */
@@ -592,8 +708,9 @@ table.register thead th {
   background: var(--panel-tint);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-md);
-  padding: var(--sp-4) var(--sp-5);
-  margin-bottom: var(--sp-5);
+  box-shadow: var(--shadow-card);
+  padding: var(--sp-5);
+  margin-bottom: var(--sp-6);
 }
 
 .filter-toolbar .field { min-width: 160px; flex: 1 1 160px; gap: var(--sp-1); }
@@ -605,11 +722,90 @@ table.register thead th {
   background: var(--paper-raised);
 }
 
+/* ============================================================
+   Home — static landing page, no data. Large brand treatment up
+   top, three equal entry-point cards below.
+   ============================================================ */
+.home-hero {
+  text-align: center;
+  padding: var(--sp-7) var(--sp-5) var(--sp-6);
+}
+
+.home-brand {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 3.2rem;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.home-subtitle {
+  margin: var(--sp-1) 0 0;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  color: var(--forest-dark);
+}
+
+.home-welcome {
+  margin: var(--sp-4) 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+}
+
+.home-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-4);
+}
+
+.home-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--sp-6) var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  text-align: center;
+  text-decoration: none;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.home-card:hover {
+  border-color: var(--forest);
+}
+
+.home-card-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--forest-dark);
+}
+
+.home-card-desc {
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 560px) {
+  .home-cards { grid-template-columns: 1fr; }
+  .home-brand { font-size: 2.4rem; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
 
 @media (max-width: 560px) {
   .entry-card .card-body { padding: var(--sp-5) var(--sp-4); }
-  .wrap { padding: var(--sp-5) var(--sp-4) var(--sp-7); }
+  .wrap { padding: var(--sp-5) var(--sp-4); }
+  .site-header-inner, .footer-inner { padding: var(--sp-5); }
+  .brand-name { font-size: 1.6rem; }
+  nav.site-nav { gap: 2px; }
+  nav.site-nav a { padding: 8px 12px; font-size: 0.92rem; }
 }

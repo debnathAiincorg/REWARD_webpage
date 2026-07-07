@@ -96,3 +96,8 @@ def update_table_row(row_index: int, values_by_column: dict):
         f"{TABLE_BASE}/rows/itemAt(index={row_index})",
         json_body={"values": [row_values]},
     )
+
+
+def delete_table_row(row_index: int):
+    """Delete a row from the table (identified by its table row index)."""
+    _request("DELETE", f"{TABLE_BASE}/rows/itemAt(index={row_index})")

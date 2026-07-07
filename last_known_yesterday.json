@@ -1,16 +1,18 @@
 {
-  "date": "2026-06-26",
+  "date": "2026-07-04",
   "employees": {
     "Pradip Ray": {
       "Punctuality": 1,
       "L&D": 1,
+      "Extra Hours": 0,
       "Fluency Compliance": 0,
       "Innovation": 0,
-      "Extraordinary Performance": 5
+      "Extraordinary Performance": 4
     },
     "Srijan Banerjee": {
       "Punctuality": 0,
       "L&D": 1,
+      "Extra Hours": 0,
       "Fluency Compliance": 0,
       "Innovation": 0,
       "Extraordinary Performance": 2
@@ -18,27 +20,31 @@
     "Anurima Nath": {
       "Punctuality": 1,
       "L&D": 1,
+      "Extra Hours": 0,
       "Fluency Compliance": 0,
       "Innovation": 0,
-      "Extraordinary Performance": 0
+      "Extraordinary Performance": 2
     },
     "Madhuparna Naskar": {
       "Punctuality": 1,
       "L&D": 1,
+      "Extra Hours": 0,
       "Fluency Compliance": 0,
       "Innovation": 0,
       "Extraordinary Performance": 0
     },
     "Atreyee Majumder": {
-      "Punctuality": 1,
+      "Punctuality": 0,
       "L&D": 1,
+      "Extra Hours": 0,
       "Fluency Compliance": 0,
       "Innovation": 0,
       "Extraordinary Performance": 0
     },
     "Pratim Rath": {
-      "Punctuality": 1,
+      "Punctuality": 0,
       "L&D": 1,
+      "Extra Hours": 0,
       "Fluency Compliance": 0,
       "Innovation": 0,
       "Extraordinary Performance": 2
@@ -46,13 +52,15 @@
     "Rahul Paul": {
       "Punctuality": 1,
       "L&D": 1,
+      "Extra Hours": 0,
       "Fluency Compliance": 0,
       "Innovation": 0,
       "Extraordinary Performance": 0
     },
     "Monirul Molla": {
-      "Punctuality": 0,
+      "Punctuality": 1,
       "L&D": 0,
+      "Extra Hours": 0,
       "Fluency Compliance": 0,
       "Innovation": 0,
       "Extraordinary Performance": 0
@@ -60,13 +68,15 @@
     "Debnath Paul": {
       "Punctuality": 1,
       "L&D": 1,
+      "Extra Hours": 0,
       "Fluency Compliance": 0,
       "Innovation": 0,
       "Extraordinary Performance": 0
     },
     "Debrup Mondal": {
-      "Punctuality": 0,
+      "Punctuality": 1,
       "L&D": 1,
+      "Extra Hours": 0,
       "Fluency Compliance": 0,
       "Innovation": 0,
       "Extraordinary Performance": 0

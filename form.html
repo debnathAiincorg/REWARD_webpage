@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Performance Bonus — Entry</title>
+<style>
+  :root {
+    --ink: #1c2a24;
+    --paper: #f6f4ef;
+    --line: #d8d3c4;
+    --accent: #2f6b4f;
+    --accent-soft: #e4ede7;
+    --error: #a33a2f;
+    --mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    --serif: "Source Serif 4", Georgia, serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+
+  .ledger-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 6px;
+  }
+
+  .ledger-head h1 {
+    font-size: 1.55rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .ledger-head .stamp {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  .subline {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: #6b6657;
+    margin: 0 0 36px;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .field label {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #5a5648;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .field label .opt {
+    text-transform: none;
+    font-style: italic;
+    letter-spacing: 0;
+    color: #9a9583;
+  }
+
+  input[type="date"],
+  input[type="number"],
+  select {
+    font-family: var(--serif);
+    font-size: 1rem;
+    padding: 11px 12px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: #fff;
+    color: var(--ink);
+    width: 100%;
+  }
+
+  input:focus, select:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-color: var(--accent);
+  }
+
+  .choice-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .choice-row button {
+    flex: 1;
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    padding: 10px 0;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: #fff;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+  }
+
+  .choice-row button:hover { border-color: var(--accent); }
+
+  .choice-row button.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .choice-row.wrap-grid {
+    flex-wrap: wrap;
+  }
+
+  .choice-row.wrap-grid button {
+    flex: 0 0 calc(33.33% - 6px);
+  }
+
+  .submit-bar {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  button.primary {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 13px 26px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  button.primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  button.primary:hover:not(:disabled) { background: var(--accent); }
+
+  .status {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+  }
+
+  .status.ok { color: var(--accent); }
+  .status.err { color: var(--error); }
+
+  .error-list {
+    background: #fbeceA;
+    border: 1px solid var(--error);
+    color: var(--error);
+    border-radius: 4px;
+    padding: 12px 14px;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    line-height: 1.6;
+    display: none;
+  }
+
+  .error-list.show { display: block; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="ledger-head">
+    <h1>Daily Performance Bonus</h1>
+    <span class="stamp">Entry</span>
+  </div>
+  <p class="subline">writes directly into Table1 · Strict Employee Performance Analysis.xlsx</p>
+
+  <div class="error-list" id="errorList"></div>
+
+  <form id="entryForm">
+    <div class="field">
+      <label for="date">Date</label>
+      <input type="date" id="date" name="date" required>
+    </div>
+
+    
+    <div class="field">
+      <label for="name">Name</label>
+      <select id="name" name="name" required>
+        <option value="" disabled selected>Select employee</option>
+        {% for emp in employees %}
+        <option value="{{ emp }}">{{ emp }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Punctuality</label>
+      <div class="choice-row" data-field="punctuality">
+        <button type="button" data-value="0">0</button>
+        <button type="button" data-value="1">1</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>L&amp;D</label>
+      <div class="choice-row" data-field="ld">
+        <button type="button" data-value="0">0</button>
+        <button type="button" data-value="1">1</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Fluency Compliance</label>
+      <div class="choice-row" data-field="fluency">
+        <button type="button" data-value="0">0</button>
+        <button type="button" data-value="1">1</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Innovation</label>
+      <div class="choice-row" data-field="innovation">
+        <button type="button" data-value="0">0</button>
+        <button type="button" data-value="1">1</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Extraordinary Performance</label>
+      <div class="choice-row wrap-grid" data-field="extraordinary">
+        {% for v in extraordinary_choices %}
+        <button type="button" data-value="{{ v }}">{{ v }}</button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="extra_hours">Extra Hours <span class="opt">optional</span></label>
+      <input type="number" id="extra_hours" name="extra_hours" step="0.5" min="0">
+    </div>
+
+    <div class="submit-bar">
+      <button type="submit" class="primary" id="submitBtn">Save entry</button>
+      <span class="status" id="statusMsg"></span>
+    </div>
+  </form>
+</div>
+
+<script>
+  const form = document.getElementById('entryForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const statusMsg = document.getElementById('statusMsg');
+  const errorList = document.getElementById('errorList');
+  const dateInput = document.getElementById('date');
+
+  // Default to today
+  dateInput.value = new Date().toISOString().slice(0, 10);
+
+  const choiceState = {};
+
+  document.querySelectorAll('.choice-row').forEach(row => {
+    const fieldName = row.dataset.field;
+    row.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        row.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        choiceState[fieldName] = btn.dataset.value;
+      });
+    });
+  });
+
+  function showErrors(errors) {
+    errorList.innerHTML = errors.map(e => `· ${e}`).join('<br>');
+    errorList.classList.add('show');
+  }
+
+  function clearErrors() {
+    errorList.classList.remove('show');
+    errorList.innerHTML = '';
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors();
+    statusMsg.textContent = '';
+    statusMsg.className = 'status';
+
+    const payload = {
+      date: dateInput.value,
+      name: document.getElementById('name').value,
+      punctuality: choiceState.punctuality,
+      ld: choiceState.ld,
+      fluency: choiceState.fluency,
+      innovation: choiceState.innovation,
+      extraordinary: choiceState.extraordinary,
+      extra_hours: document.getElementById('extra_hours').value,
+    };
+
+    const missing = [];
+    if (!payload.name) missing.push('Select an employee.');
+    if (payload.punctuality === undefined) missing.push('Select Punctuality.');
+    if (payload.ld === undefined) missing.push('Select L&D.');
+    if (payload.fluency === undefined) missing.push('Select Fluency Compliance.');
+    if (payload.innovation === undefined) missing.push('Select Innovation.');
+    if (payload.extraordinary === undefined) missing.push('Select Extraordinary Performance.');
+    if (missing.length) { showErrors(missing); return; }
+
+    submitBtn.disabled = true;
+    statusMsg.textContent = 'Saving…';
+
+    try {
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        statusMsg.textContent = `Saved — ${payload.name}, ${payload.date}`;
+        statusMsg.className = 'status ok';
+        document.querySelectorAll('.choice-row button.selected').forEach(b => b.classList.remove('selected'));
+        for (const k in choiceState) delete choiceState[k];
+        document.getElementById('name').selectedIndex = 0;
+        document.getElementById('extra_hours').value = '';
+      } else {
+        showErrors(data.errors || ['Something went wrong.']);
+        statusMsg.textContent = 'Not saved';
+        statusMsg.className = 'status err';
+      }
+    } catch (err) {
+      showErrors(['Could not reach the server. Check your connection and try again.']);
+      statusMsg.textContent = 'Not saved';
+      statusMsg.className = 'status err';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

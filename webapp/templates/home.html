@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}ADIRI — Daily Performance Bonus{% endblock %}
+{% block content %}
+<div class="home-hero">
+  <h1 class="home-brand">ADIRI</h1>
+  <p class="home-subtitle">Daily Performance Bonus</p>
+  <p class="home-welcome">Internal performance tracking and reporting</p>
+</div>
+
+<div class="home-cards">
+  <a class="home-card" href="{{ url_for('dashboard') }}">
+    <span class="home-card-title">Dashboard</span>
+    <span class="home-card-desc">Today's entries and week-to-date totals</span>
+  </a>
+  <a class="home-card" href="{{ url_for('add_entry') }}">
+    <span class="home-card-title">Add Entry</span>
+    <span class="home-card-desc">Record a new performance entry</span>
+  </a>
+  <a class="home-card" href="{{ url_for('history') }}">
+    <span class="home-card-title">History</span>
+    <span class="home-card-desc">Browse and filter past entries</span>
+  </a>
+</div>
+{% endblock %}

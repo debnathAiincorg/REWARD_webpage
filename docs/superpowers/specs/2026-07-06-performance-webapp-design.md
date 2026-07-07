@@ -136,7 +136,10 @@ the user reloads.
 
 ## Routes
 
-- `GET /` — Dashboard. Fetch columns + rows once, build today's submitted entries and
+- `GET /` — Home. Static landing page (large ADIRI brand treatment, one welcome line,
+  three cards linking to Dashboard/Add Entry/History). No Graph API calls — nothing on
+  this route can fail, so it has no error handling.
+- `GET /dashboard` — Dashboard. Fetch columns + rows once, build today's submitted entries and
   `totals_by_employee()` for the current week, render.
 - `GET /add` — Add Entry form. Populates the employee dropdown from
   `distinct_employees()`. Category inputs: the current 6 known categories

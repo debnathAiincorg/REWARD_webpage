@@ -34,13 +34,24 @@
   <div class="card-header">Register</div>
   {% if rows %}
   <div class="table-scroll register-scroll">
-  <table class="data-table register">
+  <table class="data-table register" id="registerTable">
+    <colgroup>
+      <col class="col-date">
+      <col class="col-name">
+      {% for cat in categories %}
+        {% set widget = known_widgets.get(cat, "number") %}
+        <col class="{{ 'col-num-narrow' if widget == 'toggle01' else 'col-num-wide' }}">
+      {% endfor %}
+      {% for tf in text_names %}<col class="col-flex">{% endfor %}
+      <col class="col-actions">
+    </colgroup>
     <thead>
       <tr>
         <th>Date</th>
         <th>Name</th>
         {% for cat in categories %}<th class="num">{{ cat }}</th>{% endfor %}
         {% for tf in text_names %}<th>{{ tf }}</th>{% endfor %}
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -50,11 +61,36 @@
         <td>{{ r.Name }}</td>
         {% for cat in categories %}<td class="num">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
         {% for tf in text_names %}<td class="notes">{{ r.get(tf, "") or "" }}</td>{% endfor %}
+        <td class="row-actions">
+          <a class="action-edit" href="{{ url_for('add_entry', date=r.Date.isoformat() if r.Date else '', name=r.Name) }}">Edit</a>
+          <form method="post" action="{{ url_for('history_delete') }}" class="delete-form"
+                data-confirm-name="{{ r.Name }}" data-confirm-date="{{ r.Date.isoformat() if r.Date else '' }}">
+            <input type="hidden" name="row_index" value="{{ r._row_index }}">
+            <input type="hidden" name="name" value="{{ r.Name }}">
+            <input type="hidden" name="date" value="{{ r.Date.isoformat() if r.Date else '' }}">
+            <input type="hidden" name="employee" value="{{ selected_employee }}">
+            <input type="hidden" name="from" value="{{ selected_from }}">
+            <input type="hidden" name="to" value="{{ selected_to }}">
+            <button type="submit" class="action-delete">Delete</button>
+          </form>
+        </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
   </div>
+  <script>
+    document.querySelectorAll('.delete-form').forEach(function (form) {
+      form.addEventListener('submit', function (e) {
+        var name = form.dataset.confirmName;
+        var date = form.dataset.confirmDate;
+        var message = 'Are you sure you want to delete this entry for ' + name + ' on ' + date + '? This cannot be undone.';
+        if (!confirm(message)) {
+          e.preventDefault();
+        }
+      });
+    });
+  </script>
   {% else %}
   <div class="empty-state">
     <svg class="empty-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
