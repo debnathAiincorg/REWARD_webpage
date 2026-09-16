@@ -1,5 +1,5 @@
 import os
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 from flask import Flask, flash, redirect, render_template, request, url_for
@@ -70,32 +70,44 @@ def home():
 
 @app.route("/dashboard")
 def dashboard():
+    today = date.today()
+    yesterday = today - timedelta(days=1)
     try:
         records, cols = _load_records()
     except GraphError as e:
         return render_template(
             "dashboard.html", active_page="dashboard", error=str(e),
-            today=date.today(), week_start=None, today_entries=[],
-            category_names=[], text_names=[], totals=[], totals_row=None,
+            today=today, week_start=None, prev_day=yesterday, prev_day_entries=[],
+            category_names=[], text_names=[], weekly_rows=[], weekly_total=None,
+            kpis=None,
         )
 
-    today = date.today()
-    today_entries = logic.entries_for_date(records, today)
     monday, _ = logic.week_bounds(today)
-    totals = logic.totals_by_employee(records, monday, today, cols["category_names"])
-    totals_list = sorted(
-        [{"name": n, **v} for n, v in totals.items()],
-        key=lambda x: (-x["amount"], x["name"]),
-    )
-    totals_row = {
-        "points": sum(t["points"] for t in totals_list),
-        "amount": sum(t["amount"] for t in totals_list),
-    } if totals_list else None
+    categories = cols["category_names"]
+    prev_day_entries = logic.entries_for_date(records, yesterday)
+
+    weekly_rows = logic.weekly_report_rows(records, monday, today, yesterday, categories)
+    weekly_total = {
+        "prev_points": sum(r["prev_points"] for r in weekly_rows),
+        "prev_amount": sum(r["prev_amount"] for r in weekly_rows),
+        "week_points": sum(r["week_points"] for r in weekly_rows),
+        "week_amount": sum(r["week_amount"] for r in weekly_rows),
+    } if weekly_rows else None
+
+    # Same roster the Add Entry dropdown uses, seeded on first run so the KPI
+    # counts are right even when the Dashboard is the first page ever opened.
+    logic.seed_employee_list_if_missing(records)
+    roster = logic.load_employee_list()
+
+    kpis = logic.dashboard_kpis(records, roster, monday, today, categories)
+
     return render_template(
         "dashboard.html", active_page="dashboard", error=None,
-        today=today, week_start=monday, today_entries=today_entries,
-        category_names=cols["category_names"], text_names=cols["text_names"],
-        totals=totals_list, totals_row=totals_row,
+        today=today, week_start=monday, prev_day=yesterday,
+        prev_day_entries=prev_day_entries,
+        category_names=categories, text_names=cols["text_names"],
+        weekly_rows=weekly_rows, weekly_total=weekly_total,
+        kpis=kpis,
     )
 
 
@@ -111,7 +123,10 @@ def add_entry():
             today=date.today().isoformat(),
         )
 
-    employees = logic.distinct_employees(records)
+    # The dropdown reads from the employee roster, not from the sheet, so a name
+    # can be retired without its past rows vanishing. Seeded once on first run.
+    logic.seed_employee_list_if_missing(records)
+    employees = logic.load_employee_list()
     categories = cols["category_names"]
     text_fields = cols["text_names"]
 
@@ -134,6 +149,10 @@ def add_entry():
                     prefill["cat__" + cat] = existing_record.get(cat, 0)
                 for tf in text_fields:
                     prefill["txt__" + tf] = existing_record.get(tf, "") or ""
+        elif edit_name:
+            # Coming back from /employees/add — preselect the name just created,
+            # without pulling in any other row's values.
+            prefill["name"] = edit_name
 
     if request.method == "POST":
         name = (request.form.get("name") or "").strip()
@@ -183,11 +202,63 @@ def add_entry():
         for err in errors:
             flash(err, "err")
 
+    # A name prefilled from History may since have been retired from the roster.
+    # Show it for this render only — never written back — so that person's past
+    # entry stays editable.
+    selected_name = prefill.get("name")
+    if selected_name and selected_name not in employees:
+        employees = sorted(employees + [selected_name])
+
     return render_template(
         "add_entry.html", active_page="add", employees=employees, categories=categories,
         text_fields=text_fields, known_widgets=KNOWN_WIDGETS, field_labels=FIELD_LABELS,
         prefill=prefill, today=date.today().isoformat(),
     )
+
+
+@app.route("/employees/add", methods=["POST"])
+def employees_add():
+    """Add a name to the Add Entry dropdown's roster.
+
+    Writes employees.json only — never the sheet.
+    """
+    try:
+        stored_name, was_added = logic.add_employee_name(request.form.get("name") or "")
+    except OSError as e:
+        flash(f"Could not save the employee list: {e}", "err")
+        return redirect(url_for("add_entry"))
+
+    if not stored_name:
+        flash("Enter a name to add.", "err")
+        return redirect(url_for("add_entry"))
+
+    flash(
+        f"Added {stored_name} to the employee list." if was_added
+        else f"{stored_name} is already in the list — selected it for you.",
+        "ok",
+    )
+    return redirect(url_for("add_entry", name=stored_name))
+
+
+@app.route("/employees/delete", methods=["POST"])
+def employees_delete():
+    """Retire a name from the Add Entry dropdown.
+
+    Rewrites employees.json only: that person's rows in Table1 are left exactly
+    as they are and still show up in History.
+    """
+    name = (request.form.get("name") or "").strip()
+    try:
+        removed = logic.remove_employee_name(name)
+    except OSError as e:
+        flash(f"Could not save the employee list: {e}", "err")
+        return redirect(url_for("add_entry"))
+
+    if removed:
+        flash(f"Removed {name} from the list — past entries are unchanged.", "ok")
+    else:
+        flash("That name is no longer in the list.", "err")
+    return redirect(url_for("add_entry"))
 
 
 @app.route("/history")

@@ -2,9 +2,19 @@
 # Category columns are never hardcoded: they're whatever detect_columns() finds
 # in the sheet's current header row, so new columns are picked up automatically.
 
+import json
 from datetime import date, datetime, timedelta
+from pathlib import Path
 
 RESERVED_HEADERS = {"date", "name", "index"}
+
+# One performance point is worth this much, in rupees.
+POINTS_TO_AMOUNT = 10
+
+# The Add Entry dropdown's roster of selectable employees. Deliberately kept
+# separate from the sheet: retiring a name here stops it appearing in the
+# dropdown without touching a single one of that person's existing rows.
+EMPLOYEES_PATH = Path(__file__).resolve().parent / "employees.json"
 
 # Known free-text columns (e.g. "Notes") — carried through as-is, never summed
 # into points, never overwritten with a number input.
@@ -132,7 +142,7 @@ def totals_by_employee(records, start, end, category_names):
         bucket = totals.setdefault(name, {"points": 0, "amount": 0})
         bucket["points"] += points
     for bucket in totals.values():
-        bucket["amount"] = bucket["points"] * 10
+        bucket["amount"] = bucket["points"] * POINTS_TO_AMOUNT
     return totals
 
 
@@ -165,3 +175,158 @@ def filter_records(records, employee=None, date_from=None, date_to=None):
     if date_to:
         result = [r for r in result if r.get("Date") and r["Date"] <= date_to]
     return result
+
+
+# ---------------------------------------------------------------------------
+# Employee master list — the Add Entry dropdown's roster, persisted in
+# employees.json. This is the one part of this module that touches disk; it
+# stays here because it's roster policy (trimming, dedupe, sort ordering),
+# not transport.
+# ---------------------------------------------------------------------------
+
+
+def _normalize_names(names):
+    """Trim, drop blanks, de-duplicate case-insensitively, and sort."""
+    seen = {}
+    for raw in names:
+        if raw is None:
+            continue
+        clean = str(raw).strip()
+        if not clean:
+            continue
+        # First spelling wins, so an existing entry keeps its original casing.
+        seen.setdefault(clean.lower(), clean)
+    return sorted(seen.values())
+
+
+def load_employee_list():
+    """The saved roster. Returns [] if the file is absent, unreadable or corrupt —
+    a broken file should degrade to an empty dropdown, never crash the page."""
+    try:
+        with open(EMPLOYEES_PATH, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return []
+    if not isinstance(data, list):
+        return []
+    return _normalize_names(data)
+
+
+def save_employee_list(names):
+    """Write the roster back, always trimmed, de-duplicated and alphabetical."""
+    clean = _normalize_names(names)
+    with open(EMPLOYEES_PATH, "w", encoding="utf-8") as f:
+        json.dump(clean, f, indent=2, ensure_ascii=False)
+    return clean
+
+
+def add_employee_name(name):
+    """Add a name to the roster, returning (stored_name, was_added).
+
+    A blank name gives (None, False). A case-insensitive duplicate is not an
+    error: it returns the spelling already on file, so the caller can simply
+    select that one.
+    """
+    clean = str(name or "").strip()
+    if not clean:
+        return None, False
+    current = load_employee_list()
+    for existing in current:
+        if existing.lower() == clean.lower():
+            return existing, False
+    save_employee_list(current + [clean])
+    return clean, True
+
+
+def remove_employee_name(name):
+    """Retire a name from the dropdown. Returns True if it was there.
+
+    This only ever rewrites employees.json — the person's rows in Table1 are
+    left exactly as they are, and still show up in History.
+    """
+    clean = str(name or "").strip()
+    if not clean:
+        return False
+    current = load_employee_list()
+    remaining = [n for n in current if n.lower() != clean.lower()]
+    if len(remaining) == len(current):
+        return False
+    save_employee_list(remaining)
+    return True
+
+
+def seed_employee_list_if_missing(records):
+    """First run only: seed the roster from names already in the sheet.
+
+    Keyed on the file not existing — never on it being empty. An empty roster is
+    a deliberate state (every name removed via the dropdown's × button), and
+    re-seeding it would silently undo those removals.
+    """
+    if EMPLOYEES_PATH.exists():
+        return False
+    save_employee_list(distinct_employees(records))
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Dashboard aggregates. These take the roster as an argument rather than
+# reading employees.json themselves, which keeps them pure: no Graph calls and
+# no disk access, so they unit-test directly.
+# ---------------------------------------------------------------------------
+
+
+def _fold(name):
+    """Key a name for comparison — the sheet's spelling and the roster's may differ."""
+    return str(name).strip().lower()
+
+
+def dashboard_kpis(records, roster, start, end, category_names):
+    """Headline figures for the Dashboard's KPI row.
+
+    Counts come from the roster, not from the sheet, so an employee who has
+    never submitted anything still counts — that's the whole point of the
+    "zero points this week" figure.
+    """
+    totals = totals_by_employee(records, start, end, category_names)
+
+    points_by_key = {}
+    for name, bucket in totals.items():
+        key = _fold(name)
+        points_by_key[key] = points_by_key.get(key, 0) + bucket["points"]
+
+    weekly_points = sum(bucket["points"] for bucket in totals.values())
+    zero_count = sum(1 for n in roster if points_by_key.get(_fold(n), 0) == 0)
+
+    return {
+        "total_employees": len(roster),
+        "weekly_points": weekly_points,
+        "weekly_amount": weekly_points * POINTS_TO_AMOUNT,
+        "zero_point_employees": zero_count,
+    }
+
+
+def weekly_report_rows(records, start, end, prev_day, category_names):
+    """Previous-day and week-to-date figures per employee, side by side.
+
+    Only employees with activity inside [start, end] are listed — the same
+    inclusion rule the week-to-date totals table has always used. An employee
+    with week activity but nothing on prev_day simply shows zeros in the
+    previous-day columns.
+    """
+    week_totals = totals_by_employee(records, start, end, category_names)
+    prev_totals = totals_by_employee(records, prev_day, prev_day, category_names)
+
+    rows = []
+    for name, bucket in week_totals.items():
+        prev_points = prev_totals.get(name, {}).get("points", 0)
+        week_points = bucket["points"]
+        rows.append({
+            "name": name,
+            "prev_points": prev_points,
+            "prev_amount": prev_points * POINTS_TO_AMOUNT,
+            "week_points": week_points,
+            "week_amount": week_points * POINTS_TO_AMOUNT,
+        })
+
+    rows.sort(key=lambda r: (-r["prev_amount"], r["name"]))
+    return rows

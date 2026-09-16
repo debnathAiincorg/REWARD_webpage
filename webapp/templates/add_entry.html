@@ -17,13 +17,34 @@
   </div>
 
   <div class="field">
-    <label for="name">Name</label>
-    <select id="name" name="name" required>
-      <option value="" disabled {% if not prefill.get('name') %}selected{% endif %}>Select employee</option>
-      {% for emp in employees %}
-      <option value="{{ emp }}" {% if prefill.get('name') == emp %}selected{% endif %}>{{ emp }}</option>
-      {% endfor %}
-    </select>
+    <label for="nameSearch">Name</label>
+    <div class="combo" id="nameCombo">
+      {# The hidden input is what actually posts as `name`, so the server side of
+         /add is untouched by this widget. #}
+      <input type="hidden" id="name" name="name" value="{{ prefill.get('name', '') }}">
+      <input type="text" id="nameSearch" class="combo-input" role="combobox"
+             autocomplete="off" aria-expanded="false" aria-controls="nameOptions"
+             placeholder="Search or select employee"
+             value="{{ prefill.get('name', '') }}">
+      <div class="combo-panel" id="nameOptions" hidden>
+        <ul class="combo-list" id="nameList" role="listbox">
+          {% for emp in employees %}
+          <li class="combo-option {% if prefill.get('name') == emp %}selected{% endif %}"
+              data-name="{{ emp }}" role="option">
+            <button type="button" class="combo-pick">{{ emp }}</button>
+            <button type="button" class="combo-remove" data-name="{{ emp }}"
+                    aria-label="Remove {{ emp }} from list">&times;</button>
+          </li>
+          {% endfor %}
+        </ul>
+        <p class="combo-empty" id="comboEmpty" hidden>No matching employee.</p>
+        <div class="combo-add">
+          <input type="text" id="newEmployee" class="combo-add-input"
+                 autocomplete="off" placeholder="+ Add new employee">
+          <button type="button" class="btn btn-secondary" id="addEmployeeBtn">Add</button>
+        </div>
+      </div>
+    </div>
     <span class="field-error" id="nameError">Select an employee to continue.</span>
   </div>
 
@@ -66,6 +87,15 @@
     <span class="status" id="statusMsg"></span>
   </div>
 </form>
+
+{# Roster forms live OUTSIDE #entryForm — a form cannot be nested in another —
+   so adding or removing an employee can never submit a half-filled entry. #}
+<form id="empAddForm" class="hidden-form" method="post" action="{{ url_for('employees_add') }}">
+  <input type="hidden" name="name" id="empAddName">
+</form>
+<form id="empDeleteForm" class="hidden-form" method="post" action="{{ url_for('employees_delete') }}">
+  <input type="hidden" name="name" id="empDeleteName">
+</form>
 </div>
 </div>
 
@@ -91,15 +121,106 @@
     }
   });
 
+  // Searchable employee combobox. The visible box filters; the hidden #name
+  // input carries the chosen value, so the posted payload is identical to the
+  // plain <select> this replaces.
+  (() => {
+    const combo = document.getElementById('nameCombo');
+    const hidden = document.getElementById('name');
+    const search = document.getElementById('nameSearch');
+    const panel = document.getElementById('nameOptions');
+    const list = document.getElementById('nameList');
+    const emptyMsg = document.getElementById('comboEmpty');
+    const newInput = document.getElementById('newEmployee');
+    const nameError = document.getElementById('nameError');
+
+    const options = () => Array.from(list.querySelectorAll('.combo-option'));
+    const openPanel = () => { panel.hidden = false; search.setAttribute('aria-expanded', 'true'); };
+    const closePanel = () => { panel.hidden = true; search.setAttribute('aria-expanded', 'false'); };
+
+    function applyFilter() {
+      const q = search.value.trim().toLowerCase();
+      let visible = 0;
+      options().forEach(opt => {
+        const match = opt.dataset.name.toLowerCase().includes(q);
+        opt.hidden = !match;
+        if (match) visible++;
+      });
+      emptyMsg.hidden = visible > 0;
+    }
+
+    function choose(name) {
+      hidden.value = name;
+      search.value = name;
+      options().forEach(o => o.classList.toggle('selected', o.dataset.name === name));
+      search.classList.remove('invalid');
+      nameError.classList.remove('show');
+      closePanel();
+    }
+
+    search.addEventListener('focus', () => { openPanel(); applyFilter(); });
+
+    search.addEventListener('input', () => {
+      // Typing is a search, not a pick — drop the previous selection until they
+      // actually choose, so a half-typed name can't be submitted as a real one.
+      hidden.value = '';
+      openPanel();
+      applyFilter();
+    });
+
+    search.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();  // never submit the entry form straight from the search box
+        const first = options().find(o => !o.hidden);
+        if (first) choose(first.dataset.name);
+      } else if (e.key === 'Escape') {
+        closePanel();
+      }
+    });
+
+    list.addEventListener('click', (e) => {
+      const pick = e.target.closest('.combo-pick');
+      if (pick) {
+        choose(pick.closest('.combo-option').dataset.name);
+        return;
+      }
+      const remove = e.target.closest('.combo-remove');
+      if (remove) {
+        const name = remove.dataset.name;
+        if (confirm(`Remove ${name} from list? Past entries won't be affected.`)) {
+          document.getElementById('empDeleteName').value = name;
+          document.getElementById('empDeleteForm').submit();
+        }
+      }
+    });
+
+    function submitNewEmployee() {
+      const name = newInput.value.trim();
+      if (!name) { newInput.focus(); return; }
+      document.getElementById('empAddName').value = name;
+      document.getElementById('empAddForm').submit();
+    }
+
+    document.getElementById('addEmployeeBtn').addEventListener('click', submitNewEmployee);
+    newInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); submitNewEmployee(); }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!combo.contains(e.target)) closePanel();
+    });
+  })();
+
   document.getElementById('entryForm').addEventListener('submit', (e) => {
     const errorList = document.getElementById('errorList');
     const dateField = document.getElementById('date');
     const nameField = document.getElementById('name');
+    const nameInput = document.getElementById('nameSearch');
     const dateError = document.getElementById('dateError');
     const nameError = document.getElementById('nameError');
 
     dateField.classList.remove('invalid');
-    nameField.classList.remove('invalid');
+    nameInput.classList.remove('invalid');
     dateError.classList.remove('show');
     nameError.classList.remove('show');
 
@@ -114,9 +235,9 @@
     }
     if (!nameField.value) {
       missing.push('Select an employee.');
-      nameField.classList.add('invalid');
+      nameInput.classList.add('invalid');
       nameError.classList.add('show');
-      firstInvalid = firstInvalid || nameField;
+      firstInvalid = firstInvalid || nameInput;
     }
 
     if (missing.length) {

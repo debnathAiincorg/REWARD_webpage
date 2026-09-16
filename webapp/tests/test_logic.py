@@ -5,6 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+import logic
 from logic import (
     detect_columns,
     parse_date_value,
@@ -166,3 +167,233 @@ def test_filter_records_by_date_range():
     filtered = filter_records(records, date_from=date(2026, 7, 2), date_to=date(2026, 7, 2))
     assert len(filtered) == 1
     assert filtered[0]["Name"] == "Alice"
+
+
+# ---------------------------------------------------------------------------
+# Employee master list (webapp/employees.json) — the Add Entry dropdown's
+# source of truth. Deliberately independent of what's in the sheet, so a name
+# can be retired from the dropdown without disturbing that person's past rows.
+# ---------------------------------------------------------------------------
+
+def _use_temp_employees(tmp_path, monkeypatch):
+    """Point the employee list at a throwaway file so tests never touch the real one."""
+    path = tmp_path / "employees.json"
+    monkeypatch.setattr(logic, "EMPLOYEES_PATH", path)
+    return path
+
+
+def test_load_employee_list_missing_file_returns_empty(tmp_path, monkeypatch):
+    _use_temp_employees(tmp_path, monkeypatch)
+    assert logic.load_employee_list() == []
+
+
+def test_save_and_load_employee_list_round_trip(tmp_path, monkeypatch):
+    _use_temp_employees(tmp_path, monkeypatch)
+    logic.save_employee_list(["Bob", "Alice"])
+    assert logic.load_employee_list() == ["Alice", "Bob"]
+
+
+def test_save_employee_list_sorts_and_dedupes(tmp_path, monkeypatch):
+    _use_temp_employees(tmp_path, monkeypatch)
+    logic.save_employee_list(["Carol", "Alice", "Carol"])
+    assert logic.load_employee_list() == ["Alice", "Carol"]
+
+
+def test_load_employee_list_corrupt_file_returns_empty(tmp_path, monkeypatch):
+    path = _use_temp_employees(tmp_path, monkeypatch)
+    path.write_text("{not json", encoding="utf-8")
+    assert logic.load_employee_list() == []
+
+
+def test_add_employee_name_adds_and_sorts(tmp_path, monkeypatch):
+    _use_temp_employees(tmp_path, monkeypatch)
+    logic.save_employee_list(["Bob"])
+    assert logic.add_employee_name("Alice") == ("Alice", True)
+    assert logic.load_employee_list() == ["Alice", "Bob"]
+
+
+def test_add_employee_name_trims_whitespace(tmp_path, monkeypatch):
+    _use_temp_employees(tmp_path, monkeypatch)
+    name, _ = logic.add_employee_name("  Alice Sharma  ")
+    assert name == "Alice Sharma"
+    assert logic.load_employee_list() == ["Alice Sharma"]
+
+
+def test_add_employee_name_rejects_blank(tmp_path, monkeypatch):
+    _use_temp_employees(tmp_path, monkeypatch)
+    assert logic.add_employee_name("   ") == (None, False)
+    assert logic.load_employee_list() == []
+
+
+def test_add_employee_name_duplicate_is_case_insensitive(tmp_path, monkeypatch):
+    _use_temp_employees(tmp_path, monkeypatch)
+    logic.save_employee_list(["Alice Sharma"])
+    # Returns the spelling already on file, so the route can just select it.
+    assert logic.add_employee_name("alice sharma") == ("Alice Sharma", False)
+    assert logic.load_employee_list() == ["Alice Sharma"]
+
+
+def test_remove_employee_name(tmp_path, monkeypatch):
+    _use_temp_employees(tmp_path, monkeypatch)
+    logic.save_employee_list(["Alice", "Bob"])
+    logic.remove_employee_name("Alice")
+    assert logic.load_employee_list() == ["Bob"]
+
+
+def test_remove_employee_name_is_case_insensitive(tmp_path, monkeypatch):
+    _use_temp_employees(tmp_path, monkeypatch)
+    logic.save_employee_list(["Alice"])
+    logic.remove_employee_name("ALICE")
+    assert logic.load_employee_list() == []
+
+
+def test_remove_employee_name_unknown_is_noop(tmp_path, monkeypatch):
+    _use_temp_employees(tmp_path, monkeypatch)
+    logic.save_employee_list(["Alice"])
+    logic.remove_employee_name("Carol")
+    assert logic.load_employee_list() == ["Alice"]
+
+
+def test_seed_employee_list_seeds_when_file_missing(tmp_path, monkeypatch):
+    _use_temp_employees(tmp_path, monkeypatch)
+    logic.seed_employee_list_if_missing(rows_to_records(HEADERS, make_rows()))
+    assert logic.load_employee_list() == ["Alice", "Bob"]
+
+
+def test_seed_employee_list_does_not_reseed_emptied_list(tmp_path, monkeypatch):
+    # The whole point of the x button: an emptied list is a deliberate state,
+    # not a missing file. Re-seeding here would silently undo every removal.
+    _use_temp_employees(tmp_path, monkeypatch)
+    logic.save_employee_list([])
+    logic.seed_employee_list_if_missing(rows_to_records(HEADERS, make_rows()))
+    assert logic.load_employee_list() == []
+
+
+def test_seed_employee_list_keeps_existing_file_untouched(tmp_path, monkeypatch):
+    _use_temp_employees(tmp_path, monkeypatch)
+    logic.save_employee_list(["Zoe"])
+    logic.seed_employee_list_if_missing(rows_to_records(HEADERS, make_rows()))
+    assert logic.load_employee_list() == ["Zoe"]
+
+
+# ---------------------------------------------------------------------------
+# Dashboard KPIs. These take the roster as an argument rather than reading
+# employees.json, so they stay pure and testable without touching disk.
+# ---------------------------------------------------------------------------
+
+MONDAY = date(2026, 7, 6)
+WEDNESDAY = date(2026, 7, 8)   # "today"
+
+CATEGORIES = ["Punctuality", "L&D", "Extra Hours", "Fluency Compliance",
+              "Innovation", "Extraordinary Performance"]
+
+DASH_ROSTER = ["Alice", "Bob", "Carol"]
+
+
+def dash_records():
+    """Alice works two days, Bob one, Carol is on the roster but never appears."""
+    return rows_to_records(HEADERS, [
+        {"index": 0, "values": [1, "2026-07-07", "Alice", 1, 1, 0, 0, 0, 0]},
+        {"index": 1, "values": [2, "2026-07-08", "Alice", 0, 1, 0, 1, 1, 0]},
+        {"index": 2, "values": [3, "2026-07-07", "Bob", 1, 0, 0.5, 1, 0, 2]},
+    ])
+
+
+def test_points_to_amount_constant():
+    assert logic.POINTS_TO_AMOUNT == 10
+
+
+def test_dashboard_kpis_counts_the_whole_roster():
+    k = logic.dashboard_kpis(dash_records(), DASH_ROSTER, MONDAY, WEDNESDAY, CATEGORIES)
+    assert k["total_employees"] == 3
+
+
+def test_dashboard_kpis_weekly_points_and_amount():
+    k = logic.dashboard_kpis(dash_records(), DASH_ROSTER, MONDAY, WEDNESDAY, CATEGORIES)
+    assert k["weekly_points"] == 9   # Alice 2+3, Bob 4 (0.5 truncates to 0)
+    assert k["weekly_amount"] == 90
+
+
+def test_dashboard_kpis_zero_points_includes_employees_with_no_entries():
+    k = logic.dashboard_kpis(dash_records(), DASH_ROSTER, MONDAY, WEDNESDAY, CATEGORIES)
+    assert k["zero_point_employees"] == 1   # Carol never appears in the sheet at all
+
+
+def test_dashboard_kpis_zero_points_includes_entries_totalling_zero():
+    records = rows_to_records(HEADERS, [
+        {"index": 0, "values": [1, "2026-07-07", "Alice", 0, 0, 0, 0, 0, 0]},
+    ])
+    k = logic.dashboard_kpis(records, ["Alice"], MONDAY, WEDNESDAY, CATEGORIES)
+    assert k["zero_point_employees"] == 1
+
+
+def test_dashboard_kpis_matches_roster_names_case_insensitively():
+    records = rows_to_records(HEADERS, [
+        {"index": 0, "values": [1, "2026-07-07", "alice", 1, 1, 0, 0, 0, 0]},
+    ])
+    k = logic.dashboard_kpis(records, ["Alice"], MONDAY, WEDNESDAY, CATEGORIES)
+    assert k["zero_point_employees"] == 0
+    assert k["weekly_points"] == 2
+
+
+# ---------------------------------------------------------------------------
+# Weekly Performance Report rows: previous-day and week-to-date figures side
+# by side. Inclusion follows the week-to-date range only, matching what the
+# Dashboard totals table already did before the extra columns were added.
+# ---------------------------------------------------------------------------
+
+PREV_DAY = date(2026, 7, 7)   # the Tuesday before WEDNESDAY
+
+
+def test_weekly_report_rows_figures():
+    rows = logic.weekly_report_rows(dash_records(), MONDAY, WEDNESDAY, PREV_DAY, CATEGORIES)
+    alice = next(r for r in rows if r["name"] == "Alice")
+    assert alice["prev_points"] == 2
+    assert alice["prev_amount"] == 20
+    assert alice["week_points"] == 5
+    assert alice["week_amount"] == 50
+
+
+def test_weekly_report_rows_sorted_by_previous_day_amount_desc():
+    rows = logic.weekly_report_rows(dash_records(), MONDAY, WEDNESDAY, PREV_DAY, CATEGORIES)
+    assert [r["name"] for r in rows] == ["Bob", "Alice"]
+
+
+def test_weekly_report_rows_ties_break_on_name():
+    records = rows_to_records(HEADERS, [
+        {"index": 0, "values": [1, "2026-07-07", "Zoe", 1, 0, 0, 0, 0, 0]},
+        {"index": 1, "values": [2, "2026-07-07", "Adam", 1, 0, 0, 0, 0, 0]},
+    ])
+    rows = logic.weekly_report_rows(records, MONDAY, WEDNESDAY, PREV_DAY, CATEGORIES)
+    assert [r["name"] for r in rows] == ["Adam", "Zoe"]
+
+
+def test_weekly_report_rows_includes_week_activity_with_no_previous_day_entry():
+    records = rows_to_records(HEADERS, [
+        {"index": 0, "values": [1, "2026-07-08", "Carol", 1, 1, 1, 0, 0, 0]},
+    ])
+    rows = logic.weekly_report_rows(records, MONDAY, WEDNESDAY, PREV_DAY, CATEGORIES)
+    assert [r["name"] for r in rows] == ["Carol"]
+    assert rows[0]["prev_points"] == 0
+    assert rows[0]["prev_amount"] == 0
+    assert rows[0]["week_points"] == 3
+
+
+def test_weekly_report_rows_excludes_activity_outside_the_week():
+    # A Sunday entry with a Monday-only window: outside week-to-date, so the
+    # employee does not appear even though it is the previous day. This is the
+    # existing inclusion rule, kept deliberately.
+    sunday, monday = date(2026, 7, 5), date(2026, 7, 6)
+    records = rows_to_records(HEADERS, [
+        {"index": 0, "values": [1, "2026-07-05", "Alice", 1, 1, 0, 0, 0, 0]},
+    ])
+    rows = logic.weekly_report_rows(records, monday, monday, sunday, CATEGORIES)
+    assert rows == []
+
+
+def test_weekly_report_rows_amounts_are_points_times_constant():
+    rows = logic.weekly_report_rows(dash_records(), MONDAY, WEDNESDAY, PREV_DAY, CATEGORIES)
+    assert rows
+    for r in rows:
+        assert r["prev_amount"] == r["prev_points"] * logic.POINTS_TO_AMOUNT
+        assert r["week_amount"] == r["week_points"] * logic.POINTS_TO_AMOUNT

@@ -114,6 +114,21 @@ a { color: inherit; }
   border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
+/* Small muted line under a section header (the date / week-starting line).
+   Same mono + ink-soft treatment as p.page-sub, but it has to reset the
+   uppercase, letter-spacing and bold weight it would otherwise inherit
+   from .card-header. */
+.card-subhead {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink-soft);
+}
+
 .card-body { padding: var(--sp-6) var(--sp-5); }
 
 /* Table cards clip their contents so the table's edges respect the
@@ -527,14 +542,23 @@ table.data-table td.notes {
    rather than plain links so they read as clickable actions at a glance.
    Edit uses the site's primary forest-green; Delete uses the existing
    muted brick-red error tone so it's clearly distinct as destructive. Both
-   sized to fit the fixed 130px Actions column side by side. */
+   sized to fit the fixed 130px Actions column side by side.
+
+   The cell itself MUST stay a real table-cell: display:flex on a <td> takes it
+   out of the table's column grid, so its colgroup width stops applying, it can
+   no longer be vertical-aligned with its row, and a neighbouring cell's
+   overflow renders straight across it. The flex row lives on an inner wrapper
+   instead. */
 td.row-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-1);
   white-space: nowrap;
   padding-left: 4px;
   padding-right: 4px;
+}
+
+.row-actions-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-1);
 }
 
 .delete-form { margin: 0; }
@@ -625,36 +649,124 @@ table.data-table tfoot td.amount { color: var(--brass); }
   overflow-y: auto;
 }
 
-/* Fixed, hand-picked column widths — no JS, no drag-resize, no localStorage.
-   table-layout:fixed makes these the literal column widths; col-flex (Notes)
-   gets no explicit width and absorbs whatever space is left. Sized so every
-   header fits on one line, except the two-word "narrow" numeric headers
-   (Fluency Compliance) which get a clean 2-line wrap at the natural word
-   break — never a mid-word break. */
+/* Content-driven column sizing — no hand-picked pixel widths, so no column
+   reserves space it doesn't use. table-layout:auto lets the browser measure
+   what each column actually needs; the short, fixed-format columns are then
+   pinned to their content with width:1% (a width below their own minimum,
+   which the auto algorithm resolves as "as narrow as this can get"). Every
+   pixel that frees up goes to Notes, which asks for it with width:100% and
+   is kept readable by min-width. */
 table.register {
-  table-layout: fixed;
+  table-layout: auto;
+  width: 100%;
 }
 
-table.register col.col-date { width: 110px; }
-table.register col.col-name { width: 170px; }
-table.register col.col-num-narrow { width: 120px; }
-table.register col.col-num-wide { width: 145px; }
-table.register col.col-actions { width: 130px; }
-/* col.col-flex (Notes): intentionally no width — fills remaining space. */
+/* Date, the numeric score columns and Actions only ever hold short,
+   fixed-format content, so they shrink to fit. Their headers still wrap at
+   spaces, which keeps a long label like "Extraordinary Performance" to two
+   tidy lines rather than one very wide one. */
+table.register th.num,
+table.register td.num,
+table.register th:first-child,
+table.register td:first-child,
+table.register th:last-child,
+table.register td.row-actions {
+  width: 1%;
+}
+
+/* Score columns sit centred under their own headers rather than hard against
+   the right edge. Scoped to .register deliberately: the shared .data-table
+   rule further up right-aligns every .num cell, and the Dashboard's Points and
+   Amount figures must keep that right alignment to stay readable as money. */
+table.register th.num,
+table.register td.num {
+  text-align: center;
+}
+
+/* The remaining columns — Date, Name, Notes and Actions — are centred too, so
+   every column in the register reads the same way. They need this rule of
+   their own rather than folding into a blanket `table.register th, td`: that
+   selector scores lower than the shared `table.data-table td.num` right-align
+   further up, so the score columns would quietly revert to right-aligned. */
+table.register th:first-child,      /* Date */
+table.register td:first-child,
+table.register th:nth-child(2),     /* Name */
+table.register td:nth-child(2),
+table.register th.notes,            /* Notes */
+table.register td.notes,
+table.register th:last-child,       /* Actions header */
+table.register td.row-actions {
+  text-align: center;
+}
+
+/* Edit/Delete are flex items, so the cell's text-align can't move them — the
+   flex row itself has to be centred inside the cell. */
+table.register .row-actions-inner {
+  justify-content: center;
+}
+
+/* Name is variable-length and should hold a full employee name on one line —
+   at 130px the content box was only 110px, so "Atreyee Majumder" wrapped to
+   two. The extra width comes out of Notes, which is the greedy column; Notes
+   keeps its own 280px floor, so it can't be squeezed back to the old state. */
+table.register th:nth-child(2),
+table.register td:nth-child(2) {
+  min-width: 190px;
+}
+
+/* Edit is an <a> and Delete is a <button>. The anchor inherits the cell's
+   line-height (1.5 = 17.85px) while the button's UA style is
+   line-height:normal, so they rendered 43.1x27.9 and 56.7x24 — different
+   heights AND widths. Pinning both dimensions makes every action button
+   identical on every row. */
+table.register .action-edit,
+table.register .action-delete {
+  min-width: 60px;
+  line-height: 1.5;
+}
+
+/* Notes takes all the width the other columns gave up, with a floor so it can
+   never be crushed into a vertical stack of single words. max-width:none is
+   required: the shared .data-table rule above caps notes cells at 220px,
+   which under auto layout would clamp this column right back down. */
+table.register th.notes,
+table.register td.notes {
+  width: 100%;
+  min-width: 280px;
+  max-width: none;
+}
 
 table.register th,
 table.register td {
   white-space: normal;
   padding: 18px 10px;
   line-height: 1.5;
+  /* Keeps Actions (and every other cell) level with the first line of a
+     Notes cell that has wrapped to two or three lines. */
+  vertical-align: top;
 }
 
-/* Never break a word mid-character — a header/value either fits on one
-   line, wraps at a real space, or (for Date) never wraps at all. */
-table.register th,
-table.register td.notes {
+/* Headers never break mid-word — a header fits on one line or wraps at a
+   real space. */
+table.register th {
   overflow-wrap: normal;
   word-break: keep-all;
+}
+
+/* Notes is free text, so it gets the opposite rule: a single unbroken token
+   (a URL, a run-on word) must break rather than render outside the cell and
+   across the Actions buttons.
+
+   `anywhere` rather than plain `break-word`, because only `anywhere` also
+   shrinks the column's *intrinsic* width. Under `break-word` the text renders
+   broken but auto layout still sizes the column to the whole unbroken token —
+   measured at 516px for a 63-character word, which pushed the table wider than
+   the card on desktop. The break-word line is kept first as a fallback for
+   browsers that don't support `anywhere`. */
+table.register td.notes {
+  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 /* Date is a fixed-format YYYY-MM-DD string — never wrap it at all. */
@@ -808,4 +920,176 @@ table.register thead th::after {
   .brand-name { font-size: 1.6rem; }
   nav.site-nav { gap: 2px; }
   nav.site-nav a { padding: 8px 12px; font-size: 0.92rem; }
+}
+
+/* ============================================================
+   Searchable employee combobox (Add Entry → Name). Replaces the
+   native <select>, which cannot host a per-option remove button.
+   A hidden input still posts `name`, so the server side is
+   unchanged.
+   ============================================================ */
+.combo { position: relative; }
+
+.combo-panel {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--paper-raised);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+/* Author rules outrank the browser's own [hidden] styling, so restate it
+   for every element this widget toggles. */
+.combo-panel[hidden],
+.combo-option[hidden],
+.combo-empty[hidden] { display: none; }
+
+.combo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.combo-option {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.combo-option:last-child { border-bottom: none; }
+.combo-option:hover { background: var(--forest-soft); }
+.combo-option.selected { background: var(--forest-tint); }
+
+.combo-pick {
+  flex: 1;
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: 0.98rem;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.combo-option.selected .combo-pick {
+  font-weight: 700;
+  color: var(--forest-dark);
+}
+
+.combo-remove {
+  width: 38px;
+  flex: none;
+  border: none;
+  border-left: 1px solid var(--hairline);
+  background: none;
+  color: var(--ink-faint);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.combo-remove:hover {
+  background: #FBEAE7;
+  color: var(--stamp-live);
+}
+
+.combo-empty {
+  margin: 0;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  color: var(--ink-faint);
+}
+
+.combo-add {
+  display: flex;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  background: var(--panel-tint);
+  border-top: 1px solid var(--card-border);
+}
+
+.combo-add-input { flex: 1; min-width: 0; }
+.combo-add .btn { white-space: nowrap; }
+
+.hidden-form { display: none; }
+
+/* ============================================================
+   Dashboard KPI card row. Built entirely from existing
+   tokens; the grid is the same shape as .home-cards,
+   widened to four.
+   ============================================================ */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-6);
+}
+
+.kpi-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--sp-5) var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.kpi-label {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--forest-dark);
+  line-height: 1.45;
+}
+
+.kpi-value {
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  margin-top: auto;
+}
+
+.kpi-value.amount { color: var(--brass); }
+
+@media (max-width: 900px) {
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 560px) {
+  .kpi-row { grid-template-columns: 1fr; }
+  .kpi-value { font-size: 1.8rem; }
+}
+
+/* Dashboard data tables. Name and every numeric column sit centred under
+   their own headers; Notes keeps its left alignment but gets real room, so a
+   short note reads on one line instead of wrapping in a narrow column.
+   Scoped with .dash-table so the History register, which has its own column
+   rules, is untouched. */
+table.dash-table th:first-child,
+table.dash-table td:first-child,
+table.dash-table th.num,
+table.dash-table td.num {
+  text-align: center;
+}
+
+table.dash-table th.notes,
+table.dash-table td.notes {
+  min-width: 280px;
+  max-width: none;
 }
