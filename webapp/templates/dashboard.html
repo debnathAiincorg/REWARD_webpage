@@ -10,21 +10,42 @@
   <div class="flash err">Could not load data: {{ error }}</div>
 {% else %}
 
+<div class="kpi-row">
+  <div class="kpi-card">
+    <span class="kpi-label">Total Employees</span>
+    <span class="kpi-value">{{ kpis.total_employees }}</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Total Weekly Points</span>
+    <span class="kpi-value">{{ kpis.weekly_points }}</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Total Weekly Amount</span>
+    <span class="kpi-value amount">&#8377;{{ kpis.weekly_amount }}</span>
+  </div>
+  <div class="kpi-card">
+    <span class="kpi-label">Employees with Zero Points (This Week)</span>
+    <span class="kpi-value">{{ kpis.zero_point_employees }}</span>
+  </div>
+</div>
+
 <div class="card section-card">
-  <div class="card-header">Today's Submitted Entries</div>
+  <div class="card-header">Previous Day Performance
+    <span class="card-subhead">Date: {{ prev_day.isoformat() }}</span>
+  </div>
   <div class="card-body">
-  {% if today_entries %}
+  {% if prev_day_entries %}
   <div class="table-scroll">
-  <table class="data-table">
+  <table class="data-table dash-table">
     <thead>
       <tr>
         <th>Name</th>
         {% for cat in category_names %}<th class="num">{{ cat }}</th>{% endfor %}
-        {% for tf in text_names %}<th>{{ tf }}</th>{% endfor %}
+        {% for tf in text_names %}<th class="notes">{{ tf }}</th>{% endfor %}
       </tr>
     </thead>
     <tbody>
-      {% for r in today_entries %}
+      {% for r in prev_day_entries %}
       <tr>
         <td>{{ r.Name }}</td>
         {% for cat in category_names %}<td class="num">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
@@ -42,41 +63,49 @@
       <line x1="15" y1="23" x2="33" y2="23" stroke="currentColor" stroke-width="1.5"/>
       <line x1="15" y1="30" x2="25" y2="30" stroke="currentColor" stroke-width="1.5"/>
     </svg>
-    <p class="empty-title">No entries submitted yet today</p>
-    <p class="empty-hint">Rows added on the Add Entry page for {{ today.isoformat() }} will appear here.</p>
+    <p class="empty-title">No entries for the previous day</p>
+    <p class="empty-hint">Rows added on the Add Entry page for {{ prev_day.isoformat() }} will appear here.</p>
   </div>
   {% endif %}
   </div>
 </div>
 
 <div class="card section-card">
-  <div class="card-header">Week-to-Date Totals</div>
+  <div class="card-header">Weekly Performance Report
+    <span class="card-subhead">Week starting: {{ week_start.isoformat() }}</span>
+  </div>
   <div class="card-body">
-  {% if totals %}
+  {% if weekly_rows %}
   <div class="table-scroll">
-  <table class="data-table">
+  <table class="data-table dash-table">
     <thead>
       <tr>
         <th>Name</th>
-        <th class="num">Points</th>
-        <th class="num">Amount</th>
+        <th class="num">Previous Day Point</th>
+        <th class="num">Previous Day Amount</th>
+        <th class="num">Weekly Total Point</th>
+        <th class="num">Weekly Total Amount</th>
       </tr>
     </thead>
     <tbody>
-      {% for t in totals %}
+      {% for r in weekly_rows %}
       <tr>
-        <td>{{ t.name }}</td>
-        <td class="num">{{ t.points }}</td>
-        <td class="num amount">₹{{ t.amount }}</td>
+        <td>{{ r.name }}</td>
+        <td class="num">{{ r.prev_points }}</td>
+        <td class="num amount">&#8377;{{ r.prev_amount }}</td>
+        <td class="num">{{ r.week_points }}</td>
+        <td class="num amount">&#8377;{{ r.week_amount }}</td>
       </tr>
       {% endfor %}
     </tbody>
-    {% if totals_row %}
+    {% if weekly_total %}
     <tfoot>
       <tr>
         <td>TOTAL</td>
-        <td class="num">{{ totals_row.points }}</td>
-        <td class="num amount">₹{{ totals_row.amount }}</td>
+        <td class="num">{{ weekly_total.prev_points }}</td>
+        <td class="num amount">&#8377;{{ weekly_total.prev_amount }}</td>
+        <td class="num">{{ weekly_total.week_points }}</td>
+        <td class="num amount">&#8377;{{ weekly_total.week_amount }}</td>
       </tr>
     </tfoot>
     {% endif %}
@@ -91,7 +120,7 @@
       <line x1="15" y1="30" x2="25" y2="30" stroke="currentColor" stroke-width="1.5"/>
     </svg>
     <p class="empty-title">No entries yet this week</p>
-    <p class="empty-hint">Week-to-date totals for {{ week_start.isoformat() if week_start else "" }} onward will appear here.</p>
+    <p class="empty-hint">Week-to-date figures for {{ week_start.isoformat() if week_start else "" }} onward will appear here.</p>
   </div>
   {% endif %}
   </div>
