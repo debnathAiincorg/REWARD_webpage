@@ -11,8 +11,7 @@ from msal import ConfidentialClientApplication
 
 from config import DRIVE_ID, ITEM_ID, TABLE_NAME
 
-# Reuse the same repo-root .env as weekly_report_send_teams.py — single source
-# of truth for Azure credentials, regardless of the process's working directory.
+# Load the repo-root .env file, regardless of the process's working directory.
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 AZURE_CLIENT_ID = os.environ.get("AZURE_CLIENT_ID")
