@@ -2,6 +2,7 @@
 .env
 __pycache__/
 .pytest_cache/
+.venv/
 
 run.txt
 webapp/employees.json

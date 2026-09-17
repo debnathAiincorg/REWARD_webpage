@@ -16,7 +16,10 @@ from graph_client import (
 )
 
 app = Flask(__name__)
-app.secret_key = "performance-webapp-local-only"  # single-user local tool, not internet-facing
+# Set FLASK_SECRET_KEY in the host's environment. The fallback exists only so a
+# local checkout runs without setup — once this app is reachable over the
+# network, a known key would let anyone forge a session cookie.
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "performance-webapp-local-only")
 
 # Widget hints for the Add Entry form. A category NOT listed here still works —
 # it just falls back to a plain number input instead of a styled toggle/choice row.
@@ -66,6 +69,17 @@ def _load_records():
 @app.route("/")
 def home():
     return render_template("home.html", active_page="home")
+
+
+@app.route("/healthz")
+def healthz():
+    """Liveness probe for the host's deploy health check.
+
+    Deliberately does not touch Graph: a Microsoft outage should surface as an
+    error banner in the UI, not as a failed health check that gets the whole
+    deployment rolled back.
+    """
+    return "ok", 200
 
 
 @app.route("/dashboard")
@@ -313,5 +327,9 @@ def history_delete():
 
 
 if __name__ == "__main__":
-    print(f"Starting on http://localhost:5000  (ACTIVE_FILE={config.ACTIVE_FILE})")
-    app.run(debug=True, port=5000)
+    # Local dev entry point only — in production the host runs gunicorn against
+    # the `app` object above and never executes this block. Debug is off unless
+    # explicitly asked for: it exposes an interactive code-execution console.
+    debug = os.environ.get("FLASK_DEBUG", "").strip().lower() in ("1", "true", "yes", "on")
+    print(f"Starting on http://localhost:5000  (ACTIVE_FILE={config.ACTIVE_FILE}, debug={debug})")
+    app.run(debug=debug, port=5000)
