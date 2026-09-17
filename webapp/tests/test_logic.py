@@ -445,6 +445,44 @@ def test_weekly_report_rows_excludes_activity_outside_the_week():
     assert rows == []
 
 
+def test_weekly_report_rows_excludes_employee_with_only_previous_week_entries():
+    # Dave's only entry is from the week before [MONDAY, WEDNESDAY] — he must
+    # not appear in this week's report at all, not even with zero totals.
+    records = rows_to_records(HEADERS, [
+        {"index": 0, "values": [1, "2026-07-01", "Dave", 1, 1, 0, 0, 0, 0]},
+    ])
+    rows = logic.weekly_report_rows(records, MONDAY, WEDNESDAY, PREV_DAY, CATEGORIES)
+    assert rows == []
+    assert "Dave" not in [r["name"] for r in rows]
+
+
+def test_weekly_report_rows_keeps_employee_with_no_activity_since_early_in_week():
+    # Eve's only entry is Monday; nothing since. She must still appear for the
+    # rest of the week, with totals frozen at Monday's figures rather than
+    # disappearing or resetting to zero on a quiet day.
+    records = rows_to_records(HEADERS, [
+        {"index": 0, "values": [1, "2026-07-06", "Eve", 1, 1, 0, 0, 0, 0]},
+    ])
+    rows = logic.weekly_report_rows(records, MONDAY, WEDNESDAY, PREV_DAY, CATEGORIES)
+    assert [r["name"] for r in rows] == ["Eve"]
+    assert rows[0]["week_points"] == 2
+    assert rows[0]["week_amount"] == 20
+    assert rows[0]["prev_points"] == 0   # nothing on Tuesday (PREV_DAY)
+
+
+def test_weekly_report_rows_includes_employee_who_joins_mid_week():
+    # Frank's first-ever entry is today (Wednesday) — he must appear starting
+    # from that first entry, included in this week's report immediately.
+    records = rows_to_records(HEADERS, [
+        {"index": 0, "values": [1, "2026-07-08", "Frank", 1, 0, 0, 0, 0, 0]},
+    ])
+    rows = logic.weekly_report_rows(records, MONDAY, WEDNESDAY, PREV_DAY, CATEGORIES)
+    assert [r["name"] for r in rows] == ["Frank"]
+    assert rows[0]["week_points"] == 1
+    assert rows[0]["week_amount"] == 10
+    assert rows[0]["prev_points"] == 0   # nothing on Tuesday (PREV_DAY) either
+
+
 def test_weekly_report_rows_amounts_are_points_times_constant():
     rows = logic.weekly_report_rows(dash_records(), MONDAY, WEDNESDAY, PREV_DAY, CATEGORIES)
     assert rows
