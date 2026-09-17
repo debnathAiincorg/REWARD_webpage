@@ -1,16 +1,16 @@
 # Single source of truth for which SharePoint Excel file this app talks to.
 # No other file in this project should hardcode a Drive ID or Item ID.
 
-ACTIVE_FILE = "DUMMY"  # "DUMMY" or "MAIN"
+ACTIVE_FILE = "MAIN"  # "DUMMY" or "MAIN"
 
 # Fill these in with your dummy/test file's IDs before running the app.
 DUMMY_DRIVE_ID = "b!ncIFrojL106h53P8D_qyinjcKBnN9CFGrFJ26Ac7DPP-kaV-qe0HS73NEabHbqpx"
 DUMMY_ITEM_ID = "01ZAECLIXEJYLGEVLWOZB2FQXRBJRJEBV7"
 
-# Leave these as None until dummy-file testing is complete and you explicitly
-# provide the production file's IDs for cutover.
-MAIN_DRIVE_ID = None
-MAIN_ITEM_ID = None
+# Production file: "Strict Employee Performance Analysis.xlsx"
+# (sites/StrictEmployeePerformance).
+MAIN_DRIVE_ID = "b!_Oj5AOOCqUa-6fnpgxmwM4Tmz3IIfOZIhM-bF3vfV8Q7o8oZ3WyrQ4ILTnuUDgHw"
+MAIN_ITEM_ID = "01EUH7IGAHNG3EYW2JJ5C37HVRDHKNUFDB"
 
 TABLE_NAME = "Table1"
 SHEET_NAME = "Daily Performance Bonus"
