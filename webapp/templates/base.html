@@ -51,21 +51,21 @@
       <span class="text-xs text-stone-500 hidden sm:inline">Daily Performance Bonus</span>
     </a>
     <nav class="flex items-center gap-1">
-      <a href="{{ url_for('home') }}"
-         class="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'home' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
-        <i data-lucide="home" class="w-4 h-4"></i><span>Home</span>
+      <a href="{{ url_for('home') }}" aria-label="Home"
+         class="flex items-center gap-1.5 px-2.5 py-2.5 sm:px-3 sm:py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'home' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
+        <i data-lucide="home" class="w-4 h-4"></i><span class="hidden sm:inline">Home</span>
       </a>
-      <a href="{{ url_for('dashboard') }}"
-         class="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'dashboard' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
-        <i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span>
+      <a href="{{ url_for('dashboard') }}" aria-label="Dashboard"
+         class="flex items-center gap-1.5 px-2.5 py-2.5 sm:px-3 sm:py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'dashboard' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i><span class="hidden sm:inline">Dashboard</span>
       </a>
-      <a href="{{ url_for('add_entry') }}"
-         class="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'add' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
-        <i data-lucide="plus-circle" class="w-4 h-4"></i><span>Add Entry</span>
+      <a href="{{ url_for('add_entry') }}" aria-label="Add Entry"
+         class="flex items-center gap-1.5 px-2.5 py-2.5 sm:px-3 sm:py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'add' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
+        <i data-lucide="plus-circle" class="w-4 h-4"></i><span class="hidden sm:inline">Add Entry</span>
       </a>
-      <a href="{{ url_for('history') }}"
-         class="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'history' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
-        <i data-lucide="history" class="w-4 h-4"></i><span>History</span>
+      <a href="{{ url_for('history') }}" aria-label="History"
+         class="flex items-center gap-1.5 px-2.5 py-2.5 sm:px-3 sm:py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'history' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
+        <i data-lucide="history" class="w-4 h-4"></i><span class="hidden sm:inline">History</span>
       </a>
     </nav>
   </div>

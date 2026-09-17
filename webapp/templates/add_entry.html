@@ -54,9 +54,9 @@
         </ul>
         <p class="combo-empty px-3 py-3 font-mono text-xs text-stone-400" id="comboEmpty" hidden>No matching employee.</p>
         <div class="combo-add flex gap-2 border-t border-stone-200 bg-stone-50 p-2.5">
-          <input type="text" id="newEmployee" class="min-w-0 flex-1 rounded-md border border-stone-300 px-2.5 py-1.5 text-sm focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20"
+          <input type="text" id="newEmployee" class="min-w-0 flex-1 rounded-md border border-stone-300 px-2.5 py-2 text-sm focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20"
                  autocomplete="off" placeholder="+ Add new employee">
-          <button type="button" class="flex items-center gap-1 whitespace-nowrap rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-600 transition-colors hover:border-forest hover:text-forest" id="addEmployeeBtn">
+          <button type="button" class="flex items-center gap-1 whitespace-nowrap rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-600 transition-colors hover:border-forest hover:text-forest" id="addEmployeeBtn">
             <i data-lucide="plus" class="h-3.5 w-3.5"></i> Add
           </button>
         </div>
@@ -72,8 +72,8 @@
     <div>
       <label class="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">{{ cat }}</label>
       <div class="segmented flex overflow-hidden rounded-lg border border-stone-300" data-field="cat__{{ cat }}">
-        <button type="button" data-value="0" class="flex-1 border-r border-stone-300 py-2 text-sm font-medium text-stone-600 transition-colors hover:text-stone-900">0</button>
-        <button type="button" data-value="1" class="flex-1 py-2 text-sm font-medium text-stone-600 transition-colors hover:text-stone-900">1</button>
+        <button type="button" data-value="0" class="flex-1 border-r border-stone-300 py-2.5 text-sm font-medium text-stone-600 transition-colors hover:text-stone-900">0</button>
+        <button type="button" data-value="1" class="flex-1 py-2.5 text-sm font-medium text-stone-600 transition-colors hover:text-stone-900">1</button>
       </div>
       <input type="hidden" name="cat__{{ cat }}" data-hidden-for="cat__{{ cat }}" value="{{ prefill.get('cat__' ~ cat, '') }}">
     </div>
