@@ -1,5 +1,6 @@
 from datetime import date
 
+import importlib
 import sys
 from pathlib import Path
 
@@ -274,6 +275,59 @@ def test_seed_employee_list_keeps_existing_file_untouched(tmp_path, monkeypatch)
     logic.save_employee_list(["Zoe"])
     logic.seed_employee_list_if_missing(rows_to_records(HEADERS, make_rows()))
     assert logic.load_employee_list() == ["Zoe"]
+
+
+# ---------------------------------------------------------------------------
+# Roster storage location. On a host with an ephemeral filesystem the roster
+# has to live on a mounted volume, or every redeploy silently reverts each
+# add/remove. EMPLOYEES_DATA_DIR is read once at import — the same moment it
+# would be read on a real boot — so these tests reload the module to exercise
+# it, then reload once more to leave the module as they found it.
+# ---------------------------------------------------------------------------
+
+def test_employees_path_honours_data_dir_env_var(tmp_path, monkeypatch):
+    volume = tmp_path / "data"
+    monkeypatch.setenv("EMPLOYEES_DATA_DIR", str(volume))
+    try:
+        importlib.reload(logic)
+        assert logic.EMPLOYEES_PATH == volume / "employees.json"
+    finally:
+        monkeypatch.undo()
+        importlib.reload(logic)
+
+
+def test_save_and_load_employee_list_use_data_dir_env_var(tmp_path, monkeypatch):
+    volume = tmp_path / "data"
+    monkeypatch.setenv("EMPLOYEES_DATA_DIR", str(volume))
+    try:
+        importlib.reload(logic)
+        logic.save_employee_list(["Bob", "Alice"])
+        # Written to the volume, not next to logic.py — that's the whole point.
+        assert (volume / "employees.json").exists()
+        assert logic.load_employee_list() == ["Alice", "Bob"]
+    finally:
+        monkeypatch.undo()
+        importlib.reload(logic)
+
+
+def test_employees_path_defaults_beside_logic_when_env_var_unset(monkeypatch):
+    monkeypatch.delenv("EMPLOYEES_DATA_DIR", raising=False)
+    try:
+        importlib.reload(logic)
+        expected = Path(logic.__file__).resolve().parent / "employees.json"
+        assert logic.EMPLOYEES_PATH == expected
+    finally:
+        monkeypatch.undo()
+        importlib.reload(logic)
+
+
+def test_save_employee_list_creates_missing_directory(tmp_path, monkeypatch):
+    # A freshly mounted volume is an empty path that may not exist on first boot.
+    target = tmp_path / "mnt" / "data" / "employees.json"
+    monkeypatch.setattr(logic, "EMPLOYEES_PATH", target)
+    logic.save_employee_list(["Alice"])
+    assert target.exists()
+    assert logic.load_employee_list() == ["Alice"]
 
 
 # ---------------------------------------------------------------------------

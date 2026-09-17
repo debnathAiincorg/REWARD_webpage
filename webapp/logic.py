@@ -3,6 +3,7 @@
 # in the sheet's current header row, so new columns are picked up automatically.
 
 import json
+import os
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
@@ -14,7 +15,14 @@ POINTS_TO_AMOUNT = 10
 # The Add Entry dropdown's roster of selectable employees. Deliberately kept
 # separate from the sheet: retiring a name here stops it appearing in the
 # dropdown without touching a single one of that person's existing rows.
-EMPLOYEES_PATH = Path(__file__).resolve().parent / "employees.json"
+#
+# EMPLOYEES_DATA_DIR points this at a persistent disk in production. Hosts with
+# an ephemeral filesystem wipe the app directory on every redeploy, which would
+# silently undo each add/remove and re-seed the roster from the sheet. Unset
+# (local dev), it falls back to sitting next to this file as before.
+EMPLOYEES_PATH = Path(
+    os.environ.get("EMPLOYEES_DATA_DIR", Path(__file__).resolve().parent)
+) / "employees.json"
 
 # Known free-text columns (e.g. "Notes") — carried through as-is, never summed
 # into points, never overwritten with a number input.
@@ -215,6 +223,10 @@ def load_employee_list():
 def save_employee_list(names):
     """Write the roster back, always trimmed, de-duplicated and alphabetical."""
     clean = _normalize_names(names)
+    # A freshly mounted volume is an empty directory that may not exist yet on
+    # first boot; every roster write funnels through here, so this is the one
+    # place that needs to guarantee it.
+    os.makedirs(EMPLOYEES_PATH.parent, exist_ok=True)
     with open(EMPLOYEES_PATH, "w", encoding="utf-8") as f:
         json.dump(clean, f, indent=2, ensure_ascii=False)
     return clean
