@@ -390,6 +390,35 @@ def test_dashboard_kpis_matches_roster_names_case_insensitively():
     assert k["weekly_points"] == 2
 
 
+def test_previous_week_bounds():
+    # WEDNESDAY (2026-07-08) is in the same week as MONDAY (2026-07-06); the
+    # previous week is the complete Mon-Sun just before that, not a rolling
+    # 7-day window back from "today".
+    monday, sunday = logic.previous_week_bounds(WEDNESDAY)
+    assert monday == date(2026, 6, 29)
+    assert sunday == date(2026, 7, 5)
+
+
+def test_dashboard_kpis_previous_week_points_normal_case():
+    records = rows_to_records(HEADERS, [
+        {"index": 0, "values": [1, "2026-06-30", "Alice", 1, 1, 0, 0, 0, 0]},   # previous week: 2 pts
+        {"index": 1, "values": [2, "2026-07-03", "Bob", 1, 0, 0, 1, 1, 0]},     # previous week: 3 pts
+        {"index": 2, "values": [3, "2026-07-07", "Alice", 1, 0, 0, 0, 0, 0]},   # this week — must not count
+    ])
+    k = logic.dashboard_kpis(records, ["Alice", "Bob"], MONDAY, WEDNESDAY, CATEGORIES)
+    assert k["previous_week_points"] == 5
+
+
+def test_dashboard_kpis_previous_week_points_zero_when_no_entries():
+    # Only this-week activity exists — the previous week has nothing at all,
+    # which must show as 0, not raise or omit the key.
+    records = rows_to_records(HEADERS, [
+        {"index": 0, "values": [1, "2026-07-07", "Alice", 1, 1, 0, 0, 0, 0]},
+    ])
+    k = logic.dashboard_kpis(records, ["Alice"], MONDAY, WEDNESDAY, CATEGORIES)
+    assert k["previous_week_points"] == 0
+
+
 # ---------------------------------------------------------------------------
 # Weekly Performance Report rows: previous-day and week-to-date figures side
 # by side. Inclusion follows the week-to-date range only, matching what the

@@ -136,6 +136,16 @@ def week_bounds(today):
     return monday, today
 
 
+def previous_week_bounds(today):
+    """Return (monday, sunday) for the complete calendar week just before
+    this one — a fixed 7-day window, not a rolling one, so it doesn't shift
+    as the current week progresses."""
+    this_monday = today - timedelta(days=today.weekday())
+    monday = this_monday - timedelta(days=7)
+    sunday = this_monday - timedelta(days=1)
+    return monday, sunday
+
+
 def totals_by_employee(records, start, end, category_names):
     """Sum points (and amount = points * 10) per employee within [start, end]."""
     totals = {}
@@ -309,11 +319,19 @@ def dashboard_kpis(records, roster, start, end, category_names):
     weekly_points = sum(bucket["points"] for bucket in totals.values())
     zero_count = sum(1 for n in roster if points_by_key.get(_fold(n), 0) == 0)
 
+    # `end` is always "today" (the caller's week-to-date window), so the
+    # previous complete week is derived from it directly rather than taking
+    # a separate parameter.
+    prev_monday, prev_sunday = previous_week_bounds(end)
+    prev_week_totals = totals_by_employee(records, prev_monday, prev_sunday, category_names)
+    previous_week_points = sum(bucket["points"] for bucket in prev_week_totals.values())
+
     return {
         "total_employees": len(roster),
         "weekly_points": weekly_points,
         "weekly_amount": weekly_points * POINTS_TO_AMOUNT,
         "zero_point_employees": zero_count,
+        "previous_week_points": previous_week_points,
     }
 
 
