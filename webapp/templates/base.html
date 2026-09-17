@@ -5,43 +5,132 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}Daily Performance Bonus{% endblock %}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          forest: {
+            DEFAULT: '#2F5233',
+            dark: '#223d26',
+            light: '#e4eae1',
+          },
+        },
+      },
+    },
+  };
+</script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ style_version }}">
 </head>
-<body>
+<body class="min-h-screen flex flex-col bg-stone-50 text-stone-900 font-sans antialiased">
 
-<header class="site-header">
-  <div class="site-header-inner">
-    <div class="brand">
-      <h1 class="brand-name"><a href="{{ url_for('home') }}">ADIRI</a></h1>
-      <span class="tagline">Daily Performance Bonus</span>
+<div id="navProgress" class="fixed top-0 left-0 right-0 h-0.5 bg-forest origin-left scale-x-0 z-50 transition-transform duration-500 ease-out"></div>
+
+<div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 w-[calc(100%-2rem)] max-w-sm">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="toast flex items-start gap-3 rounded-lg border p-4 shadow-lg bg-white opacity-0 translate-x-4 transition-all duration-300
+                {{ 'border-forest/30' if category == 'ok' else 'border-red-300' }}">
+      <i data-lucide="{{ 'check-circle' if category == 'ok' else 'alert-circle' }}"
+         class="w-5 h-5 shrink-0 mt-0.5 {{ 'text-forest' if category == 'ok' else 'text-red-600' }}"></i>
+      <p class="text-sm text-stone-700 flex-1 leading-snug">{{ message }}</p>
+      <button type="button" class="toast-close text-stone-400 hover:text-stone-600 transition-colors" aria-label="Dismiss">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
     </div>
-    <nav class="site-nav">
-      <a href="{{ url_for('home') }}" class="{{ 'active' if active_page == 'home' }}">Home</a>
-      <a href="{{ url_for('dashboard') }}" class="{{ 'active' if active_page == 'dashboard' }}">Dashboard</a>
-      <a href="{{ url_for('add_entry') }}" class="{{ 'active' if active_page == 'add' }}">Add Entry</a>
-      <a href="{{ url_for('history') }}" class="{{ 'active' if active_page == 'history' }}">History</a>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-stone-200 shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+    <a href="{{ url_for('home') }}" class="flex items-baseline gap-2 group">
+      <span class="text-2xl font-bold tracking-tight text-stone-900 group-hover:text-forest transition-colors">ADIRI</span>
+      <span class="text-xs text-stone-500 hidden sm:inline">Daily Performance Bonus</span>
+    </a>
+    <nav class="flex items-center gap-1">
+      <a href="{{ url_for('home') }}"
+         class="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'home' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
+        <i data-lucide="home" class="w-4 h-4"></i><span>Home</span>
+      </a>
+      <a href="{{ url_for('dashboard') }}"
+         class="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'dashboard' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Dashboard</span>
+      </a>
+      <a href="{{ url_for('add_entry') }}"
+         class="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'add' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
+        <i data-lucide="plus-circle" class="w-4 h-4"></i><span>Add Entry</span>
+      </a>
+      <a href="{{ url_for('history') }}"
+         class="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'history' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
+        <i data-lucide="history" class="w-4 h-4"></i><span>History</span>
+      </a>
     </nav>
   </div>
 </header>
 
-<div class="wrap">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="flash {{ 'ok' if category == 'ok' else 'err' }}">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
-
+<main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   {% block content %}{% endblock %}
-</div>
+</main>
 
-<footer class="site-footer">
-  <div class="footer-inner">
-    <span class="footer-brand">&copy; {{ current_year }} ADIRI · Daily Performance Bonus</span>
-    <span class="footer-version">Version 1.0</span>
+<footer class="border-t border-stone-200 bg-white mt-auto">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-2">
+    <span class="font-mono text-xs text-stone-500">&copy; {{ current_year }} ADIRI &middot; Daily Performance Bonus</span>
+    <span class="font-mono text-xs text-stone-500">Version 1.0</span>
   </div>
 </footer>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.lucide) lucide.createIcons();
+
+    // Toasts: fade+slide in on load, auto-dismiss, or dismiss on click.
+    document.querySelectorAll('.toast').forEach(function (toast) {
+      requestAnimationFrame(function () {
+        toast.classList.remove('opacity-0', 'translate-x-4');
+        toast.classList.add('opacity-100', 'translate-x-0');
+      });
+      var dismiss = function () {
+        toast.classList.add('opacity-0', 'translate-x-4');
+        toast.classList.remove('opacity-100', 'translate-x-0');
+        setTimeout(function () { toast.remove(); }, 300);
+      };
+      var timer = setTimeout(dismiss, 5000);
+      var closeBtn = toast.querySelector('.toast-close');
+      if (closeBtn) closeBtn.addEventListener('click', function () { clearTimeout(timer); dismiss(); });
+    });
+
+    // Top progress bar: gives a "please wait" cue for the pages that hit
+    // Graph API server-side. There's no client-side fetch to hook into, so
+    // this just animates toward (not to) complete on navigation — the
+    // in-flight page unload cuts it off naturally when the new page arrives.
+    var bar = document.getElementById('navProgress');
+    function startProgress() {
+      bar.classList.remove('scale-x-0');
+      bar.style.transform = 'scaleX(0.8)';
+    }
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest('a[href]');
+      if (!a || e.defaultPrevented || e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (a.target === '_blank' || a.origin !== location.origin) return;
+      if (a.getAttribute('href').startsWith('#')) return;
+      startProgress();
+    });
+    document.addEventListener('submit', function (e) {
+      if (e.defaultPrevented) return;
+      startProgress();
+    });
+    window.addEventListener('pageshow', function (e) {
+      if (e.persisted) {
+        bar.style.transform = '';
+        bar.classList.add('scale-x-0');
+      }
+    });
+  });
+</script>
 
 </body>
 </html>

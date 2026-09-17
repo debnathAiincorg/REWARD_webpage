@@ -1,47 +1,64 @@
 {% extends "base.html" %}
 {% block title %}Add Entry — Daily Performance Bonus{% endblock %}
 {% block content %}
-<h2 class="page-title">Add Entry</h2>
-<p class="page-sub">writes directly into Table1 · updates the existing row instead of duplicating if this employee already has an entry for the chosen date</p>
+<div class="mb-6">
+  <h2 class="text-2xl font-bold text-stone-900">Add Entry</h2>
+  <p class="mt-1 font-mono text-sm text-stone-500">writes directly into Table1 &middot; updates the existing row instead of duplicating if this employee already has an entry for the chosen date</p>
+</div>
 
-<div class="card entry-card">
-<div class="card-header">Daily Performance Bonus</div>
-<div class="card-body">
+<div class="mx-auto max-w-xl overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
+  <div class="border-t-4 border-forest bg-stone-50 px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-forest-dark">
+    Daily Performance Bonus
+  </div>
+  <div class="p-6">
+
 <div class="error-list" id="errorList"></div>
 
-<form class="entry-form" id="entryForm" method="post" action="{{ url_for('add_entry') }}" novalidate>
-  <div class="field">
-    <label for="date">Date</label>
-    <input type="date" id="date" name="date" value="{{ prefill.get('date', today) }}" required>
+<form id="entryForm" method="post" action="{{ url_for('add_entry') }}" novalidate class="mt-4 space-y-4">
+  <div>
+    <label for="date" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">Date</label>
+    <div class="relative">
+      <i data-lucide="calendar" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400"></i>
+      <input type="date" id="date" name="date" value="{{ prefill.get('date', today) }}" required
+             class="w-full rounded-lg border border-stone-300 py-2.5 pl-9 pr-3 font-mono text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
+    </div>
     <span class="field-error" id="dateError">Enter a date.</span>
   </div>
 
-  <div class="field">
-    <label for="nameSearch">Name</label>
-    <div class="combo" id="nameCombo">
+  <div>
+    <label for="nameSearch" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">Name</label>
+    <div class="combo relative" id="nameCombo">
       {# The hidden input is what actually posts as `name`, so the server side of
          /add is untouched by this widget. #}
       <input type="hidden" id="name" name="name" value="{{ prefill.get('name', '') }}">
-      <input type="text" id="nameSearch" class="combo-input" role="combobox"
-             autocomplete="off" aria-expanded="false" aria-controls="nameOptions"
-             placeholder="Search or select employee"
-             value="{{ prefill.get('name', '') }}">
-      <div class="combo-panel" id="nameOptions" hidden>
-        <ul class="combo-list" id="nameList" role="listbox">
+      <div class="relative">
+        <i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400"></i>
+        <input type="text" id="nameSearch" role="combobox"
+               autocomplete="off" aria-expanded="false" aria-controls="nameOptions"
+               placeholder="Search or select employee"
+               value="{{ prefill.get('name', '') }}"
+               class="w-full rounded-lg border border-stone-300 py-2.5 pl-9 pr-3 text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
+      </div>
+      <div class="combo-panel absolute z-20 mt-1 w-full rounded-lg border border-stone-200 bg-white shadow-lg" id="nameOptions" hidden>
+        <ul class="combo-list max-h-60 overflow-y-auto" id="nameList" role="listbox">
           {% for emp in employees %}
-          <li class="combo-option {% if prefill.get('name') == emp %}selected{% endif %}"
+          <li class="combo-option flex items-stretch border-b border-stone-100 last:border-b-0 hover:bg-forest-light {% if prefill.get('name') == emp %}selected{% endif %}"
               data-name="{{ emp }}" role="option">
-            <button type="button" class="combo-pick">{{ emp }}</button>
-            <button type="button" class="combo-remove" data-name="{{ emp }}"
-                    aria-label="Remove {{ emp }} from list">&times;</button>
+            <button type="button" class="combo-pick flex-1 px-3 py-2.5 text-left text-sm text-stone-800">{{ emp }}</button>
+            <button type="button" class="combo-remove flex w-9 items-center justify-center border-l border-stone-100 text-stone-400 transition-colors hover:bg-red-50 hover:text-red-600" data-name="{{ emp }}"
+                    aria-label="Remove {{ emp }} from list">
+              <i data-lucide="x" class="h-3.5 w-3.5"></i>
+            </button>
           </li>
           {% endfor %}
         </ul>
-        <p class="combo-empty" id="comboEmpty" hidden>No matching employee.</p>
-        <div class="combo-add">
-          <input type="text" id="newEmployee" class="combo-add-input"
+        <p class="combo-empty px-3 py-3 font-mono text-xs text-stone-400" id="comboEmpty" hidden>No matching employee.</p>
+        <div class="combo-add flex gap-2 border-t border-stone-200 bg-stone-50 p-2.5">
+          <input type="text" id="newEmployee" class="min-w-0 flex-1 rounded-md border border-stone-300 px-2.5 py-1.5 text-sm focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20"
                  autocomplete="off" placeholder="+ Add new employee">
-          <button type="button" class="btn btn-secondary" id="addEmployeeBtn">Add</button>
+          <button type="button" class="flex items-center gap-1 whitespace-nowrap rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-600 transition-colors hover:border-forest hover:text-forest" id="addEmployeeBtn">
+            <i data-lucide="plus" class="h-3.5 w-3.5"></i> Add
+          </button>
         </div>
       </div>
     </div>
@@ -52,51 +69,60 @@
     {% set widget = known_widgets.get(cat, "number") %}
 
     {% if widget == "toggle01" %}
-    <div class="field">
-      <label>{{ cat }}</label>
-      <div class="segmented" data-field="cat__{{ cat }}">
-        <button type="button" data-value="0">0</button>
-        <button type="button" data-value="1">1</button>
+    <div>
+      <label class="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">{{ cat }}</label>
+      <div class="segmented flex overflow-hidden rounded-lg border border-stone-300" data-field="cat__{{ cat }}">
+        <button type="button" data-value="0" class="flex-1 border-r border-stone-300 py-2 text-sm font-medium text-stone-600 transition-colors hover:text-stone-900">0</button>
+        <button type="button" data-value="1" class="flex-1 py-2 text-sm font-medium text-stone-600 transition-colors hover:text-stone-900">1</button>
       </div>
       <input type="hidden" name="cat__{{ cat }}" data-hidden-for="cat__{{ cat }}" value="{{ prefill.get('cat__' ~ cat, '') }}">
     </div>
 
     {% elif widget == "decimal" %}
-    <div class="field">
-      <label for="cat__{{ cat }}">{{ cat }} <span class="opt">optional</span></label>
-      <input type="number" id="cat__{{ cat }}" name="cat__{{ cat }}" step="0.5" min="0" value="{{ prefill.get('cat__' ~ cat, 0) }}">
+    <div>
+      <label for="cat__{{ cat }}" class="mb-1 flex items-baseline justify-between text-xs font-semibold uppercase tracking-wider text-stone-500">
+        {{ cat }} <span class="normal-case italic tracking-normal text-stone-400">optional</span>
+      </label>
+      <input type="number" id="cat__{{ cat }}" name="cat__{{ cat }}" step="0.5" min="0" value="{{ prefill.get('cat__' ~ cat, 0) }}"
+             class="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-right font-mono text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
     </div>
 
     {% else %}
-    <div class="field">
-      <label for="cat__{{ cat }}">{{ cat }}</label>
-      <input type="number" id="cat__{{ cat }}" name="cat__{{ cat }}" step="1" min="0" max="100" value="{{ prefill.get('cat__' ~ cat, 0) }}">
+    <div>
+      <label for="cat__{{ cat }}" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">{{ cat }}</label>
+      <input type="number" id="cat__{{ cat }}" name="cat__{{ cat }}" step="1" min="0" max="100" value="{{ prefill.get('cat__' ~ cat, 0) }}"
+             class="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-right font-mono text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
     </div>
     {% endif %}
   {% endfor %}
 
   {% for tf in text_fields %}
-  <div class="field">
-    <label for="txt__{{ tf }}">{{ field_labels.get(tf, tf) }} <span class="opt">optional</span></label>
-    <input type="text" id="txt__{{ tf }}" name="txt__{{ tf }}" value="{{ prefill.get('txt__' ~ tf, '') }}">
+  <div>
+    <label for="txt__{{ tf }}" class="mb-1 flex items-baseline justify-between text-xs font-semibold uppercase tracking-wider text-stone-500">
+      {{ field_labels.get(tf, tf) }} <span class="normal-case italic tracking-normal text-stone-400">optional</span>
+    </label>
+    <input type="text" id="txt__{{ tf }}" name="txt__{{ tf }}" value="{{ prefill.get('txt__' ~ tf, '') }}"
+           class="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
   </div>
   {% endfor %}
 
-  <div class="submit-bar">
-    <button type="submit" class="btn btn-primary" id="submitBtn">Save entry</button>
-    <span class="status" id="statusMsg"></span>
+  <div class="flex items-center gap-4 pt-2">
+    <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-forest px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-forest-dark" id="submitBtn">
+      <i data-lucide="check" class="h-4 w-4"></i> Save entry
+    </button>
+    <span class="font-mono text-sm" id="statusMsg"></span>
   </div>
 </form>
 
 {# Roster forms live OUTSIDE #entryForm — a form cannot be nested in another —
    so adding or removing an employee can never submit a half-filled entry. #}
-<form id="empAddForm" class="hidden-form" method="post" action="{{ url_for('employees_add') }}">
+<form id="empAddForm" class="hidden" method="post" action="{{ url_for('employees_add') }}">
   <input type="hidden" name="name" id="empAddName">
 </form>
-<form id="empDeleteForm" class="hidden-form" method="post" action="{{ url_for('employees_delete') }}">
+<form id="empDeleteForm" class="hidden" method="post" action="{{ url_for('employees_delete') }}">
   <input type="hidden" name="name" id="empDeleteName">
 </form>
-</div>
+  </div>
 </div>
 
 <script>

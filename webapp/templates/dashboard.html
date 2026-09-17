@@ -1,129 +1,130 @@
 {% extends "base.html" %}
 {% block title %}Dashboard — Daily Performance Bonus{% endblock %}
 {% block content %}
-<h2 class="page-title">Dashboard</h2>
-<p class="page-sub">
-  {% if week_start %}today: {{ today.isoformat() }} · week-to-date: {{ week_start.isoformat() }} to {{ today.isoformat() }}{% endif %}
-</p>
+<div class="mb-6">
+  <h2 class="text-2xl font-bold text-stone-900">Dashboard</h2>
+  <p class="mt-1 font-mono text-sm text-stone-500">
+    {% if week_start %}today: {{ today.isoformat() }} &middot; week-to-date: {{ week_start.isoformat() }} to {{ today.isoformat() }}{% endif %}
+  </p>
+</div>
 
 {% if error %}
-  <div class="flash err">Could not load data: {{ error }}</div>
+  <div class="flex items-start gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+    <i data-lucide="alert-circle" class="h-5 w-5 shrink-0 text-red-600"></i>
+    <span>Could not load data: {{ error }}</span>
+  </div>
 {% else %}
 
-<div class="kpi-row">
-  <div class="kpi-card">
-    <span class="kpi-label">Total Employees</span>
-    <span class="kpi-value">{{ kpis.total_employees }}</span>
+<div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+  <div class="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
+    <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-stone-500">
+      <i data-lucide="users" class="h-4 w-4 text-forest"></i> Total Employees
+    </div>
+    <div class="mt-2 font-mono text-3xl font-bold tabular-nums text-stone-900">{{ kpis.total_employees }}</div>
   </div>
-  <div class="kpi-card">
-    <span class="kpi-label">Total Weekly Points</span>
-    <span class="kpi-value">{{ kpis.weekly_points }}</span>
+  <div class="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
+    <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-stone-500">
+      <i data-lucide="trending-up" class="h-4 w-4 text-forest"></i> Total Weekly Points
+    </div>
+    <div class="mt-2 font-mono text-3xl font-bold tabular-nums text-stone-900">{{ kpis.weekly_points }}</div>
   </div>
-  <div class="kpi-card">
-    <span class="kpi-label">Total Weekly Amount</span>
-    <span class="kpi-value amount">&#8377;{{ kpis.weekly_amount }}</span>
+  <div class="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
+    <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-stone-500">
+      <i data-lucide="indian-rupee" class="h-4 w-4 text-forest"></i> Total Weekly Amount
+    </div>
+    <div class="mt-2 font-mono text-3xl font-bold tabular-nums text-forest">&#8377;{{ kpis.weekly_amount }}</div>
   </div>
-  <div class="kpi-card">
-    <span class="kpi-label">Employees with Zero Points (This Week)</span>
-    <span class="kpi-value">{{ kpis.zero_point_employees }}</span>
+  <div class="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
+    <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-stone-500">
+      <i data-lucide="alert-circle" class="h-4 w-4 text-amber-500"></i> Employees with Zero Points (This Week)
+    </div>
+    <div class="mt-2 font-mono text-3xl font-bold tabular-nums text-stone-900">{{ kpis.zero_point_employees }}</div>
   </div>
 </div>
 
-<div class="card section-card">
-  <div class="card-header">Previous Day Performance
-    <span class="card-subhead">Date: {{ prev_day.isoformat() }}</span>
+<div class="mb-6 overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
+  <div class="flex flex-wrap items-baseline justify-between gap-2 border-t-4 border-forest bg-stone-50 px-5 py-3">
+    <span class="font-mono text-xs font-bold uppercase tracking-wider text-forest-dark">Previous Day Performance</span>
+    <span class="font-mono text-xs text-stone-500">Date: {{ prev_day.isoformat() }}</span>
   </div>
-  <div class="card-body">
   {% if prev_day_entries %}
-  <div class="table-scroll">
-  <table class="data-table dash-table">
-    <thead>
-      <tr>
-        <th>Name</th>
-        {% for cat in category_names %}<th class="num">{{ cat }}</th>{% endfor %}
-        {% for tf in text_names %}<th class="notes">{{ tf }}</th>{% endfor %}
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in prev_day_entries %}
-      <tr>
-        <td>{{ r.Name }}</td>
-        {% for cat in category_names %}<td class="num">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
-        {% for tf in text_names %}<td class="notes">{{ r.get(tf, "") or "" }}</td>{% endfor %}
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-stone-200">
+          <th class="whitespace-nowrap px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-stone-500">Name</th>
+          {% for cat in category_names %}<th class="whitespace-nowrap px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-stone-500">{{ cat }}</th>{% endfor %}
+          {% for tf in text_names %}<th class="whitespace-nowrap px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-stone-500">{{ tf }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in prev_day_entries %}
+        <tr class="border-b border-stone-100 last:border-0 hover:bg-forest-light">
+          <td class="whitespace-nowrap px-4 py-3 text-stone-800">{{ r.Name }}</td>
+          {% for cat in category_names %}<td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums text-stone-700">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
+          {% for tf in text_names %}<td class="px-4 py-3 italic text-stone-500">{{ r.get(tf, "") or "" }}</td>{% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
   {% else %}
-  <div class="empty-state">
-    <svg class="empty-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <rect x="9" y="6" width="30" height="36" rx="2" stroke="currentColor" stroke-width="1.5"/>
-      <line x1="15" y1="16" x2="33" y2="16" stroke="currentColor" stroke-width="1.5"/>
-      <line x1="15" y1="23" x2="33" y2="23" stroke="currentColor" stroke-width="1.5"/>
-      <line x1="15" y1="30" x2="25" y2="30" stroke="currentColor" stroke-width="1.5"/>
-    </svg>
-    <p class="empty-title">No entries for the previous day</p>
-    <p class="empty-hint">Rows added on the Add Entry page for {{ prev_day.isoformat() }} will appear here.</p>
+  <div class="flex flex-col items-center gap-2 px-5 py-14 text-center">
+    <i data-lucide="inbox" class="h-9 w-9 text-stone-300"></i>
+    <p class="text-base font-semibold text-stone-600">No entries for the previous day</p>
+    <p class="font-mono text-sm text-stone-400">Rows added on the Add Entry page for {{ prev_day.isoformat() }} will appear here.</p>
   </div>
   {% endif %}
-  </div>
 </div>
 
-<div class="card section-card">
-  <div class="card-header">Weekly Performance Report
-    <span class="card-subhead">Week starting: {{ week_start.isoformat() }}</span>
+<div class="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
+  <div class="flex flex-wrap items-baseline justify-between gap-2 border-t-4 border-forest bg-stone-50 px-5 py-3">
+    <span class="font-mono text-xs font-bold uppercase tracking-wider text-forest-dark">Weekly Performance Report</span>
+    <span class="font-mono text-xs text-stone-500">Week starting: {{ week_start.isoformat() }}</span>
   </div>
-  <div class="card-body">
   {% if weekly_rows %}
-  <div class="table-scroll">
-  <table class="data-table dash-table">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th class="num">Previous Day Point</th>
-        <th class="num">Previous Day Amount</th>
-        <th class="num">Weekly Total Point</th>
-        <th class="num">Weekly Total Amount</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in weekly_rows %}
-      <tr>
-        <td>{{ r.name }}</td>
-        <td class="num">{{ r.prev_points }}</td>
-        <td class="num amount">&#8377;{{ r.prev_amount }}</td>
-        <td class="num">{{ r.week_points }}</td>
-        <td class="num amount">&#8377;{{ r.week_amount }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-    {% if weekly_total %}
-    <tfoot>
-      <tr>
-        <td>TOTAL</td>
-        <td class="num">{{ weekly_total.prev_points }}</td>
-        <td class="num amount">&#8377;{{ weekly_total.prev_amount }}</td>
-        <td class="num">{{ weekly_total.week_points }}</td>
-        <td class="num amount">&#8377;{{ weekly_total.week_amount }}</td>
-      </tr>
-    </tfoot>
-    {% endif %}
-  </table>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-stone-200">
+          <th class="whitespace-nowrap px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-stone-500">Name</th>
+          <th class="whitespace-nowrap px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-stone-500">Previous Day Point</th>
+          <th class="whitespace-nowrap px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-stone-500">Previous Day Amount</th>
+          <th class="whitespace-nowrap px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-stone-500">Weekly Total Point</th>
+          <th class="whitespace-nowrap px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-stone-500">Weekly Total Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in weekly_rows %}
+        <tr class="border-b border-stone-100 last:border-0 hover:bg-forest-light">
+          <td class="whitespace-nowrap px-4 py-3 text-stone-800">{{ r.name }}</td>
+          <td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums text-stone-700">{{ r.prev_points }}</td>
+          <td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums font-semibold text-forest">&#8377;{{ r.prev_amount }}</td>
+          <td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums text-stone-700">{{ r.week_points }}</td>
+          <td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums font-semibold text-forest">&#8377;{{ r.week_amount }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% if weekly_total %}
+      <tfoot>
+        <tr class="border-t-2 border-stone-900">
+          <td class="whitespace-nowrap px-4 py-3 font-semibold text-stone-900">TOTAL</td>
+          <td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums font-semibold text-stone-900">{{ weekly_total.prev_points }}</td>
+          <td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums font-semibold text-forest">&#8377;{{ weekly_total.prev_amount }}</td>
+          <td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums font-semibold text-stone-900">{{ weekly_total.week_points }}</td>
+          <td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums font-semibold text-forest">&#8377;{{ weekly_total.week_amount }}</td>
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
   </div>
   {% else %}
-  <div class="empty-state">
-    <svg class="empty-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <rect x="9" y="6" width="30" height="36" rx="2" stroke="currentColor" stroke-width="1.5"/>
-      <line x1="15" y1="16" x2="33" y2="16" stroke="currentColor" stroke-width="1.5"/>
-      <line x1="15" y1="23" x2="33" y2="23" stroke="currentColor" stroke-width="1.5"/>
-      <line x1="15" y1="30" x2="25" y2="30" stroke="currentColor" stroke-width="1.5"/>
-    </svg>
-    <p class="empty-title">No entries yet this week</p>
-    <p class="empty-hint">Week-to-date figures for {{ week_start.isoformat() if week_start else "" }} onward will appear here.</p>
+  <div class="flex flex-col items-center gap-2 px-5 py-14 text-center">
+    <i data-lucide="inbox" class="h-9 w-9 text-stone-300"></i>
+    <p class="text-base font-semibold text-stone-600">No entries yet this week</p>
+    <p class="font-mono text-sm text-stone-400">Week-to-date figures for {{ week_start.isoformat() if week_start else "" }} onward will appear here.</p>
   </div>
   {% endif %}
-  </div>
 </div>
 
 {% endif %}

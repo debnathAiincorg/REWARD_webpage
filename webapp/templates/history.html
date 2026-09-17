@@ -1,37 +1,51 @@
 {% extends "base.html" %}
 {% block title %}History — Daily Performance Bonus{% endblock %}
 {% block content %}
-<h2 class="page-title">History</h2>
-<p class="page-sub">every row in Table1, filterable by employee and/or date range</p>
+<div class="mb-6">
+  <h2 class="text-2xl font-bold text-stone-900">History</h2>
+  <p class="mt-1 font-mono text-sm text-stone-500">every row in Table1, filterable by employee and/or date range</p>
+</div>
 
 {% if error %}
-  <div class="flash err">Could not load data: {{ error }}</div>
+  <div class="flex items-start gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+    <i data-lucide="alert-circle" class="h-5 w-5 shrink-0 text-red-600"></i>
+    <span>Could not load data: {{ error }}</span>
+  </div>
 {% else %}
 
-<form class="filter-toolbar" method="get" action="{{ url_for('history') }}">
-  <div class="field">
-    <label for="employee">Employee</label>
-    <select id="employee" name="employee">
+<form class="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-stone-200 bg-white p-5 shadow-sm" method="get" action="{{ url_for('history') }}">
+  <div class="min-w-[160px] flex-1">
+    <label for="employee" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">Employee</label>
+    <select id="employee" name="employee"
+            class="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
       <option value="">All employees</option>
       {% for emp in employees %}
       <option value="{{ emp }}" {% if emp == selected_employee %}selected{% endif %}>{{ emp }}</option>
       {% endfor %}
     </select>
   </div>
-  <div class="field">
-    <label for="from">From</label>
-    <input type="date" id="from" name="from" value="{{ selected_from }}">
+  <div class="min-w-[160px] flex-1">
+    <label for="from" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">From</label>
+    <input type="date" id="from" name="from" value="{{ selected_from }}"
+           class="w-full rounded-lg border border-stone-300 px-3 py-2.5 font-mono text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
   </div>
-  <div class="field">
-    <label for="to">To</label>
-    <input type="date" id="to" name="to" value="{{ selected_to }}">
+  <div class="min-w-[160px] flex-1">
+    <label for="to" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">To</label>
+    <input type="date" id="to" name="to" value="{{ selected_to }}"
+           class="w-full rounded-lg border border-stone-300 px-3 py-2.5 font-mono text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
   </div>
-  <button type="submit" class="btn btn-primary">Filter</button>
-  <a class="btn btn-secondary" href="{{ url_for('history') }}">Clear</a>
+  <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-forest px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-forest-dark">
+    <i data-lucide="list-filter" class="h-4 w-4"></i> Filter
+  </button>
+  <a class="inline-flex items-center gap-2 rounded-lg border border-stone-300 bg-white px-5 py-2.5 text-sm font-medium text-stone-600 transition-colors hover:border-stone-400 hover:text-stone-900" href="{{ url_for('history') }}">
+    Clear
+  </a>
 </form>
 
-<div class="card table-card">
-  <div class="card-header">Register</div>
+<div class="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
+  <div class="flex items-center gap-2 border-t-4 border-forest bg-stone-50 px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-forest-dark">
+    <i data-lucide="table" class="h-3.5 w-3.5"></i> Register
+  </div>
   {% if rows %}
   <div class="table-scroll register-scroll">
   <table class="data-table register" id="registerTable">
@@ -57,7 +71,9 @@
           {# The flex row lives on this inner wrapper, never on the <td> itself —
              a flex <td> drops out of the table's column grid. #}
           <div class="row-actions-inner">
-            <a class="action-edit" href="{{ url_for('add_entry', date=r.Date.isoformat() if r.Date else '', name=r.Name) }}">Edit</a>
+            <a class="action-edit" href="{{ url_for('add_entry', date=r.Date.isoformat() if r.Date else '', name=r.Name) }}">
+              <i data-lucide="pencil" class="h-3 w-3"></i> Edit
+            </a>
             <form method="post" action="{{ url_for('history_delete') }}" class="delete-form"
                   data-confirm-name="{{ r.Name }}" data-confirm-date="{{ r.Date.isoformat() if r.Date else '' }}">
               <input type="hidden" name="row_index" value="{{ r._row_index }}">
@@ -66,7 +82,9 @@
               <input type="hidden" name="employee" value="{{ selected_employee }}">
               <input type="hidden" name="from" value="{{ selected_from }}">
               <input type="hidden" name="to" value="{{ selected_to }}">
-              <button type="submit" class="action-delete">Delete</button>
+              <button type="submit" class="action-delete">
+                <i data-lucide="trash-2" class="h-3 w-3"></i> Delete
+              </button>
             </form>
           </div>
         </td>
@@ -88,15 +106,10 @@
     });
   </script>
   {% else %}
-  <div class="empty-state">
-    <svg class="empty-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <rect x="9" y="6" width="30" height="36" rx="2" stroke="currentColor" stroke-width="1.5"/>
-      <line x1="15" y1="16" x2="33" y2="16" stroke="currentColor" stroke-width="1.5"/>
-      <line x1="15" y1="23" x2="33" y2="23" stroke="currentColor" stroke-width="1.5"/>
-      <line x1="15" y1="30" x2="25" y2="30" stroke="currentColor" stroke-width="1.5"/>
-    </svg>
-    <p class="empty-title">No rows match the current filters</p>
-    <p class="empty-hint">Try widening the date range or clearing the employee filter.</p>
+  <div class="flex flex-col items-center gap-2 px-5 py-16 text-center">
+    <i data-lucide="search-x" class="h-9 w-9 text-stone-300"></i>
+    <p class="text-base font-semibold text-stone-600">No rows match the current filters</p>
+    <p class="font-mono text-sm text-stone-400">Try widening the date range or clearing the employee filter.</p>
   </div>
   {% endif %}
 </div>

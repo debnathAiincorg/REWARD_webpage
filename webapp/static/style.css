@@ -1,77 +1,25 @@
 /* ============================================================
-   Design tokens — daily performance ledger
+   Design tokens — still consumed by History's register table
+   (kept bespoke for its column-sizing/sticky-header logic) and a
+   handful of Add Entry behavior-state rules the page's own script
+   toggles directly.
    ============================================================ */
 :root {
-  /* Paper & ink — sage page, white cards lifted off it. Deep enough to
-     read as green at a glance, not just an off-white. */
-  --paper: #B8C9AC;
-  --paper-raised: #FFFFFF;
-  --panel-tint: #DCE7D5;   /* toolbar / card-header bands — a step deeper than the page */
-  --chrome-bg: #DEDDD8;    /* header/footer — deeper warm cream (~10% darker than #F7F5F0), distinct from the sage page */
-  --ink: #1C1B19;
   --ink-soft: #545F4E;
-  --ink-faint: #8B968A;
 
-  /* Primary accent — forest green. This is now the theme's own color,
-     not a contrast accent against a different-hued background. */
   --forest: #2F5233;
   --forest-dark: #223d26;
   --forest-soft: #E4EAE1;   /* faint hover tint */
-  --forest-tint: #D2E2D5;   /* visible selected-state tint — a real wash, not a whisper */
+  --forest-tint: #D2E2D5;   /* visible selected-state tint */
 
-  /* Currency / amount accent — muted brass */
-  --brass: #B08D57;
-
-  /* Structural lines vs. module boundaries — two different weights on purpose */
   --hairline: #D3DDCF;      /* thin row/field dividers */
-  --card-border: #B9C5B2;   /* visible border around a whole module (card, table, toolbar) */
+  --card-border: #B9C5B2;   /* sticky header's bottom-edge shadow */
+  --panel-tint: #DCE7D5;    /* register's sticky header background */
 
-  /* Reserved exception accent — error states. Muted/desaturated tone,
-     not a bright alert color. */
-  --stamp-live: #7A3A30;
-
-  /* Type */
-  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
-  --font-body: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 
-  /* Corner radius scale — small and precise, never a soft consumer-app round */
-  --radius-sm: 2px;
-  --radius-md: 3px;
-
-  /* Card depth — soft but real, a module lifted slightly off the page */
-  --shadow-card: 0 4px 14px rgba(28, 27, 25, 0.12), 0 1px 4px rgba(28, 27, 25, 0.08);
-
-  /* Spacing scale */
   --sp-1: 4px;
-  --sp-2: 8px;
-  --sp-3: 12px;
-  --sp-4: 16px;
-  --sp-5: 24px;
-  --sp-6: 32px;
-  --sp-7: 48px;
-  --sp-8: 64px;
 }
-
-* { box-sizing: border-box; }
-
-html, body {
-  margin: 0;
-  min-height: 100vh;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-size: 17px;
-  line-height: 1.55;
-  -webkit-font-smoothing: antialiased;
-}
-
-body {
-  display: flex;
-  flex-direction: column;
-}
-
-a { color: inherit; }
 
 :focus-visible {
   outline: 2px solid var(--forest);
@@ -79,411 +27,43 @@ a { color: inherit; }
   border-radius: 2px;
 }
 
-.wrap {
-  max-width: 1600px;
-  width: 100%;
-  margin: 0 auto;
-  padding: var(--sp-6) var(--sp-7);
-  flex: 1;
-}
+/* Elements toggled via the native `hidden` attribute (the Add Entry combobox
+   panel/options) — an author rule that sets `display` on the same element
+   (ours or Tailwind's) outranks the browser's own [hidden] styling by
+   cascade origin regardless of specificity, so it has to be restated. */
+[hidden] { display: none !important; }
 
-/* ============================================================
-   Shared card system — every major content block (the entry form,
-   each dashboard section, the history table) is a distinct module:
-   a visible border plus a soft, real shadow, not a hairline pretending
-   to be a boundary.
-   ============================================================ */
-.card {
-  background: var(--paper-raised);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
-}
-
-.card-header {
-  background: var(--panel-tint);
-  border-bottom: 1px solid var(--card-border);
-  border-top: 3px solid var(--forest);
-  padding: var(--sp-4) var(--sp-5);
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--forest-dark);
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-}
-
-/* Small muted line under a section header (the date / week-starting line).
-   Same mono + ink-soft treatment as p.page-sub, but it has to reset the
-   uppercase, letter-spacing and bold weight it would otherwise inherit
-   from .card-header. */
-.card-subhead {
-  display: block;
-  margin-top: 3px;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-  color: var(--ink-soft);
-}
-
-.card-body { padding: var(--sp-6) var(--sp-5); }
-
-/* Table cards clip their contents so the table's edges respect the
-   card's rounded corners instead of poking a square table out past them. */
-.table-card { overflow: hidden; }
-
-/* ============================================================
-   Header, nav — a full-width anchored chrome bar. Deliberately
-   heavier than the (centered, narrower) content column below it.
-   ============================================================ */
-.site-header {
-  background: var(--chrome-bg);
-  border-bottom: 2px solid var(--card-border);
-  box-shadow: 0 2px 10px rgba(28, 27, 25, 0.05);
-}
-
-.site-header-inner {
-  width: 100%;
-  padding: 12px var(--sp-7);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--sp-4);
-}
-
-.brand {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  gap: var(--sp-2);
-}
-
-.brand-name {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.7rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1;
-}
-
-.brand-name a {
-  color: var(--ink);
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 4px;
-}
-
-.brand-name a:hover { color: var(--forest-dark); }
-
-.site-header .tagline {
-  display: block;
-  font-family: var(--font-body);
-  font-size: 0.72rem;
-  line-height: 1;
-  color: var(--ink-soft);
-  margin-top: 0;
-}
-
-nav.site-nav {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-1);
-}
-
-nav.site-nav a {
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  line-height: 1;
-  color: var(--ink-soft);
-  text-decoration: none;
-  padding: 7px 14px;
-  border-radius: var(--radius-sm);
-  transition: background 0.12s ease, color 0.12s ease;
-}
-
-nav.site-nav a:hover {
-  background: var(--forest-soft);
-  color: var(--ink);
-}
-
-nav.site-nav a.active {
-  background: var(--forest);
-  color: var(--paper-raised);
-  font-weight: 700;
-}
-
-nav.site-nav a.active:hover {
-  background: var(--forest-dark);
-  color: var(--paper-raised);
-}
-
-/* Footer — the header's mirror image: same full-width chrome
-   treatment, so both ends of the page feel equally finished. */
-footer.site-footer {
-  background: var(--chrome-bg);
-  border-top: 2px solid var(--card-border);
-  box-shadow: 0 -2px 10px rgba(28, 27, 25, 0.05);
-  margin-top: auto;
-}
-
-.footer-inner {
-  width: 100%;
-  padding: var(--sp-4) var(--sp-7);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--sp-4);
-}
-
-footer.site-footer .footer-brand,
-footer.site-footer .footer-version {
-  display: inline-flex;
-  align-items: center;
-  line-height: 1;
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  letter-spacing: 0.03em;
-  color: var(--ink-faint);
-}
-
-footer.site-footer .footer-brand {
-  font-size: 0.95rem;
-}
-
-/* ============================================================
-   Flash messages
-   ============================================================ */
-.flash {
-  border-radius: var(--radius-sm);
-  padding: 14px 16px;
-  font-family: var(--font-mono);
-  font-size: 0.92rem;
-  margin-bottom: var(--sp-5);
-  border: 1px solid;
-}
-
-.flash.ok {
-  background: var(--forest-soft);
-  border-color: var(--forest);
-  color: var(--forest-dark);
-}
-
-.flash.err {
-  background: #FBEAE7;
-  border-color: var(--stamp-live);
-  color: var(--stamp-live);
-}
-
-/* ============================================================
-   Page headings
-   ============================================================ */
-h2.page-title {
-  font-family: var(--font-display);
-  font-size: 2.1rem;
-  font-weight: 600;
-  color: var(--forest-dark);
-  margin: 0 0 var(--sp-1);
-  letter-spacing: -0.01em;
-}
-
-p.page-sub {
-  font-family: var(--font-mono);
-  font-size: 0.88rem;
-  color: var(--ink-soft);
-  margin: 0 0 var(--sp-6);
-}
-
-/* ============================================================
-   Shared button system — one primary (filled forest) and one
-   secondary (outlined neutral) style, used identically everywhere
-   a button appears (Save Entry, Filter, Clear).
-   ============================================================ */
-.btn {
-  font-family: var(--font-mono);
-  font-size: 0.88rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 0 24px;
-  height: 44px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid transparent;
-  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
-  text-decoration: none;
-}
-
-.btn-primary {
-  background: var(--forest);
-  border-color: var(--forest);
-  color: var(--paper-raised);
-}
-
-.btn-primary:hover:not(:disabled) { background: var(--forest-dark); border-color: var(--forest-dark); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.btn-secondary {
-  background: var(--paper-raised);
-  border-color: var(--card-border);
-  color: var(--ink-soft);
-}
-
-.btn-secondary:hover { color: var(--ink); border-color: var(--ink-soft); }
-
-/* ============================================================
-   Add Entry — centered ledger card
-   ============================================================ */
-.entry-card {
-  max-width: 640px;
-  margin: 0 auto;
-}
-
-.entry-card .card-body { padding: var(--sp-6); }
-
-form.entry-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-4);
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-1);
-}
-
-.field label {
-  font-family: var(--font-mono);
-  font-size: 0.84rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  display: flex;
-  justify-content: space-between;
-}
-
-.field label .opt {
-  text-transform: none;
-  font-style: italic;
-  letter-spacing: 0;
-  color: var(--ink-faint);
-}
-
-input[type="date"],
-input[type="number"],
-input[type="text"],
-select {
-  font-family: var(--font-body);
-  font-size: 1rem;
-  padding: 11px 12px;
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-sm);
-  background: var(--paper-raised);
-  color: var(--ink);
-  width: 100%;
-}
-
-input[type="number"] {
-  font-family: var(--font-mono);
-  text-align: right;
-}
-
-input:focus, select:focus {
-  outline: none;
-  border-color: var(--forest);
-  box-shadow: 0 0 0 2px var(--forest-soft);
-}
-
-/* Styled inline validation — replaces the browser's default constraint-
-   validation tooltip (the form carries novalidate; this is the whole
-   error UI for a required field left empty). */
-input.invalid, select.invalid {
-  border-color: var(--stamp-live);
-  box-shadow: 0 0 0 2px rgba(122, 58, 48, 0.15);
+/* Add Entry's client-side validation state (date, employee search) — a
+   plain class the page's own script toggles directly, kept as CSS rather
+   than a Tailwind utility since it's added after Tailwind's initial scan. */
+input.invalid {
+  border-color: #dc2626 !important;
 }
 
 .field-error {
   display: none;
-  font-family: var(--font-mono);
-  font-size: 0.84rem;
-  color: var(--stamp-live);
+  font-size: 0.8rem;
+  color: #dc2626;
   margin-top: var(--sp-1);
 }
 
 .field-error.show { display: block; }
 
-/* Segmented control (0/1 toggles, multi-choice rows) — adjacent cells
-   divided by hairlines, not a pill. The active option gets a real,
-   visible tint plus a thin underline — unmistakable at a glance,
-   short of going back to a solid fill block. */
-.segmented {
-  display: flex;
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-
-.segmented button {
-  flex: 1;
-  font-family: var(--font-mono);
-  font-size: 0.92rem;
-  padding: 9px 0 10px;
-  border: none;
-  border-right: 1px solid var(--hairline);
-  background: var(--paper-raised);
-  color: var(--ink-soft);
-  cursor: pointer;
-  position: relative;
-  transition: background 0.12s ease, color 0.12s ease;
-}
-
-.segmented button:last-child { border-right: none; }
-
-.segmented button:hover { color: var(--ink); }
-
+/* Add Entry's 0/1 toggle rows — static layout comes from Tailwind classes
+   in the markup; only the JS-toggled "selected" state needs a real rule. */
 .segmented button.selected {
-  color: var(--forest-dark);
-  font-weight: 700;
-  background: var(--forest-tint);
-}
-
-.segmented button.selected::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 3px;
   background: var(--forest);
+  color: #fff;
+  font-weight: 600;
 }
-
-.submit-bar {
-  margin-top: var(--sp-1);
-  display: flex;
-  align-items: center;
-  gap: var(--sp-4);
-}
-
-.status { font-family: var(--font-mono); font-size: 0.9rem; }
-.status.ok { color: var(--forest); }
-.status.err { color: var(--stamp-live); }
 
 .error-list {
-  background: #FBEAE7;
-  border: 1px solid var(--stamp-live);
-  color: var(--stamp-live);
-  border-radius: var(--radius-sm);
-  padding: 14px 16px;
-  font-family: var(--font-mono);
-  font-size: 0.88rem;
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  color: #B91C1C;
+  border-radius: 0.5rem;
+  padding: 12px 16px;
+  font-size: 0.875rem;
   line-height: 1.6;
   display: none;
 }
@@ -491,11 +71,8 @@ input.invalid, select.invalid {
 .error-list.show { display: block; }
 
 /* ============================================================
-   Ledger tables (Dashboard, History)
+   Ledger table (History)
    ============================================================ */
-.section-card { margin-bottom: var(--sp-6); }
-.section-card:last-child { margin-bottom: 0; }
-
 .table-scroll { overflow-x: auto; }
 
 table.data-table {
@@ -527,8 +104,6 @@ table.data-table th.num {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
-
-table.data-table td.amount { color: var(--brass); font-weight: 600; }
 
 table.data-table td.notes {
   white-space: normal;
@@ -568,14 +143,14 @@ td.row-actions {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 700;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
   letter-spacing: 0.02em;
   border: none;
-  border-radius: var(--radius-sm);
-  padding: 5px 8px;
-  color: var(--paper-raised);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #fff;
   text-decoration: none;
   cursor: pointer;
   transition: filter 0.12s ease;
@@ -588,55 +163,13 @@ td.row-actions {
 .action-edit:hover { filter: brightness(0.88); }
 
 .action-delete {
-  background: var(--stamp-live);
+  background: #dc2626;
 }
 
 .action-delete:hover { filter: brightness(0.88); }
 
 table.data-table tbody tr:last-child td { border-bottom: none; }
 table.data-table tbody tr:hover td { background: var(--forest-soft); }
-
-/* Ledger TOTAL row — double rule like a closed ledger line */
-table.data-table tfoot td {
-  border-top: 3px double var(--ink);
-  border-bottom: none;
-  font-weight: 700;
-  font-family: var(--font-mono);
-}
-
-table.data-table tfoot td.amount { color: var(--brass); }
-
-/* Empty states — a proper module, not a lone italic sentence */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: var(--sp-6) var(--sp-5);
-  color: var(--ink-faint);
-}
-
-.empty-state .empty-icon {
-  width: 34px;
-  height: 34px;
-  color: var(--ink-faint);
-  margin-bottom: var(--sp-3);
-}
-
-.empty-state .empty-title {
-  font-family: var(--font-body);
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--ink-soft);
-  margin: 0 0 4px;
-}
-
-.empty-state .empty-hint {
-  font-family: var(--font-mono);
-  font-size: 0.86rem;
-  color: var(--ink-faint);
-  margin: 0;
-}
 
 /* History: bounded, independently-scrolling register with a frozen header row.
    (A plain overflow-x:auto wrapper isn't enough — per the CSS overflow spec,
@@ -721,7 +254,7 @@ table.register td:nth-child(2) {
    identical on every row. */
 table.register .action-edit,
 table.register .action-delete {
-  min-width: 60px;
+  min-width: 78px;
   line-height: 1.5;
 }
 
@@ -811,285 +344,17 @@ table.register thead th::after {
   background: var(--panel-tint);
 }
 
-/* Filter toolbar — one cohesive tinted bar, not floating boxes */
-.filter-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-4);
-  align-items: flex-end;
-  background: var(--panel-tint);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
-  padding: var(--sp-5);
-  margin-bottom: var(--sp-6);
-}
-
-.filter-toolbar .field { min-width: 160px; flex: 1 1 160px; gap: var(--sp-1); }
-
-.filter-toolbar .field label { color: var(--forest-dark); }
-
-.filter-toolbar input,
-.filter-toolbar select {
-  background: var(--paper-raised);
-}
-
-/* ============================================================
-   Home — static landing page, no data. Large brand treatment up
-   top, three equal entry-point cards below.
-   ============================================================ */
-.home-hero {
-  text-align: center;
-  padding: var(--sp-7) var(--sp-5) var(--sp-6);
-}
-
-.home-brand {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 3.2rem;
-  font-weight: 600;
-  color: var(--ink);
-  letter-spacing: -0.01em;
-}
-
-.home-subtitle {
-  margin: var(--sp-1) 0 0;
-  font-family: var(--font-body);
-  font-size: 1.05rem;
-  color: var(--forest-dark);
-}
-
-.home-welcome {
-  margin: var(--sp-4) 0 0;
-  font-family: var(--font-mono);
-  font-size: 0.92rem;
-  color: var(--ink-soft);
-}
-
-.home-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--sp-4);
-}
-
-.home-card {
-  background: var(--paper-raised);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
-  padding: var(--sp-6) var(--sp-4);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--sp-2);
-  text-align: center;
-  text-decoration: none;
-  transition: border-color 0.12s ease, box-shadow 0.12s ease;
-}
-
-.home-card:hover {
-  border-color: var(--forest);
-}
-
-.home-card-title {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--forest-dark);
-}
-
-.home-card-desc {
-  font-family: var(--font-body);
-  font-size: 0.92rem;
-  color: var(--ink-soft);
-}
-
-@media (max-width: 560px) {
-  .home-cards { grid-template-columns: 1fr; }
-  .home-brand { font-size: 2.4rem; }
-}
-
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
 
-@media (max-width: 560px) {
-  .entry-card .card-body { padding: var(--sp-5) var(--sp-4); }
-  .wrap { padding: var(--sp-5) var(--sp-4); }
-  .site-header-inner, .footer-inner { padding: var(--sp-5); }
-  .brand-name { font-size: 1.6rem; }
-  nav.site-nav { gap: 2px; }
-  nav.site-nav a { padding: 8px 12px; font-size: 0.92rem; }
-}
-
-/* ============================================================
-   Searchable employee combobox (Add Entry → Name). Replaces the
-   native <select>, which cannot host a per-option remove button.
-   A hidden input still posts `name`, so the server side is
-   unchanged.
-   ============================================================ */
-.combo { position: relative; }
-
-.combo-panel {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  background: var(--paper-raised);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
-}
-
-/* Author rules outrank the browser's own [hidden] styling, so restate it
-   for every element this widget toggles. */
-.combo-panel[hidden],
-.combo-option[hidden],
-.combo-empty[hidden] { display: none; }
-
-.combo-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  max-height: 240px;
-  overflow-y: auto;
-}
-
-.combo-option {
-  display: flex;
-  align-items: stretch;
-  border-bottom: 1px solid var(--hairline);
-}
-
-.combo-option:last-child { border-bottom: none; }
-.combo-option:hover { background: var(--forest-soft); }
+/* Add Entry's employee combobox — static layout comes from Tailwind classes
+   in the markup; only the JS-toggled "selected" state needs a real rule
+   (the panel/option show-hide is handled by the global [hidden] rule above). */
 .combo-option.selected { background: var(--forest-tint); }
-
-.combo-pick {
-  flex: 1;
-  text-align: left;
-  font-family: var(--font-body);
-  font-size: 0.98rem;
-  padding: 10px 12px;
-  border: none;
-  background: none;
-  color: var(--ink);
-  cursor: pointer;
-}
 
 .combo-option.selected .combo-pick {
   font-weight: 700;
   color: var(--forest-dark);
 }
 
-.combo-remove {
-  width: 38px;
-  flex: none;
-  border: none;
-  border-left: 1px solid var(--hairline);
-  background: none;
-  color: var(--ink-faint);
-  font-size: 1.15rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: background 0.12s ease, color 0.12s ease;
-}
-
-.combo-remove:hover {
-  background: #FBEAE7;
-  color: var(--stamp-live);
-}
-
-.combo-empty {
-  margin: 0;
-  padding: 12px;
-  font-family: var(--font-mono);
-  font-size: 0.86rem;
-  color: var(--ink-faint);
-}
-
-.combo-add {
-  display: flex;
-  gap: var(--sp-2);
-  padding: var(--sp-3);
-  background: var(--panel-tint);
-  border-top: 1px solid var(--card-border);
-}
-
-.combo-add-input { flex: 1; min-width: 0; }
-.combo-add .btn { white-space: nowrap; }
-
-.hidden-form { display: none; }
-
-/* ============================================================
-   Dashboard KPI card row. Built entirely from existing
-   tokens; the grid is the same shape as .home-cards,
-   widened to four.
-   ============================================================ */
-.kpi-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--sp-4);
-  margin-bottom: var(--sp-6);
-}
-
-.kpi-card {
-  background: var(--paper-raised);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
-  padding: var(--sp-5) var(--sp-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
-}
-
-.kpi-label {
-  font-family: var(--font-mono);
-  font-size: 0.76rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--forest-dark);
-  line-height: 1.45;
-}
-
-.kpi-value {
-  font-family: var(--font-display);
-  font-size: 2.1rem;
-  font-weight: 600;
-  line-height: 1.1;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-  margin-top: auto;
-}
-
-.kpi-value.amount { color: var(--brass); }
-
-@media (max-width: 900px) {
-  .kpi-row { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 560px) {
-  .kpi-row { grid-template-columns: 1fr; }
-  .kpi-value { font-size: 1.8rem; }
-}
-
-/* Dashboard data tables. Name and every numeric column sit centred under
-   their own headers; Notes keeps its left alignment but gets real room, so a
-   short note reads on one line instead of wrapping in a narrow column.
-   Scoped with .dash-table so the History register, which has its own column
-   rules, is untouched. */
-table.dash-table th:first-child,
-table.dash-table td:first-child,
-table.dash-table th.num,
-table.dash-table td.num {
-  text-align: center;
-}
-
-table.dash-table th.notes,
-table.dash-table td.notes {
-  min-width: 280px;
-  max-width: none;
-}
