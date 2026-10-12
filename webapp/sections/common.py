@@ -20,23 +20,29 @@ def write_with_fresh_read(sheet_name, plan):
     return result
 
 
-def roster_choices(selected=None):
-    """Names for the shared employee dropdown: the one roster (employees.json)
-    every section's Add Entry page uses, exactly like Daily's.
+def load_roster():
+    """The shared employee roster (employees.json) that every section's
+    dropdown and roster-based dashboard figures use, exactly like Daily's.
 
-    First run only, the roster is seeded from the Daily sheet's names — the same
-    seed Daily uses — so every section starts from the same list whichever page
-    is opened first. A name being edited that has since been removed from the
-    roster is added for this render only (never written back), so that entry
-    stays editable.
+    First run only, it is seeded from the Daily sheet's names — the same seed
+    Daily uses — so every section starts from the same list whichever page is
+    opened first.
     """
     if not logic.EMPLOYEES_PATH.exists():
         try:
             records = logic.rows_to_records(get_table_columns(), get_table_rows())
             logic.seed_employee_list_if_missing(records)
         except GraphError:
-            pass  # no seed this time; the dropdown is just empty until it works
-    employees = logic.load_employee_list()
+            pass  # no seed this time; the roster is just empty until it works
+    return logic.load_employee_list()
+
+
+def roster_choices(selected=None):
+    """Names for the shared employee dropdown: the roster, plus a name being
+    edited that has since been removed from it — added for this render only
+    (never written back), so that entry stays editable.
+    """
+    employees = load_roster()
     if selected and fold(selected) not in {fold(n) for n in employees}:
         employees = sorted(employees + [selected], key=fold)
     return employees

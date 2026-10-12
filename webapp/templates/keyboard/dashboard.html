@@ -20,13 +20,17 @@
   <noscript><button type="submit" class="btn-primary">Show</button></noscript>
 </form>
 
-<div class="mb-3 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-  {{ ui.kpi("target", "Average accuracy", "%.2f%%" % (summary.avg_accuracy * 100) if summary.avg_accuracy is not none else "—", i=0) }}
-  {{ ui.kpi("gauge", "Average speed", ("%.1f WPM" % summary.avg_speed) if summary.avg_speed is not none else "—", i=1) }}
-  {{ ui.kpi("trophy", "Top performer", summary.top.name if summary.top else "—", gold=True, i=2) }}
-  {{ ui.kpi("alert-circle", "Employees at 0%", summary.zero | length, warn=summary.zero, i=3) }}
+<div class="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-6">
+  {{ ui.kpi("users", "Total employees", roster.total_employees, i=0) }}
+  {{ ui.kpi("user-x", "Not tested this month", roster.not_tested | length, warn=roster.not_tested, i=1) }}
+  {{ ui.kpi("target", "Average accuracy", "%.2f%%" % (summary.avg_accuracy * 100) if summary.avg_accuracy is not none else "—", i=2) }}
+  {{ ui.kpi("gauge", "Average speed", ("%.1f WPM" % summary.avg_speed) if summary.avg_speed is not none else "—", i=3) }}
+  {{ ui.kpi("trophy", "Top performer", summary.top.name if summary.top else "—", gold=True, i=4) }}
+  {{ ui.kpi("alert-circle", "Employees at 0%", summary.zero | length, warn=summary.zero, i=5) }}
 </div>
-<p class="mb-6 text-xs text-navy-400">Averages leave out employees at 0% (absent / not taken). Top performer = highest accuracy, then speed.</p>
+<p class="mb-6 text-xs text-navy-400">Total employees and "Not tested" come from the employee list; the other figures from the sheet. Averages leave out employees at 0% (absent / not taken). Top performer = highest accuracy, then speed.</p>
+
+{{ ui.name_list("Not tested in " ~ selected_label, roster.not_tested, "user-x", "Employees on the list with no row for this month in the sheet.") }}
 
 <div class="card mb-6 overflow-hidden">
   {{ ui.card_head(selected_label, summary.count ~ " employees", "calendar") }}

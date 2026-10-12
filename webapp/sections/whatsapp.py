@@ -3,10 +3,9 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 import config
-import logic
 import whatsapp_logic as wl
 from graph_client import GraphError, get_sheet_grid
-from sections.common import roster_choices, write_with_fresh_read
+from sections.common import load_roster, roster_choices, write_with_fresh_read
 
 bp = Blueprint("whatsapp", __name__, url_prefix="/whatsapp")
 SHEET = config.WHATSAPP_SHEET
@@ -23,7 +22,8 @@ def dashboard():
     except (GraphError, ValueError) as e:
         return render_template("whatsapp/dashboard.html", active_page="dashboard", error=str(e),
                                contacts=[], summary=None)
-    summary = wl.dashboard_summary(contacts, logic.load_employee_list())
+    # Headcounts come from the shared roster, like Daily's dashboard.
+    summary = wl.dashboard_summary(contacts, load_roster())
     return render_template("whatsapp/dashboard.html", active_page="dashboard", error=None,
                            contacts=sorted(contacts, key=lambda c: c["full_name"].lower()),
                            summary=summary)

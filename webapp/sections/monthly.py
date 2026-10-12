@@ -8,7 +8,7 @@ import config
 import logic
 import monthly_logic as ml
 from graph_client import GraphError, get_sheet_grid
-from sections.common import roster_choices, write_with_fresh_read
+from sections.common import load_roster, roster_choices, write_with_fresh_read
 from sheet_grid import MONTH_NAMES, fold, month_number
 
 bp = Blueprint("monthly", __name__, url_prefix="/monthly")
@@ -33,11 +33,13 @@ def dashboard():
         _, blocks, _ = _load()
     except (GraphError, ValueError) as e:
         return render_template("monthly/dashboard.html", active_page="dashboard", error=str(e),
-                               blocks=[], block=None, summary=None)
+                               blocks=[], block=None, summary=None, roster=None)
     block = ml.find_block(blocks, request.args.get("block")) or ml.default_block(blocks)
+    # Headcounts come from the shared roster, like Daily's dashboard.
+    roster_figures = ml.roster_kpis(block, load_roster()) if block else None
     return render_template("monthly/dashboard.html", active_page="dashboard", error=None,
                            blocks=_block_options(blocks), block=block,
-                           summary=ml.block_summary(block) if block else None)
+                           summary=ml.block_summary(block) if block else None, roster=roster_figures)
 
 
 @bp.route("/add", methods=["GET", "POST"])

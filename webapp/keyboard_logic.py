@@ -258,3 +258,17 @@ def comparison_table(records, period_list):
             continue
         table.setdefault(r["name"], {})[(r["year"], r["month_num"])] = r
     return sorted(table, key=fold), table
+
+
+def roster_kpis(records, roster, year, month_num):
+    """Roster-based figures for one month, by Daily's rule: headcounts come from
+    the shared roster (employees.json), never from the sheet. A name added to
+    the roster counts as "not tested" until it has a row for that month; a
+    removed name drops out of these figures, while its sheet rows still show in
+    the tables and History. Matching ignores case.
+    """
+    tested = {fold(r["name"]) for r in records if (r["year"], r["month_num"]) == (year, month_num)}
+    return {
+        "total_employees": len(roster),
+        "not_tested": [n for n in roster if fold(n) not in tested],
+    }

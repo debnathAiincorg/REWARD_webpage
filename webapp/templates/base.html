@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0F1B33">
+<meta name="theme-color" content="#161616">
 <title>{% block title %}{{ section.title if section else "Home" }}{% endblock %} · ADIRI</title>
 <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,24 +40,24 @@
 {% macro logo(size="h-9 w-9") %}
 <svg class="{{ size }} shrink-0" viewBox="0 0 64 64" aria-hidden="true">
   <defs><linearGradient id="logoGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F0D58A"/><stop offset="1" stop-color="#C9962B"/></linearGradient></defs>
-  <rect width="64" height="64" rx="14" fill="#16264A" stroke="#C9962B" stroke-opacity=".45"/>
+  <rect width="64" height="64" rx="14" style="fill: rgb(var(--chrome2))" stroke="#C9962B" stroke-opacity=".45"/>
   <path d="M20 14h24v9c0 7.2-5.4 13-12 13s-12-5.8-12-13z" fill="url(#logoGold)"/>
   <path d="M20 17h-5v3c0 4.4 3.1 8 7 8.6M44 17h5v3c0 4.4-3.1 8-7 8.6" fill="none" stroke="url(#logoGold)" stroke-width="3" stroke-linecap="round"/>
   <path d="M29 36h6v7h-6z" fill="#C9962B"/><rect x="22" y="43" width="20" height="6" rx="2" fill="url(#logoGold)"/>
-  <path d="M32 18.5l1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5z" fill="#16264A"/>
+  <path d="M32 18.5l1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5z" style="fill: rgb(var(--chrome2))"/>
 </svg>
 {% endmacro %}
 
 {% set tabs = [("dashboard", "Dashboard", "layout-dashboard"), ("add_entry", "Add Entry", "plus-circle"), ("history", "History", "history")] %}
 {% set page_for = {"dashboard": "dashboard", "add_entry": "add", "history": "history"} %}
 
-<header class="sticky top-0 z-40 border-b border-white/5 bg-navy-900 text-white">
+<header class="sticky top-0 z-40 border-b border-white/5 bg-chrome text-on-chrome">
   <div class="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
-    <a href="{{ url_for('home') }}" class="flex shrink-0 items-center gap-2.5 rounded-lg" aria-label="ADIRI home">
+    <a href="{{ url_for('home') }}" class="flex shrink-0 items-center gap-2.5 rounded-lg" aria-label="ADIRI — go to the home page" title="Home">
       {{ logo() }}
       <span class="leading-tight">
         <span class="block text-lg font-extrabold tracking-tight">ADIRI</span>
-        <span class="hidden text-[0.65rem] font-medium uppercase tracking-[0.16em] text-gold-300 sm:block">Rewards &amp; Recognition</span>
+        <span class="hidden text-[0.65rem] font-medium uppercase tracking-[0.16em] text-on-chrome-accent sm:block">Rewards &amp; Recognition</span>
       </span>
     </a>
 
@@ -67,16 +67,16 @@
     <details class="relative hidden lg:block" id="sectionSwitcher">
       <summary class="flex cursor-pointer list-none items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold transition-colors hover:border-gold-400/50 [&::-webkit-details-marker]:hidden"
                aria-label="Current section: {{ section.title }}. Switch section">
-        <i data-lucide="{{ section.icon }}" class="h-4 w-4 text-gold-300"></i>
+        <i data-lucide="{{ section.icon }}" class="h-4 w-4 text-on-chrome-accent"></i>
         {{ section.title }}
-        <i data-lucide="chevrons-up-down" class="h-3.5 w-3.5 text-navy-300"></i>
+        <i data-lucide="chevrons-up-down" class="h-3.5 w-3.5 text-on-chrome-muted"></i>
       </summary>
       <div class="absolute left-0 z-50 mt-2 w-80 rounded-2xl border border-navy-100 bg-white p-1.5 text-ink shadow-lift">
         <p class="px-3 pb-1 pt-2 text-[0.65rem] font-semibold uppercase tracking-wider text-navy-400">Switch section</p>
         {% for s in sections %}
         <a href="{{ url_for(s.slug ~ '.dashboard') }}"
-           class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors {{ 'bg-navy-900 text-white' if s.slug == section.slug else 'hover:bg-navy-50' }}">
-          <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg {{ 'bg-white/10 text-gold-300' if s.slug == section.slug else 'bg-gold-50 text-gold-700' }}">
+           class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors {{ 'bg-brand text-white' if s.slug == section.slug else 'hover:bg-navy-50' }}">
+          <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg {{ 'bg-white/15 text-white' if s.slug == section.slug else 'bg-gold-50 text-gold-700' }}">
             <i data-lucide="{{ s.icon }}" class="h-4 w-4"></i></span>
           <span class="font-medium">{{ s.title }}</span>
         </a>
@@ -86,11 +86,10 @@
         </a>
       </div>
     </details>
-    <span class="min-w-0 truncate text-sm font-semibold text-gold-200 lg:hidden">{{ section.title }}</span>
+    <span class="min-w-0 truncate text-sm font-semibold text-on-chrome-accent lg:hidden">{{ section.title }}</span>
     {% endif %}
 
     <nav class="ml-auto hidden items-center gap-1 lg:flex" aria-label="Main">
-      <a href="{{ url_for('home') }}" class="nav-link {{ 'is-active' if active_page == 'home' }}"><i data-lucide="home" class="h-4 w-4"></i> Home</a>
       {% if section %}
         {% for endpoint, label, icon in tabs %}
         <a href="{{ url_for(section.slug ~ '.' ~ endpoint) }}" class="nav-link {{ 'is-active' if active_page == page_for[endpoint] }}"
@@ -113,22 +112,20 @@
     {% for endpoint, label, icon in tabs %}
     {% set on = active_page == page_for[endpoint] %}
     <a href="{{ url_for(section.slug ~ '.' ~ endpoint) }}"
-       class="flex min-h-[48px] items-center justify-center gap-1.5 text-xs font-semibold {{ 'text-white shadow-[inset_0_-2px_0_theme(colors.gold.400)]' if on else 'text-navy-200' }}"
+       class="flex min-h-[48px] items-center justify-center gap-1.5 text-xs font-semibold {{ 'text-on-chrome shadow-[inset_0_-2px_0_theme(colors.gold.400)]' if on else 'text-on-chrome-muted' }}"
        {% if on %}aria-current="page"{% endif %}>
-      <i data-lucide="{{ icon }}" class="h-4 w-4 {{ 'text-gold-300' if on }}"></i> {{ label }}</a>
+      <i data-lucide="{{ icon }}" class="h-4 w-4 {{ 'text-on-chrome-accent' if on }}"></i> {{ label }}</a>
     {% endfor %}
   </nav>
   {% endif %}
 
-  <div id="mobileMenu" class="border-t border-white/10 bg-navy-950 lg:hidden" hidden>
+  <div id="mobileMenu" class="border-t border-white/10 bg-chrome-2 lg:hidden" hidden>
     <div class="mx-auto max-w-7xl space-y-1 px-4 py-3">
-      <a href="{{ url_for('home') }}" class="flex min-h-[48px] items-center gap-3 rounded-xl px-3 text-sm font-medium {{ 'bg-white/10 text-white' if active_page == 'home' else 'text-navy-100' }}">
-        <i data-lucide="home" class="h-4 w-4 text-gold-300"></i> Home</a>
-      <p class="px-3 pb-1 pt-3 text-[0.65rem] font-semibold uppercase tracking-wider text-navy-300">Sections</p>
+      <p class="px-3 pb-1 pt-1 text-[0.65rem] font-semibold uppercase tracking-wider text-on-chrome-muted">Sections</p>
       {% for s in sections %}
       <a href="{{ url_for(s.slug ~ '.dashboard') }}"
-         class="flex min-h-[48px] items-center gap-3 rounded-xl px-3 text-sm font-medium {{ 'bg-white/10 text-white' if section and s.slug == section.slug else 'text-navy-100' }}">
-        <i data-lucide="{{ s.icon }}" class="h-4 w-4 text-gold-300"></i> {{ s.title }}</a>
+         class="flex min-h-[48px] items-center gap-3 rounded-xl px-3 text-sm font-medium {{ 'bg-white/10 text-on-chrome' if section and s.slug == section.slug else 'text-on-chrome-muted' }}">
+        <i data-lucide="{{ s.icon }}" class="h-4 w-4 text-on-chrome-accent"></i> {{ s.title }}</a>
       {% endfor %}
     </div>
   </div>
@@ -140,10 +137,10 @@
   {% block content %}{% endblock %}
 </main>
 
-<footer class="mt-auto bg-navy-950 text-navy-200">
+<footer class="mt-auto bg-chrome-2 text-on-chrome-muted">
   <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-5 text-xs sm:px-6 lg:px-8">
     <span class="flex items-center gap-2">{{ logo("h-5 w-5") }} &copy; {{ current_year }} ADIRI &middot; {{ section.title if section else "Rewards & Recognition" }}</span>
-    <span class="text-navy-300">Version 2.0</span>
+    <span>Version 2.0</span>
   </div>
 </footer>
 

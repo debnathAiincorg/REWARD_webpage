@@ -142,8 +142,11 @@ def plan_delete(grid, first, last):
 
 
 def dashboard_summary(contacts, roster):
+    """Contact figures from the sheet, plus roster-based figures by Daily's rule
+    (headcount from the shared roster; matching ignores case)."""
     names = {fold(c["full_name"]) for c in contacts}
     return {
+        "total_employees": len(roster),
         "total": len(contacts),
         "valid": sum(1 for c in contacts if c["status"] == "ok"),
         "problem": sum(1 for c in contacts if c["status"] != "ok"),

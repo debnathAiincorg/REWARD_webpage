@@ -315,3 +315,18 @@ def default_block(blocks):
     filled = [b for b in blocks if any(r["filled"] for r in b["rows"])]
     pool = filled or blocks
     return max(pool, key=lambda b: b["date"]) if pool else None
+
+
+def roster_kpis(block, roster):
+    """Roster-based figures for one month block, by Daily's rule: headcounts
+    come from the shared roster (employees.json), never from the sheet. A roster
+    name has "no bonus entry" if the block has no row for it, or its row is
+    still empty (only the pre-filled name). Removed names drop out of these
+    figures; their sheet rows still show in the tables and History. Matching
+    ignores case.
+    """
+    filled = {fold(r["name"]) for r in (block["rows"] if block else []) if r["filled"]}
+    return {
+        "total_employees": len(roster),
+        "no_entry": [n for n in roster if fold(n) not in filled],
+    }

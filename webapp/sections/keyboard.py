@@ -7,7 +7,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 import config
 import keyboard_logic as kl
 from graph_client import GraphError, get_sheet_grid
-from sections.common import roster_choices, write_with_fresh_read
+from sections.common import load_roster, roster_choices, write_with_fresh_read
 from sheet_grid import MONTH_NAMES
 
 bp = Blueprint("keyboard", __name__, url_prefix="/keyboard")
@@ -44,19 +44,21 @@ def dashboard():
         records, groups = _load()
     except (GraphError, ValueError) as e:
         return render_template("keyboard/dashboard.html", active_page="dashboard", error=str(e),
-                               periods=[], selected=None, summary=None, names=[], table={}, period_list=[])
+                               periods=[], selected=None, summary=None, roster=None, names=[], table={}, period_list=[])
     period_list = kl.periods(groups)
     selected = _parse_period(request.args.get("period"))
     if selected not in period_list:
         selected = period_list[-1] if period_list else None
     summary = kl.month_summary(records, *selected) if selected else None
+    # Headcounts come from the shared roster, like Daily's dashboard.
+    roster_figures = kl.roster_kpis(records, load_roster(), *selected) if selected else None
     names, table = kl.comparison_table(records, period_list)
     return render_template(
         "keyboard/dashboard.html", active_page="dashboard", error=None,
         periods=_period_options(period_list), selected=selected,
         selected_key=kl.period_key(*selected) if selected else "",
         selected_label=kl.period_label(*selected) if selected else "",
-        summary=summary, names=names, table=table, period_list=period_list,
+        summary=summary, roster=roster_figures, names=names, table=table, period_list=period_list,
         period_label=kl.period_label,
     )
 

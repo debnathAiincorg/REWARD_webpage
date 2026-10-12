@@ -40,7 +40,7 @@
     <thead><tr><th>Block</th><th>Name</th><th class="num">Bonus</th><th>Status</th><th>Status date</th><th>For month</th><th>Notes</th><th class="num">Actions</th></tr></thead>
     <tbody>
       {% for r in rows %}
-      <tr class="rise {{ '' if r.filled else 'text-navy-300' }}" style="--i: {{ [loop.index0, 12] | min }}">
+      <tr class="rise {{ '' if r.filled else 'text-navy-400' }}" style="--i: {{ [loop.index0, 12] | min }}">
         <td class="whitespace-nowrap"><span class="badge-neutral">{{ r.block_text }}</span></td>
         <td class="whitespace-nowrap {{ 'font-medium text-navy-950' if r.filled }}">{{ r.name }}</td>
         <td class="num whitespace-nowrap {{ 'money' if r.amount is not none }}">{% if r.amount is not none %}₹{{ "{:,}".format(r.amount) }}{% else %}{{ r.bonus }}{% endif %}</td>

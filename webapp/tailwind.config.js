@@ -8,19 +8,20 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Deep, trustworthy base.
-        navy: {
-          50: "#EEF1F7",
-          100: "#D9DFEC",
-          200: "#B3BED6",
-          300: "#8392B5",
-          400: "#56678F",
-          500: "#3A4C76",
-          600: "#2A3D66",
-          700: "#1F3157",
-          800: "#162544",
-          900: "#0F1B33",
-          950: "#0A1226",
+        // Palette tokens are CSS variables (assets/app.src.css), so the whole
+        // colour scheme is defined in one place. "navy" is the neutral ramp
+        // (text, borders, fills); chrome = header/footer, hero = Home hero,
+        // brand = primary actions.
+        navy: Object.fromEntries(
+          [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950].map((n) => [n, `rgb(var(--navy-${n}) / <alpha-value>)`])
+        ),
+        brand: { DEFAULT: "rgb(var(--brand) / <alpha-value>)", hover: "rgb(var(--brand-hover) / <alpha-value>)" },
+        chrome: { DEFAULT: "rgb(var(--chrome) / <alpha-value>)", 2: "rgb(var(--chrome2) / <alpha-value>)" },
+        hero: "rgb(var(--hero) / <alpha-value>)",
+        "on-chrome": {
+          DEFAULT: "rgb(var(--on-chrome) / <alpha-value>)",
+          muted: "rgb(var(--on-chrome-muted) / <alpha-value>)",
+          accent: "rgb(var(--on-chrome-accent) / <alpha-value>)",
         },
         // Reward accent: money, points, top performers. gold-700 is the
         // darkest step and the only one used for text on white (AA contrast).
@@ -36,8 +37,8 @@ module.exports = {
           800: "#5C4210",
           900: "#3E2C0B",
         },
-        ink: "#1B2333",
-        page: "#F4F6FA",
+        ink: "rgb(var(--ink) / <alpha-value>)",
+        page: "rgb(var(--page) / <alpha-value>)",
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],

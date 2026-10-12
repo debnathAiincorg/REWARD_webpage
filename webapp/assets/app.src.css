@@ -6,12 +6,41 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Palette tokens (space-separated RGB, so Tailwind can add opacity): IBM Carbon
+   "Gray 10" theme with the Gray 100 shell and Blue 60 as the primary colour.
+   navy-* is the neutral ramp; gold (tailwind.config.js) stays the reward
+   accent for money, points and top performers. Every text pairing meets
+   WCAG AA (lowest: secondary text on the page, 4.57:1). */
+:root {
+  --navy-50: 244 244 244;
+  --navy-100: 224 224 224;
+  --navy-200: 198 198 198;
+  --navy-300: 168 168 168;
+  --navy-400: 111 111 111;
+  --navy-500: 82 82 82;
+  --navy-600: 71 71 71;
+  --navy-700: 57 57 57;
+  --navy-800: 38 38 38;
+  --navy-900: 22 22 22;
+  --navy-950: 11 11 11;
+  --page: 244 244 244;
+  --ink: 22 22 22;
+  --chrome: 22 22 22;
+  --chrome2: 11 11 11;
+  --hero: 22 22 22;
+  --on-chrome: 255 255 255;
+  --on-chrome-muted: 198 198 198;
+  --on-chrome-accent: 228 190 99;
+  --brand: 15 98 254;
+  --brand-hover: 0 80 230;
+}
+
 @layer base {
   html { -webkit-tap-highlight-color: transparent; }
   body { @apply bg-page text-ink font-sans antialiased; font-feature-settings: "cv11", "ss01"; }
   /* Every figure in the app lines up in columns. */
   .num, td, .kpi-value { font-variant-numeric: tabular-nums; }
-  :focus-visible { outline: 2px solid theme("colors.gold.500"); outline-offset: 2px; border-radius: 4px; }
+  :focus-visible { outline: 2px solid rgb(var(--brand)); outline-offset: 2px; border-radius: 4px; }
   [hidden] { display: none !important; }
 }
 
@@ -27,28 +56,28 @@
   /* Buttons — 44px tall on touch screens. */
   .btn {
     @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold
-           transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400
+           transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand
            focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-70 sm:min-h-[40px];
   }
-  .btn-primary { @apply btn bg-navy-900 text-white shadow-sm hover:bg-navy-800 active:translate-y-px; }
+  .btn-primary { @apply btn bg-brand text-white shadow-sm hover:bg-brand-hover active:translate-y-px; }
   .btn-gold {
     @apply btn bg-gradient-to-b from-gold-300 to-gold-500 text-navy-950 shadow-gold hover:from-gold-200
            hover:to-gold-400 active:translate-y-px;
   }
   .btn-ghost { @apply btn border border-navy-200 bg-white text-navy-700 hover:border-navy-300 hover:bg-navy-50; }
   .btn-sm { @apply min-h-[36px] rounded-lg px-3 text-xs sm:min-h-[32px]; }
-  .btn-edit { @apply btn btn-sm bg-navy-900 text-white hover:bg-navy-700; }
+  .btn-edit { @apply btn btn-sm bg-brand text-white hover:bg-brand-hover; }
   .btn-delete { @apply btn btn-sm border border-red-200 bg-white text-red-700 hover:border-red-300 hover:bg-red-50; }
 
   /* Forms */
   .field-label {
     @apply mb-1.5 flex items-baseline justify-between text-xs font-semibold uppercase tracking-wide text-navy-500;
   }
-  .field-optional { @apply text-[0.7rem] font-normal normal-case tracking-normal text-navy-300; }
+  .field-optional { @apply text-[0.7rem] font-normal normal-case tracking-normal text-navy-400; }
   .field-input {
     @apply block min-h-[44px] w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-ink
-           placeholder:text-navy-300 transition-colors focus:border-gold-500 focus:outline-none focus:ring-4
-           focus:ring-gold-200/60 disabled:bg-navy-50 disabled:text-navy-400;
+           placeholder:text-navy-400 transition-colors focus:border-brand focus:outline-none focus:ring-4
+           focus:ring-brand/15 disabled:bg-navy-50 disabled:text-navy-500;
   }
   .field-addon {
     @apply inline-flex items-center border border-navy-200 bg-navy-50 px-3 text-sm font-medium text-navy-500;
@@ -59,7 +88,7 @@
 
   /* States the Daily Add Entry script toggles (0/1 toggles, employee picker,
      error summary). */
-  .segmented button.selected { @apply bg-navy-900 text-gold-200; }
+  .segmented button.selected { @apply bg-brand text-white; }
   .combo-option.selected { @apply bg-gold-50; }
   .combo-option.selected .combo-pick { @apply font-semibold text-navy-950; }
   .error-list { @apply mb-5 hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-relaxed text-red-800; }
@@ -103,10 +132,10 @@
 
   /* Header navigation */
   .nav-link {
-    @apply inline-flex min-h-[40px] items-center gap-2 rounded-lg px-3 text-sm font-medium text-navy-100
-           transition-colors hover:bg-white/10 hover:text-white;
+    @apply inline-flex min-h-[40px] items-center gap-2 rounded-lg px-3 text-sm font-medium text-on-chrome-muted
+           transition-colors hover:bg-white/10 hover:text-on-chrome;
   }
-  .nav-link.is-active { @apply bg-white/10 text-white shadow-[inset_0_-2px_0_theme(colors.gold.400)]; }
+  .nav-link.is-active { @apply bg-white/10 text-on-chrome shadow-[inset_0_-2px_0_theme(colors.gold.400)]; }
 }
 
 @layer utilities {

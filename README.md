@@ -130,7 +130,7 @@ webapp/
   templates/          Jinja templates (a folder per newer section);
                       _ui.html holds the shared design-system macros
   assets/app.src.css  Stylesheet source: design tokens + component classes
-  tailwind.config.js  Colours (navy / gold), fonts, animation
+  tailwind.config.js  Colour tokens, fonts, animation
   static/app.css      The built stylesheet — generated, committed (see Styles)
   static/js/          app.js (menus, toasts, count-up, confetti),
                       hero.js (Home 3D trophy)
@@ -207,7 +207,13 @@ cd webapp
 ../.tools/tailwind/tailwindcss.exe -c tailwind.config.js -i assets/app.src.css -o static/app.css --minify
 ```
 
-Forgetting this leaves new classes unstyled. The design-system classes
+Forgetting this leaves new classes unstyled.
+
+**Colours** follow IBM Carbon (Gray 10 page, Gray 100 header, Blue 60 for
+primary actions), with gold as the reward accent for money, points and top
+performers. They are CSS variables at the top of `assets/app.src.css`
+(`--navy-*` is the neutral ramp, plus `--brand`, `--chrome`, `--hero`, …), so
+the whole scheme changes in one place; every text colour meets WCAG AA. The design-system classes
 (`card`, `btn-gold`, `field-input`, `badge-approved`, `ui-table`, `kpi`, …)
 live in `assets/app.src.css`; page building blocks (page header, KPI tile,
 form card, row actions, empty state, error banner) are macros in
