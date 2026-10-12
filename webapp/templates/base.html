@@ -1,183 +1,153 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{% block title %}{{ section.title if section else "ADIRI" }}{% endblock %}</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          forest: {
-            DEFAULT: '#2F5233',
-            dark: '#223d26',
-            light: '#e4eae1',
-          },
-        },
-      },
-    },
-  };
-</script>
-<script src="https://unpkg.com/lucide@latest"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ style_version }}">
+<meta name="theme-color" content="#0F1B33">
+<title>{% block title %}{{ section.title if section else "Home" }}{% endblock %} · ADIRI</title>
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}?v={{ asset_version }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ asset_version }}">
+<script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v={{ asset_version }}" defer></script>
+{% block head %}{% endblock %}
 </head>
-<body class="min-h-screen flex flex-col bg-forest-light text-stone-900 font-sans antialiased">
+<body class="flex min-h-screen flex-col">
 
-<div id="navProgress" class="fixed top-0 left-0 right-0 h-0.5 bg-forest origin-left scale-x-0 z-50 transition-transform duration-500 ease-out"></div>
+<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-navy-900 focus:shadow-lift">Skip to content</a>
 
-<div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 w-[calc(100%-2rem)] max-w-sm">
+<div id="navProgress" class="fixed inset-x-0 top-0 z-[60] h-[3px] bg-gradient-to-r from-gold-300 via-gold-500 to-gold-300"></div>
+
+<div id="toastContainer" class="fixed right-4 top-4 z-50 flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2" role="status" aria-live="polite">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% for category, message in messages %}
-    <div class="toast flex items-start gap-3 rounded-lg border p-4 shadow-lg bg-white opacity-0 translate-x-4 transition-all duration-300
-                {{ 'border-forest/30' if category == 'ok' else 'border-red-300' }}">
-      <i data-lucide="{{ 'check-circle' if category == 'ok' else 'alert-circle' }}"
-         class="w-5 h-5 shrink-0 mt-0.5 {{ 'text-forest' if category == 'ok' else 'text-red-600' }}"></i>
-      <p class="text-sm text-stone-700 flex-1 leading-snug">{{ message }}</p>
-      <button type="button" class="toast-close text-stone-400 hover:text-stone-600 transition-colors" aria-label="Dismiss">
-        <i data-lucide="x" class="w-4 h-4"></i>
+    <div class="toast relative flex translate-x-4 items-start gap-3 overflow-hidden rounded-xl border bg-white p-4 pl-5 opacity-0 shadow-lift transition-all duration-300
+                {{ 'border-gold-200' if category == 'ok' else 'border-red-200' }}" data-category="{{ category }}">
+      <span class="absolute inset-y-0 left-0 w-1 {{ 'bg-gradient-to-b from-gold-300 to-gold-600' if category == 'ok' else 'bg-red-500' }}"></span>
+      <i data-lucide="{{ 'badge-check' if category == 'ok' else 'alert-circle' }}"
+         class="mt-0.5 h-5 w-5 shrink-0 {{ 'text-gold-600' if category == 'ok' else 'text-red-600' }}"></i>
+      <p class="flex-1 text-sm leading-snug text-ink">{{ message }}</p>
+      <button type="button" class="toast-close -m-1 rounded p-1 text-navy-300 transition-colors hover:text-navy-700" aria-label="Dismiss">
+        <i data-lucide="x" class="h-4 w-4"></i>
       </button>
     </div>
     {% endfor %}
   {% endwith %}
 </div>
 
-<header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-stone-200 shadow-sm">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
-    <div class="flex min-w-0 items-center gap-3">
-      <a href="{{ url_for('home') }}" class="flex items-baseline gap-2 group">
-        <span class="text-2xl font-bold tracking-tight text-stone-900 group-hover:text-forest transition-colors">ADIRI</span>
-      </a>
+{% macro logo(size="h-9 w-9") %}
+<svg class="{{ size }} shrink-0" viewBox="0 0 64 64" aria-hidden="true">
+  <defs><linearGradient id="logoGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F0D58A"/><stop offset="1" stop-color="#C9962B"/></linearGradient></defs>
+  <rect width="64" height="64" rx="14" fill="#16264A" stroke="#C9962B" stroke-opacity=".45"/>
+  <path d="M20 14h24v9c0 7.2-5.4 13-12 13s-12-5.8-12-13z" fill="url(#logoGold)"/>
+  <path d="M20 17h-5v3c0 4.4 3.1 8 7 8.6M44 17h5v3c0 4.4-3.1 8-7 8.6" fill="none" stroke="url(#logoGold)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M29 36h6v7h-6z" fill="#C9962B"/><rect x="22" y="43" width="20" height="6" rx="2" fill="url(#logoGold)"/>
+  <path d="M32 18.5l1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5z" fill="#16264A"/>
+</svg>
+{% endmacro %}
+
+{% set tabs = [("dashboard", "Dashboard", "layout-dashboard"), ("add_entry", "Add Entry", "plus-circle"), ("history", "History", "history")] %}
+{% set page_for = {"dashboard": "dashboard", "add_entry": "add", "history": "history"} %}
+
+<header class="sticky top-0 z-40 border-b border-white/5 bg-navy-900 text-white">
+  <div class="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+    <a href="{{ url_for('home') }}" class="flex shrink-0 items-center gap-2.5 rounded-lg" aria-label="ADIRI home">
+      {{ logo() }}
+      <span class="leading-tight">
+        <span class="block text-lg font-extrabold tracking-tight">ADIRI</span>
+        <span class="hidden text-[0.65rem] font-medium uppercase tracking-[0.16em] text-gold-300 sm:block">Rewards &amp; Recognition</span>
+      </span>
+    </a>
+
+    {% if section %}
+    <span class="mx-1 hidden h-6 w-px bg-white/15 lg:block"></span>
+    {# Current section, always visible; on desktop it opens the section switcher. #}
+    <details class="relative hidden lg:block" id="sectionSwitcher">
+      <summary class="flex cursor-pointer list-none items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold transition-colors hover:border-gold-400/50 [&::-webkit-details-marker]:hidden"
+               aria-label="Current section: {{ section.title }}. Switch section">
+        <i data-lucide="{{ section.icon }}" class="h-4 w-4 text-gold-300"></i>
+        {{ section.title }}
+        <i data-lucide="chevrons-up-down" class="h-3.5 w-3.5 text-navy-300"></i>
+      </summary>
+      <div class="absolute left-0 z-50 mt-2 w-80 rounded-2xl border border-navy-100 bg-white p-1.5 text-ink shadow-lift">
+        <p class="px-3 pb-1 pt-2 text-[0.65rem] font-semibold uppercase tracking-wider text-navy-400">Switch section</p>
+        {% for s in sections %}
+        <a href="{{ url_for(s.slug ~ '.dashboard') }}"
+           class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors {{ 'bg-navy-900 text-white' if s.slug == section.slug else 'hover:bg-navy-50' }}">
+          <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg {{ 'bg-white/10 text-gold-300' if s.slug == section.slug else 'bg-gold-50 text-gold-700' }}">
+            <i data-lucide="{{ s.icon }}" class="h-4 w-4"></i></span>
+          <span class="font-medium">{{ s.title }}</span>
+        </a>
+        {% endfor %}
+        <a href="{{ url_for('home') }}" class="mt-1 flex items-center gap-3 rounded-xl border-t border-navy-50 px-3 py-2.5 text-sm text-navy-500 hover:bg-navy-50 hover:text-navy-900">
+          <i data-lucide="home" class="h-4 w-4"></i> All sections
+        </a>
+      </div>
+    </details>
+    <span class="min-w-0 truncate text-sm font-semibold text-gold-200 lg:hidden">{{ section.title }}</span>
+    {% endif %}
+
+    <nav class="ml-auto hidden items-center gap-1 lg:flex" aria-label="Main">
+      <a href="{{ url_for('home') }}" class="nav-link {{ 'is-active' if active_page == 'home' }}"><i data-lucide="home" class="h-4 w-4"></i> Home</a>
       {% if section %}
-      {# The current section's name is always on screen, and doubles as the
-         switcher to jump straight to another section. #}
-      <details class="section-switcher relative min-w-0" id="sectionSwitcher">
-        <summary class="flex min-w-0 cursor-pointer list-none items-center gap-2 rounded-md border border-forest/30 bg-forest-light px-2.5 py-1.5 text-sm font-semibold text-forest-dark transition-colors hover:border-forest/60"
-                 aria-label="Current section: {{ section.title }}. Switch section">
-          <i data-lucide="{{ section.icon }}" class="h-4 w-4 shrink-0"></i>
-          <span class="truncate max-w-[9.5rem] sm:max-w-none">{{ section.title }}</span>
-          <i data-lucide="chevrons-up-down" class="h-3.5 w-3.5 shrink-0 text-forest/70"></i>
-        </summary>
-        <div class="absolute left-0 z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-lg border border-stone-200 bg-white p-1 shadow-lg">
-          <p class="px-3 pb-1 pt-2 font-mono text-[0.65rem] font-bold uppercase tracking-wider text-stone-400">Switch section</p>
-          {% for s in sections %}
-          <a href="{{ url_for(s.slug ~ '.dashboard') }}"
-             class="flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm transition-colors {{ 'bg-forest text-white' if s.slug == section.slug else 'text-stone-700 hover:bg-forest-light' }}">
-            <i data-lucide="{{ s.icon }}" class="h-4 w-4 shrink-0"></i> {{ s.title }}
-          </a>
-          {% endfor %}
-          <a href="{{ url_for('home') }}" class="mt-1 flex items-center gap-2.5 rounded-md border-t border-stone-100 px-3 py-2.5 text-sm text-stone-500 hover:bg-stone-50 hover:text-stone-900">
-            <i data-lucide="home" class="h-4 w-4 shrink-0"></i> All sections
-          </a>
-        </div>
-      </details>
-      {% else %}
-      <span class="text-xs text-stone-500 hidden sm:inline">Performance Tracking</span>
-      {% endif %}
-    </div>
-    <nav class="flex items-center gap-1">
-      <a href="{{ url_for('home') }}" aria-label="Home"
-         class="flex items-center gap-1.5 px-2.5 py-2.5 sm:px-3 sm:py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'home' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
-        <i data-lucide="home" class="w-4 h-4"></i><span class="hidden sm:inline">Home</span>
-      </a>
-      {% if section %}
-      <a href="{{ url_for(section.slug ~ '.dashboard') }}" aria-label="Dashboard"
-         class="flex items-center gap-1.5 px-2.5 py-2.5 sm:px-3 sm:py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'dashboard' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
-        <i data-lucide="layout-dashboard" class="w-4 h-4"></i><span class="hidden sm:inline">Dashboard</span>
-      </a>
-      <a href="{{ url_for(section.slug ~ '.add_entry') }}" aria-label="Add Entry"
-         class="flex items-center gap-1.5 px-2.5 py-2.5 sm:px-3 sm:py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'add' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
-        <i data-lucide="plus-circle" class="w-4 h-4"></i><span class="hidden sm:inline">Add Entry</span>
-      </a>
-      <a href="{{ url_for(section.slug ~ '.history') }}" aria-label="History"
-         class="flex items-center gap-1.5 px-2.5 py-2.5 sm:px-3 sm:py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'history' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
-        <i data-lucide="history" class="w-4 h-4"></i><span class="hidden sm:inline">History</span>
-      </a>
+        {% for endpoint, label, icon in tabs %}
+        <a href="{{ url_for(section.slug ~ '.' ~ endpoint) }}" class="nav-link {{ 'is-active' if active_page == page_for[endpoint] }}"
+           {% if active_page == page_for[endpoint] %}aria-current="page"{% endif %}>
+          <i data-lucide="{{ icon }}" class="h-4 w-4"></i> {{ label }}</a>
+        {% endfor %}
       {% endif %}
     </nav>
+
+    <button type="button" id="menuButton" class="ml-auto inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 lg:hidden"
+            aria-controls="mobileMenu" aria-expanded="false" aria-label="Open menu">
+      <i data-lucide="menu" class="h-5 w-5" data-open></i>
+      <i data-lucide="x" class="h-5 w-5" data-close hidden></i>
+    </button>
+  </div>
+
+  {# Mobile: the current section's tabs stay one tap away under the header. #}
+  {% if section %}
+  <nav class="grid grid-cols-3 border-t border-white/5 lg:hidden" aria-label="{{ section.title }}">
+    {% for endpoint, label, icon in tabs %}
+    {% set on = active_page == page_for[endpoint] %}
+    <a href="{{ url_for(section.slug ~ '.' ~ endpoint) }}"
+       class="flex min-h-[48px] items-center justify-center gap-1.5 text-xs font-semibold {{ 'text-white shadow-[inset_0_-2px_0_theme(colors.gold.400)]' if on else 'text-navy-200' }}"
+       {% if on %}aria-current="page"{% endif %}>
+      <i data-lucide="{{ icon }}" class="h-4 w-4 {{ 'text-gold-300' if on }}"></i> {{ label }}</a>
+    {% endfor %}
+  </nav>
+  {% endif %}
+
+  <div id="mobileMenu" class="border-t border-white/10 bg-navy-950 lg:hidden" hidden>
+    <div class="mx-auto max-w-7xl space-y-1 px-4 py-3">
+      <a href="{{ url_for('home') }}" class="flex min-h-[48px] items-center gap-3 rounded-xl px-3 text-sm font-medium {{ 'bg-white/10 text-white' if active_page == 'home' else 'text-navy-100' }}">
+        <i data-lucide="home" class="h-4 w-4 text-gold-300"></i> Home</a>
+      <p class="px-3 pb-1 pt-3 text-[0.65rem] font-semibold uppercase tracking-wider text-navy-300">Sections</p>
+      {% for s in sections %}
+      <a href="{{ url_for(s.slug ~ '.dashboard') }}"
+         class="flex min-h-[48px] items-center gap-3 rounded-xl px-3 text-sm font-medium {{ 'bg-white/10 text-white' if section and s.slug == section.slug else 'text-navy-100' }}">
+        <i data-lucide="{{ s.icon }}" class="h-4 w-4 text-gold-300"></i> {{ s.title }}</a>
+      {% endfor %}
+    </div>
   </div>
 </header>
 
-<main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+{% block hero %}{% endblock %}
+
+<main id="main" class="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8 rise">
   {% block content %}{% endblock %}
 </main>
 
-<footer class="border-t border-stone-200 bg-white mt-auto">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-2">
-    <span class="font-mono text-xs text-stone-500">&copy; {{ current_year }} ADIRI &middot; {{ section.title if section else "Performance Tracking" }}</span>
-    <span class="font-mono text-xs text-stone-500">Version 1.0</span>
+<footer class="mt-auto bg-navy-950 text-navy-200">
+  <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-5 text-xs sm:px-6 lg:px-8">
+    <span class="flex items-center gap-2">{{ logo("h-5 w-5") }} &copy; {{ current_year }} ADIRI &middot; {{ section.title if section else "Rewards & Recognition" }}</span>
+    <span class="text-navy-300">Version 2.0</span>
   </div>
 </footer>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    if (window.lucide) lucide.createIcons();
-
-    // Section switcher: close it on an outside click or Escape.
-    var switcher = document.getElementById('sectionSwitcher');
-    if (switcher) {
-      document.addEventListener('click', function (e) {
-        if (switcher.open && !switcher.contains(e.target)) switcher.open = false;
-      });
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') switcher.open = false;
-      });
-    }
-
-    // Delete buttons on every History page: confirm before submitting.
-    document.querySelectorAll('form[data-confirm]').forEach(function (form) {
-      form.addEventListener('submit', function (e) {
-        if (!confirm(form.dataset.confirm)) e.preventDefault();
-      });
-    });
-
-    // Toasts: fade+slide in on load, auto-dismiss, or dismiss on click.
-    document.querySelectorAll('.toast').forEach(function (toast) {
-      requestAnimationFrame(function () {
-        toast.classList.remove('opacity-0', 'translate-x-4');
-        toast.classList.add('opacity-100', 'translate-x-0');
-      });
-      var dismiss = function () {
-        toast.classList.add('opacity-0', 'translate-x-4');
-        toast.classList.remove('opacity-100', 'translate-x-0');
-        setTimeout(function () { toast.remove(); }, 300);
-      };
-      var timer = setTimeout(dismiss, 5000);
-      var closeBtn = toast.querySelector('.toast-close');
-      if (closeBtn) closeBtn.addEventListener('click', function () { clearTimeout(timer); dismiss(); });
-    });
-
-    // Top progress bar: gives a "please wait" cue for the pages that hit
-    // Graph API server-side. There's no client-side fetch to hook into, so
-    // this just animates toward (not to) complete on navigation — the
-    // in-flight page unload cuts it off naturally when the new page arrives.
-    var bar = document.getElementById('navProgress');
-    function startProgress() {
-      bar.classList.remove('scale-x-0');
-      bar.style.transform = 'scaleX(0.8)';
-    }
-    document.addEventListener('click', function (e) {
-      var a = e.target.closest('a[href]');
-      if (!a || e.defaultPrevented || e.button !== 0) return;
-      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      if (a.target === '_blank' || a.origin !== location.origin) return;
-      if (a.getAttribute('href').startsWith('#')) return;
-      startProgress();
-    });
-    document.addEventListener('submit', function (e) {
-      if (e.defaultPrevented) return;
-      startProgress();
-    });
-    window.addEventListener('pageshow', function (e) {
-      if (e.persisted) {
-        bar.style.transform = '';
-        bar.classList.add('scale-x-0');
-      }
-    });
-  });
-</script>
-
+{% block scripts %}{% endblock %}
 </body>
 </html>

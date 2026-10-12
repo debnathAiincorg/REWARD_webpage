@@ -1,32 +1,93 @@
 {% extends "base.html" %}
-{% block title %}ADIRI — Performance Tracking{% endblock %}
+{% block title %}Rewards &amp; Recognition{% endblock %}
+
+{% block hero %}
+<section class="relative isolate overflow-hidden bg-navy-900 text-white">
+  {# Soft gold glow and a faint grid behind the trophy. #}
+  <div class="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+    <div class="absolute -right-32 -top-24 h-[24rem] w-[24rem] rounded-full bg-gold-500/20 blur-3xl md:-right-24 md:top-1/2 md:h-[36rem] md:w-[36rem] md:-translate-y-1/2"></div>
+    <div class="absolute -left-40 -top-40 h-[28rem] w-[28rem] rounded-full bg-navy-500/30 blur-3xl"></div>
+    <div class="absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(255,255,255,.6)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.6)_1px,transparent_1px)] [background-size:44px_44px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]"></div>
+  </div>
+
+  <div class="mx-auto grid max-w-7xl items-center gap-2 px-4 pb-10 pt-4 sm:px-6 md:gap-6 md:grid-cols-[1.05fr_1fr] md:pb-14 md:pt-14 lg:px-8">
+    <div class="rise">
+      <span class="inline-flex items-center gap-2 rounded-full border border-gold-400/30 bg-gold-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-gold-200">
+        <i data-lucide="sparkles" class="h-3.5 w-3.5"></i> Employee rewards &amp; recognition
+      </span>
+      <h1 class="mt-5 text-4xl font-extrabold tracking-tight text-balance sm:text-5xl lg:text-[3.4rem] lg:leading-[1.05]">
+        Recognise performance.<br>
+        <span class="bg-gradient-to-r from-gold-200 via-gold-400 to-gold-300 bg-clip-text text-transparent">Reward it fairly.</span>
+      </h1>
+      <p class="mt-5 max-w-xl text-base leading-relaxed text-navy-100 sm:text-lg">
+        Daily points, monthly bonuses, typing performance and team contacts — recorded straight into the
+        company workbook, with every figure ready for review.
+      </p>
+      <div class="mt-7 flex flex-wrap gap-3">
+        <a href="{{ url_for('daily.dashboard') }}" class="btn-gold"><i data-lucide="trophy" class="h-4 w-4"></i> Today's performance</a>
+        <a href="{{ url_for('monthly.dashboard') }}" class="btn border border-white/15 bg-white/5 text-white hover:bg-white/10">
+          <i data-lucide="wallet" class="h-4 w-4"></i> Monthly bonuses</a>
+      </div>
+      <dl class="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-sm">
+        <div class="flex items-center gap-2 text-navy-100"><i data-lucide="layers" class="h-4 w-4 text-gold-300"></i><dt class="sr-only">Sheets</dt><dd>4 workbook sheets</dd></div>
+        <div class="flex items-center gap-2 text-navy-100"><i data-lucide="refresh-cw" class="h-4 w-4 text-gold-300"></i><dt class="sr-only">Data</dt><dd>Live from SharePoint</dd></div>
+        <div class="flex items-center gap-2 text-navy-100"><i data-lucide="shield-check" class="h-4 w-4 text-gold-300"></i><dt class="sr-only">Layout</dt><dd>Sheet layout preserved</dd></div>
+      </dl>
+    </div>
+
+    <div class="relative order-first mx-auto h-[230px] w-full max-w-[520px] sm:h-[340px] md:order-none md:h-[440px]" id="hero3d">
+      {# Static fallback, replaced by the 3D scene when WebGL is available. #}
+      <div id="heroFallback" class="absolute inset-0 flex items-center justify-center">
+        <div class="absolute h-56 w-56 rounded-full bg-gold-400/25 blur-2xl"></div>
+        <svg viewBox="0 0 64 64" class="shine relative h-40 w-40 drop-shadow-[0_20px_30px_rgba(0,0,0,0.35)] sm:h-60 sm:w-60" aria-hidden="true">
+          <defs><linearGradient id="heroGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6E3A8"/><stop offset=".5" stop-color="#D9A93F"/><stop offset="1" stop-color="#A97B1F"/></linearGradient></defs>
+          <path d="M20 10h24v11c0 7.2-5.4 13-12 13s-12-5.8-12-13z" fill="url(#heroGold)"/>
+          <path d="M20 14h-6v3c0 4.4 3.1 8 7.5 8.6M44 14h6v3c0 4.4-3.1 8-7.5 8.6" fill="none" stroke="url(#heroGold)" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M29 34h6v8h-6z" fill="#C9962B"/>
+          <rect x="21" y="42" width="22" height="5" rx="1.5" fill="url(#heroGold)"/>
+          <rect x="17" y="47" width="30" height="8" rx="2" fill="#16264A"/>
+          <path d="M32 15l1.7 3.4 3.8.6-2.7 2.6.6 3.8-3.4-1.8-3.4 1.8.6-3.8-2.7-2.6 3.8-.6z" fill="#16264A"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
 {% block content %}
-<div class="text-center py-10 sm:py-14">
-  <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-stone-900">ADIRI</h1>
-  <p class="mt-2 text-lg font-medium text-forest">Performance Tracking</p>
-  <p class="mt-3 font-mono text-sm text-stone-500">Choose a sheet to work on</p>
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <p class="text-xs font-semibold uppercase tracking-[0.14em] text-gold-700">Workspaces</p>
+    <h2 class="mt-1 text-2xl font-bold tracking-tight text-navy-950">Choose a sheet to work on</h2>
+  </div>
+  <p class="text-sm text-navy-400">Each section has its own Dashboard, Add Entry and History.</p>
 </div>
 
-<div class="mx-auto grid max-w-4xl gap-5 sm:grid-cols-2">
+<div class="grid gap-5 sm:grid-cols-2">
   {% for s in sections %}
-  <a href="{{ url_for(s.slug ~ '.dashboard') }}"
-     class="group flex flex-col gap-4 rounded-xl border border-stone-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-forest/40 hover:shadow-md">
-    <div class="flex items-center justify-between">
-      <span class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-forest-light text-forest">
-        <i data-lucide="{{ s.icon }}" class="h-5 w-5"></i>
+  <div class="tilt card group relative flex flex-col p-6 rise" style="--i: {{ loop.index }}">
+    <div class="tilt-pop flex items-start justify-between">
+      <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-gold-100 to-gold-200 text-gold-700 ring-1 ring-gold-200">
+        <i data-lucide="{{ s.icon }}" class="h-6 w-6"></i>
       </span>
-      <i data-lucide="arrow-right" class="h-4 w-4 text-stone-300 transition-all group-hover:translate-x-0.5 group-hover:text-forest"></i>
+      <i data-lucide="arrow-up-right" class="h-5 w-5 text-navy-200 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-gold-600"></i>
     </div>
-    <div>
-      <span class="block text-lg font-semibold text-stone-900">{{ s.title }}</span>
-      <span class="mt-1 block text-sm text-stone-500">{{ s.blurb }}</span>
+    <h3 class="mt-5 text-lg font-semibold text-navy-950">
+      {# The title link covers the whole card; the quick links sit above it. #}
+      <a href="{{ url_for(s.slug ~ '.dashboard') }}" class="after:absolute after:inset-0 after:rounded-2xl focus:outline-none focus-visible:after:ring-2 focus-visible:after:ring-gold-400">{{ s.title }}</a>
+    </h3>
+    <p class="mt-1 text-sm text-navy-500">{{ s.blurb }}</p>
+    <div class="relative z-10 mt-5 grid grid-cols-3 gap-2 border-t border-navy-50 pt-4 sm:flex sm:flex-wrap">
+      <a href="{{ url_for(s.slug ~ '.dashboard') }}" class="inline-flex min-h-[40px] items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-navy-50 px-2 text-xs font-semibold text-navy-700 hover:bg-navy-100 sm:min-h-[36px] sm:px-3"><i data-lucide="layout-dashboard" class="hidden h-3.5 w-3.5 shrink-0 sm:block"></i> Dashboard</a>
+      <a href="{{ url_for(s.slug ~ '.add_entry') }}" class="inline-flex min-h-[40px] items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-navy-50 px-2 text-xs font-semibold text-navy-700 hover:bg-navy-100 sm:min-h-[36px] sm:px-3"><i data-lucide="plus-circle" class="hidden h-3.5 w-3.5 shrink-0 sm:block"></i> Add Entry</a>
+      <a href="{{ url_for(s.slug ~ '.history') }}" class="inline-flex min-h-[40px] items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-navy-50 px-2 text-xs font-semibold text-navy-700 hover:bg-navy-100 sm:min-h-[36px] sm:px-3"><i data-lucide="history" class="hidden h-3.5 w-3.5 shrink-0 sm:block"></i> History</a>
     </div>
-    <div class="flex flex-wrap gap-x-4 gap-y-1 border-t border-stone-100 pt-3 font-mono text-xs text-stone-400">
-      <span class="flex items-center gap-1"><i data-lucide="layout-dashboard" class="h-3 w-3"></i> Dashboard</span>
-      <span class="flex items-center gap-1"><i data-lucide="plus-circle" class="h-3 w-3"></i> Add Entry</span>
-      <span class="flex items-center gap-1"><i data-lucide="history" class="h-3 w-3"></i> History</span>
-    </div>
-  </a>
+  </div>
   {% endfor %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+<script src="{{ url_for('static', filename='js/hero.js') }}?v={{ asset_version }}" defer></script>
 {% endblock %}

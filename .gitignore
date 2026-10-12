@@ -12,3 +12,6 @@ run.txt
 *.xlsx
 *.xlsm
 *.xls
+
+# Local build tools (Tailwind standalone CLI) — never committed.
+.tools/

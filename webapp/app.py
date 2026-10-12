@@ -18,22 +18,23 @@ for module in (daily, whatsapp, monthly, keyboard):
     app.register_blueprint(module.bp)
 
 
-STYLE_CSS_PATH = Path(__file__).resolve().parent / "static" / "style.css"
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+ASSET_PATHS = [STATIC_DIR / "app.css", STATIC_DIR / "style.css", STATIC_DIR / "js" / "app.js"]
 
 
 @app.context_processor
 def inject_globals():
-    # Cache-bust style.css with its own mtime, so an edit takes effect on the
-    # next load instead of a browser silently keeping a stale cached copy —
+    # Cache-bust the CSS/JS with their newest mtime, so an edit takes effect on
+    # the next load instead of a browser silently keeping a stale cached copy —
     # exactly the kind of "already fixed but still looks broken" confusion
-    # that's bitten this app before (localStorage, and now the CSS itself).
+    # that's bitten this app before (localStorage, and the CSS itself).
     try:
-        style_version = int(os.path.getmtime(STYLE_CSS_PATH))
+        asset_version = int(max(os.path.getmtime(p) for p in ASSET_PATHS))
     except OSError:
-        style_version = 0
+        asset_version = 0
     return {
         "current_year": date.today().year,
-        "style_version": style_version,
+        "asset_version": asset_version,
         "sections": SECTIONS,
         # The section the current page belongs to (None on Home), which drives
         # the header's section name and its Dashboard / Add Entry / History tabs.

@@ -1,0 +1,141 @@
+/* Source for static/app.css (built with the Tailwind standalone CLI — see
+   "Styles" in README.md). Component classes below are the design system:
+   every section uses the same card, button, input, badge and table styles. */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  body { @apply bg-page text-ink font-sans antialiased; font-feature-settings: "cv11", "ss01"; }
+  /* Every figure in the app lines up in columns. */
+  .num, td, .kpi-value { font-variant-numeric: tabular-nums; }
+  :focus-visible { outline: 2px solid theme("colors.gold.500"); outline-offset: 2px; border-radius: 4px; }
+  [hidden] { display: none !important; }
+}
+
+@layer components {
+  /* Surfaces */
+  .card { @apply rounded-2xl border border-navy-100/80 bg-white shadow-card; }
+  .card-head {
+    @apply flex flex-wrap items-center justify-between gap-2 border-b border-navy-100/80 px-5 py-3.5;
+  }
+  .card-title { @apply flex items-center gap-2 text-sm font-semibold text-navy-900; }
+  .card-meta { @apply text-xs font-medium text-navy-400; }
+
+  /* Buttons — 44px tall on touch screens. */
+  .btn {
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold
+           transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400
+           focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-70 sm:min-h-[40px];
+  }
+  .btn-primary { @apply btn bg-navy-900 text-white shadow-sm hover:bg-navy-800 active:translate-y-px; }
+  .btn-gold {
+    @apply btn bg-gradient-to-b from-gold-300 to-gold-500 text-navy-950 shadow-gold hover:from-gold-200
+           hover:to-gold-400 active:translate-y-px;
+  }
+  .btn-ghost { @apply btn border border-navy-200 bg-white text-navy-700 hover:border-navy-300 hover:bg-navy-50; }
+  .btn-sm { @apply min-h-[36px] rounded-lg px-3 text-xs sm:min-h-[32px]; }
+  .btn-edit { @apply btn btn-sm bg-navy-900 text-white hover:bg-navy-700; }
+  .btn-delete { @apply btn btn-sm border border-red-200 bg-white text-red-700 hover:border-red-300 hover:bg-red-50; }
+
+  /* Forms */
+  .field-label {
+    @apply mb-1.5 flex items-baseline justify-between text-xs font-semibold uppercase tracking-wide text-navy-500;
+  }
+  .field-optional { @apply text-[0.7rem] font-normal normal-case tracking-normal text-navy-300; }
+  .field-input {
+    @apply block min-h-[44px] w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-ink
+           placeholder:text-navy-300 transition-colors focus:border-gold-500 focus:outline-none focus:ring-4
+           focus:ring-gold-200/60 disabled:bg-navy-50 disabled:text-navy-400;
+  }
+  .field-addon {
+    @apply inline-flex items-center border border-navy-200 bg-navy-50 px-3 text-sm font-medium text-navy-500;
+  }
+  .field-error { @apply mt-1 hidden text-xs font-medium text-red-700; }
+  .field-error.show { @apply block; }
+  input.invalid, select.invalid { @apply border-red-500 ring-4 ring-red-100; }
+
+  /* Badges */
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset; }
+  .badge-approved { @apply badge bg-emerald-50 text-emerald-800 ring-emerald-200; }
+  .badge-pending { @apply badge bg-amber-50 text-amber-800 ring-amber-200; }
+  .badge-missed { @apply badge bg-red-50 text-red-800 ring-red-200; }
+  .badge-neutral { @apply badge bg-navy-50 text-navy-600 ring-navy-100; }
+  .badge-gold { @apply badge bg-gold-50 text-gold-700 ring-gold-200; }
+
+  /* KPI tiles */
+  .kpi { @apply card relative overflow-hidden p-5; }
+  .kpi-label { @apply flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-navy-500; }
+  .kpi-icon { @apply inline-flex h-8 w-8 items-center justify-center rounded-lg bg-navy-50 text-navy-700; }
+  .kpi-value { @apply mt-3 text-2xl font-bold tracking-tight text-navy-950 sm:text-[1.75rem]; }
+  .kpi-gold .kpi-icon { @apply bg-gold-100 text-gold-700; }
+  .kpi-gold .kpi-value { @apply text-gold-700; }
+  .kpi-gold::after {
+    content: ""; @apply pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-gold-300 via-gold-500 to-gold-300;
+  }
+
+  /* Data tables */
+  .ui-table { @apply w-full text-sm; }
+  .ui-table thead th {
+    @apply sticky top-0 z-[1] whitespace-nowrap border-b border-navy-100 bg-navy-50/95 px-4 py-3 text-left
+           text-[0.7rem] font-semibold uppercase tracking-wider text-navy-500 backdrop-blur;
+  }
+  .ui-table tbody td { @apply border-b border-navy-50 px-4 py-3 align-middle text-ink; }
+  .ui-table tbody tr { @apply transition-colors duration-150 hover:bg-gold-50/60; }
+  .ui-table tbody tr:last-child td { @apply border-b-0; }
+  .ui-table .num { @apply text-right; }
+  .ui-table .center { @apply text-center; }
+  .ui-table .notes { @apply min-w-[14rem] whitespace-normal text-navy-500 [overflow-wrap:anywhere]; }
+  .table-wrap { @apply max-h-[70vh] overflow-auto overscroll-x-contain; }
+
+  /* Money and points always read in gold. */
+  .money { @apply font-semibold text-gold-700; }
+
+  /* Header navigation */
+  .nav-link {
+    @apply inline-flex min-h-[40px] items-center gap-2 rounded-lg px-3 text-sm font-medium text-navy-100
+           transition-colors hover:bg-white/10 hover:text-white;
+  }
+  .nav-link.is-active { @apply bg-white/10 text-white shadow-[inset_0_-2px_0_theme(colors.gold.400)]; }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  /* Entrance animation; stagger with style="--i: n". */
+  .rise { animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 60ms); }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Gold shine sweeping across a highlighted element once. */
+.shine { position: relative; overflow: hidden; }
+.shine::before {
+  content: ""; position: absolute; inset: 0 auto 0 0; width: 40%; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 236, 179, 0.55), transparent);
+  transform: translateX(-120%) skewX(-20deg); animation: shine 1.6s ease-in-out 0.4s 1;
+}
+@keyframes shine { to { transform: translateX(260%) skewX(-20deg); } }
+
+/* Home: section cards tilt toward the pointer (static/js/app.js sets --rx/--ry). */
+.tilt { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+        transition: transform 0.25s ease-out, box-shadow 0.25s ease-out; transform-style: preserve-3d; }
+.tilt:hover { box-shadow: theme("boxShadow.lift"); }
+.tilt .tilt-pop { transform: translateZ(28px); }
+
+/* Top-of-page progress bar while a Graph-backed page loads. */
+#navProgress { transform: scaleX(0); transform-origin: left; transition: transform 0.6s ease-out; }
+#navProgress.run { transform: scaleX(0.82); transition-duration: 8s; transition-timing-function: cubic-bezier(0.1, 0.8, 0.2, 1); }
+
+/* Spinner inside a submitting button. */
+.spin { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .tilt { transform: none !important; }
+}
