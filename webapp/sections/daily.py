@@ -2,7 +2,7 @@
 # These routes moved here unchanged from app.py when the app grew to four
 # sections; only their URLs gained the /daily prefix.
 
-from datetime import date, timedelta
+from datetime import date
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
@@ -43,25 +43,34 @@ def _load_records():
     return records, cols
 
 
+def _today():
+    """Today's date — a function so tests can fix "today" to a given weekday."""
+    return date.today()
+
+
 @bp.route("/dashboard")
 def dashboard():
-    today = date.today()
-    yesterday = today - timedelta(days=1)
+    # Same figures and date ranges as the Teams weekly report: data up to
+    # YESTERDAY, never today (logic.report_period has the rules).
+    period = logic.report_period(_today())
     try:
         records, cols = _load_records()
     except GraphError as e:
         return render_template(
-            "dashboard.html", active_page="dashboard", error=str(e),
-            today=today, week_start=None, prev_day=yesterday, prev_day_entries=[],
-            category_names=[], text_names=[], weekly_rows=[], weekly_total=None,
-            kpis=None,
+            "dashboard.html", active_page="dashboard", error=str(e), period=period,
+            prev_day_entries=[], category_names=[], text_names=[], weekly_rows=[],
+            weekly_total=None, kpis=None,
         )
 
-    monday, _ = logic.week_bounds(today)
     categories = cols["category_names"]
-    prev_day_entries = logic.entries_for_date(records, yesterday)
+    # Duplicate Name + Date rows: the last one wins, as in the Teams script.
+    unique = logic.unique_by_name_date(records)
+    prev_day_entries = logic.previous_day_breakdown(
+        unique, logic.distinct_employees(records), period["breakdown_day"],
+        period["fill_breakdown"], categories, cols["text_names"],
+    )
 
-    weekly_rows = logic.weekly_report_rows(records, monday, today, yesterday, categories)
+    weekly_rows = logic.weekly_report_rows(unique, period["start"], period["end"], period["prev_day"], categories)
     weekly_total = {
         "prev_points": sum(r["prev_points"] for r in weekly_rows),
         "prev_amount": sum(r["prev_amount"] for r in weekly_rows),
@@ -74,11 +83,10 @@ def dashboard():
     logic.seed_employee_list_if_missing(records)
     roster = logic.load_employee_list()
 
-    kpis = logic.dashboard_kpis(records, roster, monday, today, categories)
+    kpis = logic.dashboard_kpis(unique, roster, period["start"], period["end"], categories)
 
     return render_template(
-        "dashboard.html", active_page="dashboard", error=None,
-        today=today, week_start=monday, prev_day=yesterday,
+        "dashboard.html", active_page="dashboard", error=None, period=period,
         prev_day_entries=prev_day_entries,
         category_names=categories, text_names=cols["text_names"],
         weekly_rows=weekly_rows, weekly_total=weekly_total,

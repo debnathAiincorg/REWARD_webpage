@@ -2,9 +2,23 @@
 {% import "_ui.html" as ui with context %}
 {% block title %}Dashboard — Daily Performance Bonus{% endblock %}
 {% block content %}
-{{ ui.page_header("Dashboard",
-                  ("Today " ~ today.strftime("%d %b %Y") ~ " · week-to-date from " ~ week_start.strftime("%d %b")) if week_start else "",
+{{ ui.page_header("Dashboard", "Same figures and dates as the Teams weekly report: data up to yesterday, never today.",
                   url_for('daily.add_entry'), "Add entry") }}
+
+{# Report period, worded like the Teams card. #}
+<div class="card mb-6 flex flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3.5 text-sm">
+  <span class="flex items-center gap-2 font-semibold text-navy-950">
+    <i data-lucide="calendar-range" class="h-4 w-4 text-gold-700"></i> {{ period.week_label }}
+  </span>
+  <span class="flex items-center gap-2 text-navy-500">
+    <i data-lucide="sunrise" class="h-4 w-4"></i> Previous day: <strong class="font-semibold text-navy-900">{{ period.breakdown_day.strftime("%a, %d %b %Y") }}</strong>
+  </span>
+  {% if period.prev_day != period.breakdown_day %}
+  <span class="flex items-center gap-2 text-navy-500">
+    <i data-lucide="info" class="h-4 w-4"></i> Weekly report "previous day" columns: <strong class="font-semibold text-navy-900">{{ period.prev_day.strftime("%a, %d %b") }}</strong>
+  </span>
+  {% endif %}
+</div>
 
 {% if error %}
   {{ ui.error_banner(error) }}
@@ -14,15 +28,15 @@
   {{ ui.kpi("users", "Total employees", kpis.total_employees, i=0) }}
   {{ ui.kpi("star", "Weekly points", kpis.weekly_points, i=1) }}
   {{ ui.kpi("indian-rupee", "Weekly amount", "₹" ~ kpis.weekly_amount, gold=True, i=2) }}
-  {{ ui.kpi("alert-circle", "Zero points this week", kpis.zero_point_employees, warn=kpis.zero_point_employees > 0, i=3) }}
-  {{ ui.kpi("calendar-range", "Previous week points", kpis.previous_week_points, i=4) }}
+  {{ ui.kpi("alert-circle", "Zero points this report week", kpis.zero_point_employees, warn=kpis.zero_point_employees > 0, i=3) }}
+  {{ ui.kpi("calendar-range", "Previous week points", kpis.previous_week_points, hint="Complete week before the report week", i=4) }}
 </div>
 
 {% set leader = (weekly_rows | sort(attribute="week_amount", reverse=True) | first) if weekly_rows else None %}
 {% set leader_name = leader.name if leader and leader.week_amount > 0 else None %}
 
 <div class="card mb-6 overflow-hidden">
-  {{ ui.card_head("Previous day performance", prev_day.strftime("%A, %d %b %Y"), "sunrise") }}
+  {{ ui.card_head("Previous day performance", period.breakdown_day.strftime("%A, %d %b %Y"), "sunrise") }}
   {% if prev_day_entries %}
   <div class="table-wrap">
     <table class="ui-table">
@@ -33,8 +47,8 @@
       </tr></thead>
       <tbody>
         {% for r in prev_day_entries %}
-        <tr class="rise" style="--i: {{ [loop.index0, 12] | min }}">
-          <td class="whitespace-nowrap font-medium text-navy-950">{{ r.Name }}</td>
+        <tr class="rise {{ 'text-navy-400' if r._filled }}" style="--i: {{ [loop.index0, 12] | min }}">
+          <td class="whitespace-nowrap {{ '' if r._filled else 'font-medium text-navy-950' }}">{{ r.Name }}</td>
           {% for cat in category_names %}<td class="center">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
           {% for tf in text_names %}<td class="notes">{{ r.get(tf, "") or "" }}</td>{% endfor %}
         </tr>
@@ -43,12 +57,12 @@
     </table>
   </div>
   {% else %}
-  {{ ui.empty_state("inbox", "No entries for the previous day", "Rows added on the Add Entry page for " ~ prev_day.strftime("%d %b %Y") ~ " will appear here.") }}
+  {{ ui.empty_state("inbox", "No entries for the previous day", "Rows added on the Add Entry page for " ~ period.breakdown_day.strftime("%d %b %Y") ~ " will appear here.") }}
   {% endif %}
 </div>
 
 <div class="card overflow-hidden">
-  {{ ui.card_head("Weekly performance report", ("Week starting " ~ week_start.strftime("%d %b %Y")), "trophy") }}
+  {{ ui.card_head("Weekly performance report", period.week_label, "trophy") }}
   {% if weekly_rows %}
   <div class="table-wrap">
     <table class="ui-table">
@@ -85,7 +99,7 @@
     </table>
   </div>
   {% else %}
-  {{ ui.empty_state("inbox", "No entries yet this week", "Week-to-date figures from " ~ (week_start.strftime("%d %b") if week_start else "Monday") ~ " onward will appear here.") }}
+  {{ ui.empty_state("inbox", "No entries in this report week", "Figures for " ~ period.start.strftime("%d %b") ~ " to " ~ period.end.strftime("%d %b") ~ " will appear here.") }}
   {% endif %}
 </div>
 

@@ -130,6 +130,98 @@ def find_existing_row(records, name, target_date):
     return None
 
 
+# ---------------------------------------------------------------------------
+# Teams weekly report rules. The Daily dashboard shows exactly what the Teams
+# report (weekly_report_send_teams.py, get_cumulative_data) showed: data up to
+# YESTERDAY, never today.
+# ---------------------------------------------------------------------------
+
+_MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+
+def _teams_day(d):
+    """strftime('%b %d') in the C locale, as the script printed it ("Oct 05"),
+    without depending on the server's locale."""
+    return f"{_MONTH_ABBR[d.month - 1]} {d.day:02d}"
+
+
+def report_period(today):
+    """The Teams report's date range for `today`. Returns a dict with:
+
+    start, end        the week range (always ends yesterday)
+    week_label        e.g. "Week #42 - Oct 12 to Oct 14"
+    prev_day          the Weekly Performance Report's "Previous Day" columns
+    breakdown_day     the Previous Day Performance table's date
+    fill_breakdown    True on Monday: that table lists every name, with 0s
+
+    Tue-Sat: this Monday -> yesterday.
+    Monday:  the previous complete week (previous Monday -> Sunday); the
+             "Previous Day" columns use Saturday (today - 2), the Previous Day
+             Performance table uses Sunday.
+    Sunday:  this Monday -> Saturday (a complete week).
+    """
+    weekday = today.weekday()
+    yesterday = today - timedelta(days=1)
+    this_monday = today - timedelta(days=weekday)
+    if weekday == 0:
+        start, end = today - timedelta(days=7), yesterday
+        prev_day, breakdown_day, complete = today - timedelta(days=2), yesterday, True
+    elif weekday == 6:
+        start, end = this_monday, yesterday
+        prev_day, breakdown_day, complete = end, end, True
+    else:
+        start, end = this_monday, yesterday
+        prev_day, breakdown_day, complete = yesterday, yesterday, False
+
+    week_number = start.isocalendar()[1]
+    if complete:
+        label = f"Week #{week_number} - {_teams_day(start)} to {_teams_day(end)} (Complete Week)"
+    elif start == end:
+        label = f"Week #{week_number} - {_teams_day(start)}"
+    else:
+        label = f"Week #{week_number} - {_teams_day(start)} to {_teams_day(end)}"
+    return {
+        "start": start, "end": end, "week_label": label, "complete_week": complete,
+        "prev_day": prev_day, "breakdown_day": breakdown_day, "fill_breakdown": weekday == 0,
+    }
+
+
+def unique_by_name_date(records):
+    """One record per (Name, Date): when the sheet has duplicates, the LAST row
+    wins and the others are ignored — never added together (as in the script)."""
+    latest = {}
+    for r in records:
+        if r.get("Name") and r.get("Date"):
+            latest[(r["Name"], r["Date"])] = r
+    return list(latest.values())
+
+
+def previous_day_breakdown(unique_records, all_names, day, fill_missing, category_names, text_names):
+    """Rows for the Previous Day Performance table, sorted by name.
+
+    With fill_missing (Mondays), every name found anywhere in the sheet is
+    listed, with 0s when it has no row for `day` — as the Teams card did.
+    Category values are whole numbers, as the card showed them.
+    """
+    # Category values as whole numbers, like the Teams card (int(value)):
+    # 0.5 Extra Hours shows as 0.
+    rows = []
+    for r in unique_records:
+        if r.get("Date") == day:
+            shown = dict(r)
+            shown.update({c: to_number(r.get(c)) for c in category_names})
+            rows.append(shown)
+    if fill_missing:
+        present = {r["Name"] for r in rows}
+        for name in all_names:
+            if name not in present:
+                filler = {"Name": name, "Date": day, "_filled": True}
+                filler.update({c: 0 for c in category_names})
+                filler.update({t: "" for t in text_names})
+                rows.append(filler)
+    return sorted(rows, key=lambda r: r["Name"])
+
+
 def week_bounds(today):
     """Return (monday, today) for the current week-to-date range."""
     monday = today - timedelta(days=today.weekday())
@@ -319,10 +411,10 @@ def dashboard_kpis(records, roster, start, end, category_names):
     weekly_points = sum(bucket["points"] for bucket in totals.values())
     zero_count = sum(1 for n in roster if points_by_key.get(_fold(n), 0) == 0)
 
-    # `end` is always "today" (the caller's week-to-date window), so the
-    # previous complete week is derived from it directly rather than taking
-    # a separate parameter.
-    prev_monday, prev_sunday = previous_week_bounds(end)
+    # "Previous week" is the complete Mon-Sun week before the report week.
+    # `start` is always the report week's Monday, so derive it from that (on a
+    # Monday the report week is itself last week, so "today" would be wrong).
+    prev_monday, prev_sunday = previous_week_bounds(start)
     prev_week_totals = totals_by_employee(records, prev_monday, prev_sunday, category_names)
     previous_week_points = sum(bucket["points"] for bucket in prev_week_totals.values())
 
