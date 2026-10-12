@@ -2,42 +2,36 @@
 {% import "_ui.html" as ui with context %}
 {% block title %}{{ "Edit" if editing else "Add" }} Contact — {{ section.title }}{% endblock %}
 {% block content %}
-{{ ui.page_header("Edit Contact" if editing else "Add Entry",
-                  "updates the row in place" if editing else
-                  "adds a row under the last contact · an existing First + Last name is updated instead of duplicated") }}
+{{ ui.page_header("Edit contact" if editing else "Add Entry",
+                  "Updates this contact's row in place." if editing else
+                  "Adds a row under the last contact. An existing First + Last name is updated instead of duplicated.") }}
 
-<div class="mx-auto max-w-xl overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
-  <div class="border-t-4 border-forest bg-stone-50 px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-forest-dark">
-    {{ section.title }}
+{% call ui.form_card("Edit contact" if editing else "New contact", "Employee Whatsapp sheet") %}
+<form method="post" action="{{ url_for('whatsapp.add_entry') }}" class="space-y-5" id="contactForm" novalidate>
+  <input type="hidden" name="orig_first" value="{{ form.orig_first }}">
+  <input type="hidden" name="orig_last" value="{{ form.orig_last }}">
+  <div class="grid gap-5 sm:grid-cols-2">
+    <div>
+      {{ ui.label("first", "First name") }}
+      <input type="text" id="first" name="first" value="{{ form.first }}" required autocomplete="off" class="field-input">
+    </div>
+    <div>
+      {{ ui.label("last", "Last name") }}
+      <input type="text" id="last" name="last" value="{{ form.last }}" autocomplete="off" class="field-input">
+    </div>
   </div>
-  <div class="p-6">
-    <form method="post" action="{{ url_for('whatsapp.add_entry') }}" class="space-y-4" id="contactForm" novalidate>
-      <input type="hidden" name="orig_first" value="{{ form.orig_first }}">
-      <input type="hidden" name="orig_last" value="{{ form.orig_last }}">
-      <div class="grid gap-4 sm:grid-cols-2">
-        <div>
-          {{ ui.label("first", "First Name") }}
-          <input type="text" id="first" name="first" value="{{ form.first }}" required autocomplete="off" class="{{ ui.input_cls }}">
-        </div>
-        <div>
-          {{ ui.label("last", "Last Name") }}
-          <input type="text" id="last" name="last" value="{{ form.last }}" autocomplete="off" class="{{ ui.input_cls }}">
-        </div>
-      </div>
-      <div>
-        {{ ui.label("mobile", "Mobile Number") }}
-        <div class="flex">
-          <span class="inline-flex items-center rounded-l-lg border border-r-0 border-stone-300 bg-stone-50 px-3 font-mono text-sm text-stone-500">+91</span>
-          <input type="tel" id="mobile" name="mobile" value="{{ form.mobile }}" required inputmode="numeric"
-                 placeholder="10-digit number" autocomplete="off"
-                 class="w-full rounded-r-lg border border-stone-300 px-3 py-2.5 font-mono text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
-        </div>
-        <span class="field-error" id="mobileError">Enter a 10-digit mobile number starting with 6, 7, 8 or 9.</span>
-      </div>
-      {{ ui.form_actions(url_for('whatsapp.history') if editing else None) }}
-    </form>
+  <div>
+    {{ ui.label("mobile", "Mobile number") }}
+    <div class="flex">
+      <span class="field-addon rounded-l-xl border-r-0">+91</span>
+      <input type="tel" id="mobile" name="mobile" value="{{ form.mobile }}" required inputmode="numeric"
+             placeholder="10-digit number" autocomplete="off" class="field-input num rounded-l-none">
+    </div>
+    <span class="field-error" id="mobileError">Enter a 10-digit mobile number starting with 6, 7, 8 or 9.</span>
   </div>
-</div>
+  {{ ui.form_actions(url_for('whatsapp.history') if editing else None, "Save contact") }}
+</form>
+{% endcall %}
 
 <script>
   document.getElementById('contactForm').addEventListener('submit', function (e) {

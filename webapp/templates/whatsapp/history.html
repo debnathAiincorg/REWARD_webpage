@@ -2,59 +2,43 @@
 {% import "_ui.html" as ui with context %}
 {% block title %}History — {{ section.title }}{% endblock %}
 {% block content %}
-{{ ui.page_header("History", "every contact in the sheet, in sheet order") }}
+{{ ui.page_header("History", "Every contact in the sheet, in sheet order.", url_for('whatsapp.add_entry'), "Add contact", "user-plus") }}
 
 {% if error %}
   {{ ui.error_banner(error) }}
 {% else %}
 
-<form class="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-stone-200 bg-white p-5 shadow-sm" method="get" action="{{ url_for('whatsapp.history') }}">
-  <div class="min-w-[160px] flex-1">
+{% call ui.filters(url_for('whatsapp.history'), url_for('whatsapp.history')) %}
+  <div class="min-w-[180px] md:flex-1">
     {{ ui.label("q", "Search") }}
-    <input type="search" id="q" name="q" value="{{ q }}" placeholder="Name or number" class="{{ ui.input_cls }}">
+    <input type="search" id="q" name="q" value="{{ q }}" placeholder="Name or number" class="field-input">
   </div>
-  <div class="min-w-[160px] flex-1">
+  <div class="min-w-[180px] md:flex-1">
     {{ ui.label("status", "Show") }}
-    <select id="status" name="status" class="{{ ui.input_cls }}">
+    <select id="status" name="status" class="field-input">
       <option value="">All contacts</option>
       <option value="problem" {% if status == "problem" %}selected{% endif %}>Missing / invalid number only</option>
     </select>
   </div>
-  {{ ui.filter_buttons(url_for('whatsapp.history')) }}
-</form>
+{% endcall %}
 
-<div class="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
-  <div class="flex items-center gap-2 border-t-4 border-forest bg-stone-50 px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-forest-dark">
-    <i data-lucide="table" class="h-3.5 w-3.5"></i> Register
-  </div>
+{% call ui.table_card("Register", (rows | length) ~ " contacts") %}
   {% if rows %}
-  <div class="table-scroll register-scroll">
-  <table class="data-table register sheet-register">
-    <thead>
-      <tr><th>First Name</th><th>Last Name</th><th class="num">Mobile</th><th>WhatsApp</th><th>Actions</th></tr>
-    </thead>
+  <div class="table-wrap">
+  <table class="ui-table">
+    <thead><tr><th>First name</th><th>Last name</th><th class="num">Mobile</th><th>WhatsApp</th><th class="num">Actions</th></tr></thead>
     <tbody>
       {% for c in rows %}
-      <tr>
-        <td>{{ c.first_name }}</td>
+      <tr class="rise" style="--i: {{ [loop.index0, 12] | min }}">
+        <td class="font-medium text-navy-950">{{ c.first_name }}</td>
         <td>{{ c.last_name }}</td>
-        <td class="num {{ '' if c.status == 'ok' else 'text-red-600' }}">{{ c.mobile_raw or "—" }}</td>
-        <td>{% if c.wa_link %}<a href="{{ c.wa_link }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 font-semibold text-forest hover:underline"><i data-lucide="message-circle" class="h-3.5 w-3.5"></i> Open</a>{% else %}<span class="text-xs font-semibold text-red-600">{{ "No number" if c.status == "missing" else "Invalid" }}</span>{% endif %}</td>
-        <td class="row-actions">
-          <div class="row-actions-inner">
-            <a class="action-edit" href="{{ url_for('whatsapp.add_entry', first=c.first_name, last=c.last_name) }}">
-              <i data-lucide="pencil" class="h-3 w-3"></i> Edit
-            </a>
-            <form method="post" action="{{ url_for('whatsapp.history_delete') }}" class="delete-form"
-                  data-confirm="Are you sure you want to delete the contact {{ c.full_name }}? This removes the row from the sheet and cannot be undone.">
-              <input type="hidden" name="first" value="{{ c.first_name }}">
-              <input type="hidden" name="last" value="{{ c.last_name }}">
-              <input type="hidden" name="q" value="{{ q }}">
-              <input type="hidden" name="status" value="{{ status }}">
-              <button type="submit" class="action-delete"><i data-lucide="trash-2" class="h-3 w-3"></i> Delete</button>
-            </form>
-          </div>
-        </td>
+        <td class="num {{ '' if c.status == 'ok' else 'font-medium text-red-700' }}">{{ c.mobile_raw or "—" }}</td>
+        <td>{% if c.wa_link %}<a href="{{ c.wa_link }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:underline"><i data-lucide="message-circle" class="h-3.5 w-3.5"></i> Open</a>
+            {% else %}<span class="badge-missed">{{ "No number" if c.status == "missing" else "Invalid" }}</span>{% endif %}</td>
+        <td>{{ ui.row_actions(url_for('whatsapp.add_entry', first=c.first_name, last=c.last_name),
+                              url_for('whatsapp.history_delete'),
+                              "Are you sure you want to delete the contact " ~ c.full_name ~ "? This removes the row from the sheet and cannot be undone.",
+                              [("first", c.first_name), ("last", c.last_name), ("q", q), ("status", status)]) }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -63,7 +47,7 @@
   {% else %}
   {{ ui.empty_state("search-x", "No contacts match the current filters", "Try clearing the search.") }}
   {% endif %}
-</div>
+{% endcall %}
 
 {% endif %}
 {% endblock %}

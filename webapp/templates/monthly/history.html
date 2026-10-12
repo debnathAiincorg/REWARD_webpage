@@ -2,76 +2,57 @@
 {% import "_ui.html" as ui with context %}
 {% block title %}History — {{ section.title }}{% endblock %}
 {% block content %}
-{{ ui.page_header("History", "every employee row in every month block, newest block first") }}
+{{ ui.page_header("History", "Every employee row in every month block, newest block first.", url_for('monthly.add_entry'), "Add entry") }}
 
 {% if error %}
   {{ ui.error_banner(error) }}
 {% else %}
 
-<form class="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-stone-200 bg-white p-5 shadow-sm" method="get" action="{{ url_for('monthly.history') }}">
-  <div class="min-w-[160px] flex-1">
+{% call ui.filters(url_for('monthly.history'), url_for('monthly.history')) %}
+  <div class="min-w-[160px] md:flex-1">
     {{ ui.label("block", "Month block") }}
-    <select id="block" name="block" class="{{ ui.input_cls }}">
+    <select id="block" name="block" class="field-input">
       <option value="">All blocks</option>
       {% for b in blocks %}<option value="{{ b.id }}" {% if b.id == block_id %}selected{% endif %}>{{ b.label }}</option>{% endfor %}
     </select>
   </div>
-  <div class="min-w-[160px] flex-1">
+  <div class="min-w-[160px] md:flex-1">
     {{ ui.label("employee", "Employee") }}
-    <select id="employee" name="employee" class="{{ ui.input_cls }}">
+    <select id="employee" name="employee" class="field-input">
       <option value="">All employees</option>
       {% for e in employees %}<option value="{{ e }}" {% if e == employee %}selected{% endif %}>{{ e }}</option>{% endfor %}
     </select>
   </div>
-  <div class="min-w-[160px] flex-1">
+  <div class="min-w-[160px] md:flex-1">
     {{ ui.label("status", "Status") }}
-    <select id="status" name="status" class="{{ ui.input_cls }}">
+    <select id="status" name="status" class="field-input">
       <option value="">Any status</option>
       {% for s in status_choices %}<option value="{{ s }}" {% if s == status %}selected{% endif %}>{{ s }}{{ " / blank" if s == "Pending" }}</option>{% endfor %}
       <option value="empty" {% if status == "empty" %}selected{% endif %}>Not filled in yet</option>
     </select>
   </div>
-  {{ ui.filter_buttons(url_for('monthly.history')) }}
-</form>
+{% endcall %}
 
-<div class="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
-  <div class="flex items-center gap-2 border-t-4 border-forest bg-stone-50 px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-forest-dark">
-    <i data-lucide="table" class="h-3.5 w-3.5"></i> Register
-  </div>
+{% call ui.table_card("Register", (rows | length) ~ " rows") %}
   {% if rows %}
-  <div class="table-scroll register-scroll">
-  <table class="data-table register sheet-register">
-    <thead>
-      <tr><th>Block</th><th>Name</th><th class="num">Bonus</th><th>Status</th><th>Status Date</th><th>For Month</th><th class="notes">Notes</th><th>Actions</th></tr>
-    </thead>
+  <div class="table-wrap">
+  <table class="ui-table">
+    <thead><tr><th>Block</th><th>Name</th><th class="num">Bonus</th><th>Status</th><th>Status date</th><th>For month</th><th>Notes</th><th class="num">Actions</th></tr></thead>
     <tbody>
       {% for r in rows %}
-      <tr class="{{ '' if r.filled else 'text-stone-400' }}">
-        <td>{{ r.block_text }}</td>
-        <td>{{ r.name }}</td>
-        <td class="num">{% if r.amount is not none %}₹{{ "{:,}".format(r.amount) }}{% else %}{{ r.bonus }}{% endif %}</td>
-        <td>{{ ui.status_badge(r.status) }}</td>
-        <td class="font-mono">{{ r.status_date.strftime("%m/%d/%Y") if r.status_date else "" }}</td>
-        <td>{{ r.for_month }}</td>
-        <td class="notes">{{ r.notes }}{% if r.extra %} <span class="not-italic font-semibold text-red-600">· {{ r.extra }}</span>{% endif %}</td>
-        <td class="row-actions">
-          <div class="row-actions-inner">
-            <a class="action-edit" href="{{ url_for('monthly.add_entry', block=r.block_id, name=r.name) }}">
-              <i data-lucide="pencil" class="h-3 w-3"></i> {{ "Edit" if r.filled else "Fill" }}
-            </a>
-            {% if r.filled %}
-            <form method="post" action="{{ url_for('monthly.history_delete') }}" class="delete-form"
-                  data-confirm="Clear {{ r.name }}'s entry in the {{ r.block_text }} block? Bonus, Status, Status Date and For The Month of are emptied; the name and notes stay in the block.">
-              <input type="hidden" name="name" value="{{ r.name }}">
-              <input type="hidden" name="entry_block" value="{{ r.block_id }}">
-              <input type="hidden" name="block" value="{{ block_id }}">
-              <input type="hidden" name="employee" value="{{ employee }}">
-              <input type="hidden" name="status" value="{{ status }}">
-              <button type="submit" class="action-delete"><i data-lucide="eraser" class="h-3 w-3"></i> Delete</button>
-            </form>
-            {% endif %}
-          </div>
-        </td>
+      <tr class="rise {{ '' if r.filled else 'text-navy-300' }}" style="--i: {{ [loop.index0, 12] | min }}">
+        <td class="whitespace-nowrap"><span class="badge-neutral">{{ r.block_text }}</span></td>
+        <td class="whitespace-nowrap {{ 'font-medium text-navy-950' if r.filled }}">{{ r.name }}</td>
+        <td class="num whitespace-nowrap {{ 'money' if r.amount is not none }}">{% if r.amount is not none %}₹{{ "{:,}".format(r.amount) }}{% else %}{{ r.bonus }}{% endif %}</td>
+        <td class="whitespace-nowrap">{{ ui.status_badge(r.status) }}</td>
+        <td class="whitespace-nowrap tabular-nums">{{ r.status_date.strftime("%m/%d/%Y") if r.status_date else "" }}</td>
+        <td class="whitespace-nowrap">{{ r.for_month }}</td>
+        <td class="notes">{{ r.notes }}{% if r.extra %} <span class="badge-missed ml-1">{{ r.extra }}</span>{% endif %}</td>
+        <td>{{ ui.row_actions(url_for('monthly.add_entry', block=r.block_id, name=r.name),
+                              url_for('monthly.history_delete'),
+                              "Clear " ~ r.name ~ "'s entry in the " ~ r.block_text ~ " block? Bonus, Status, Status Date and For The Month of are emptied; the name and notes stay in the block.",
+                              [("name", r.name), ("entry_block", r.block_id), ("block", block_id), ("employee", employee), ("status", status)],
+                              edit_label="Edit" if r.filled else "Fill", delete_icon="eraser", show_delete=r.filled) }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -80,7 +61,7 @@
   {% else %}
   {{ ui.empty_state("search-x", "No rows match the current filters", "Try another block or clear the filters.") }}
   {% endif %}
-</div>
+{% endcall %}
 
 {% endif %}
 {% endblock %}

@@ -1,135 +1,91 @@
 {% extends "base.html" %}
+{% import "_ui.html" as ui with context %}
 {% block title %}Dashboard — Daily Performance Bonus{% endblock %}
 {% block content %}
-<div class="mb-6">
-  <h2 class="text-2xl font-bold text-stone-900">Dashboard</h2>
-  <p class="mt-1 font-mono text-sm text-stone-500">
-    {% if week_start %}today: {{ today.isoformat() }} &middot; week-to-date: {{ week_start.isoformat() }} to {{ today.isoformat() }}{% endif %}
-  </p>
-</div>
+{{ ui.page_header("Dashboard",
+                  ("Today " ~ today.strftime("%d %b %Y") ~ " · week-to-date from " ~ week_start.strftime("%d %b")) if week_start else "",
+                  url_for('daily.add_entry'), "Add entry") }}
 
 {% if error %}
-  <div class="flex items-start gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
-    <i data-lucide="alert-circle" class="h-5 w-5 shrink-0 text-red-600"></i>
-    <span>Could not load data: {{ error }}</span>
-  </div>
+  {{ ui.error_banner(error) }}
 {% else %}
 
-<div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-  <div class="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
-    <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-500">
-      <i data-lucide="users" class="h-4 w-4 text-forest"></i> Total Employees
-    </div>
-    <div class="mt-2 font-mono text-2xl font-bold tabular-nums text-stone-900">{{ kpis.total_employees }}</div>
-  </div>
-  <div class="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
-    <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-500">
-      <i data-lucide="trending-up" class="h-4 w-4 text-forest"></i> Total Weekly Points
-    </div>
-    <div class="mt-2 font-mono text-2xl font-bold tabular-nums text-stone-900">{{ kpis.weekly_points }}</div>
-  </div>
-  <div class="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
-    <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-500">
-      <i data-lucide="indian-rupee" class="h-4 w-4 text-forest"></i> Total Weekly Amount
-    </div>
-    <div class="mt-2 font-mono text-2xl font-bold tabular-nums text-forest">&#8377;{{ kpis.weekly_amount }}</div>
-  </div>
-  <div class="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
-    <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-500">
-      <i data-lucide="alert-circle" class="h-4 w-4 text-amber-500"></i> Employees with Zero Points (This Week)
-    </div>
-    <div class="mt-2 font-mono text-2xl font-bold tabular-nums text-stone-900">{{ kpis.zero_point_employees }}</div>
-  </div>
-  <div class="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
-    <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-500">
-      <i data-lucide="calendar" class="h-4 w-4 text-forest"></i> Previous Week Total Weekly Points
-    </div>
-    <div class="mt-2 font-mono text-2xl font-bold tabular-nums text-stone-900">{{ kpis.previous_week_points }}</div>
-  </div>
+<div class="mb-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
+  {{ ui.kpi("users", "Total employees", kpis.total_employees, i=0) }}
+  {{ ui.kpi("star", "Weekly points", kpis.weekly_points, i=1) }}
+  {{ ui.kpi("indian-rupee", "Weekly amount", "₹" ~ kpis.weekly_amount, gold=True, i=2) }}
+  {{ ui.kpi("alert-circle", "Zero points this week", kpis.zero_point_employees, warn=kpis.zero_point_employees > 0, i=3) }}
+  {{ ui.kpi("calendar-range", "Previous week points", kpis.previous_week_points, i=4) }}
 </div>
 
-<div class="mb-6 overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
-  <div class="flex flex-wrap items-baseline justify-between gap-2 border-t-4 border-forest bg-stone-50 px-5 py-3">
-    <span class="font-mono text-xs font-bold uppercase tracking-wider text-forest-dark">Previous Day Performance</span>
-    <span class="font-mono text-xs text-stone-500">Date: {{ prev_day.isoformat() }}</span>
-  </div>
+{% set leader = (weekly_rows | sort(attribute="week_amount", reverse=True) | first) if weekly_rows else None %}
+{% set leader_name = leader.name if leader and leader.week_amount > 0 else None %}
+
+<div class="card mb-6 overflow-hidden">
+  {{ ui.card_head("Previous day performance", prev_day.strftime("%A, %d %b %Y"), "sunrise") }}
   {% if prev_day_entries %}
-  <div class="overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="border-b border-stone-200">
-          <th class="whitespace-nowrap px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-stone-500">Name</th>
-          {% for cat in category_names %}<th class="whitespace-nowrap px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-stone-500">{{ cat }}</th>{% endfor %}
-          {% for tf in text_names %}<th class="whitespace-nowrap px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-stone-500">{{ tf }}</th>{% endfor %}
-        </tr>
-      </thead>
+  <div class="table-wrap">
+    <table class="ui-table">
+      <thead><tr>
+        <th>Name</th>
+        {% for cat in category_names %}<th class="center">{{ cat }}</th>{% endfor %}
+        {% for tf in text_names %}<th>{{ tf }}</th>{% endfor %}
+      </tr></thead>
       <tbody>
         {% for r in prev_day_entries %}
-        <tr class="border-b border-stone-100 last:border-0 hover:bg-forest-light">
-          <td class="whitespace-nowrap px-4 py-3 text-stone-800">{{ r.Name }}</td>
-          {% for cat in category_names %}<td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums text-stone-700">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
-          {% for tf in text_names %}<td class="px-4 py-3 italic text-stone-500">{{ r.get(tf, "") or "" }}</td>{% endfor %}
+        <tr class="rise" style="--i: {{ [loop.index0, 12] | min }}">
+          <td class="whitespace-nowrap font-medium text-navy-950">{{ r.Name }}</td>
+          {% for cat in category_names %}<td class="center">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
+          {% for tf in text_names %}<td class="notes">{{ r.get(tf, "") or "" }}</td>{% endfor %}
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
   {% else %}
-  <div class="flex flex-col items-center gap-2 px-5 py-14 text-center">
-    <i data-lucide="inbox" class="h-9 w-9 text-stone-300"></i>
-    <p class="text-base font-semibold text-stone-600">No entries for the previous day</p>
-    <p class="font-mono text-sm text-stone-400">Rows added on the Add Entry page for {{ prev_day.isoformat() }} will appear here.</p>
-  </div>
+  {{ ui.empty_state("inbox", "No entries for the previous day", "Rows added on the Add Entry page for " ~ prev_day.strftime("%d %b %Y") ~ " will appear here.") }}
   {% endif %}
 </div>
 
-<div class="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
-  <div class="flex flex-wrap items-baseline justify-between gap-2 border-t-4 border-forest bg-stone-50 px-5 py-3">
-    <span class="font-mono text-xs font-bold uppercase tracking-wider text-forest-dark">Weekly Performance Report</span>
-    <span class="font-mono text-xs text-stone-500">Week starting: {{ week_start.isoformat() }}</span>
-  </div>
+<div class="card overflow-hidden">
+  {{ ui.card_head("Weekly performance report", ("Week starting " ~ week_start.strftime("%d %b %Y")), "trophy") }}
   {% if weekly_rows %}
-  <div class="overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="border-b border-stone-200">
-          <th class="whitespace-nowrap px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-stone-500">Name</th>
-          <th class="whitespace-nowrap px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-stone-500">Previous Day Point</th>
-          <th class="whitespace-nowrap px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-stone-500">Previous Day Amount</th>
-          <th class="whitespace-nowrap px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-stone-500">Weekly Total Point</th>
-          <th class="whitespace-nowrap px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-stone-500">Weekly Total Amount</th>
-        </tr>
-      </thead>
+  <div class="table-wrap">
+    <table class="ui-table">
+      <thead><tr>
+        <th>Name</th>
+        <th class="num">Previous day points</th>
+        <th class="num">Previous day amount</th>
+        <th class="num">Weekly points</th>
+        <th class="num">Weekly amount</th>
+      </tr></thead>
       <tbody>
         {% for r in weekly_rows %}
-        <tr class="border-b border-stone-100 last:border-0 hover:bg-forest-light">
-          <td class="whitespace-nowrap px-4 py-3 text-stone-800">{{ r.name }}</td>
-          <td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums text-stone-700">{{ r.prev_points }}</td>
-          <td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums font-semibold text-forest">&#8377;{{ r.prev_amount }}</td>
-          <td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums text-stone-700">{{ r.week_points }}</td>
-          <td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums font-semibold text-forest">&#8377;{{ r.week_amount }}</td>
+        {% set is_top = r.name == leader_name %}
+        <tr class="rise {{ 'bg-gold-50/70' if is_top }}" style="--i: {{ [loop.index0, 12] | min }}">
+          <td class="whitespace-nowrap font-medium text-navy-950">{{ r.name }} {% if is_top %}{{ ui.top_badge() }}{% endif %}</td>
+          <td class="num">{{ r.prev_points }}</td>
+          <td class="num money">₹{{ r.prev_amount }}</td>
+          <td class="num">{{ r.week_points }}</td>
+          <td class="num money">₹{{ r.week_amount }}</td>
         </tr>
         {% endfor %}
       </tbody>
       {% if weekly_total %}
       <tfoot>
-        <tr class="border-t-2 border-stone-900">
-          <td class="whitespace-nowrap px-4 py-3 font-semibold text-stone-900">TOTAL</td>
-          <td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums font-semibold text-stone-900">{{ weekly_total.prev_points }}</td>
-          <td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums font-semibold text-forest">&#8377;{{ weekly_total.prev_amount }}</td>
-          <td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums font-semibold text-stone-900">{{ weekly_total.week_points }}</td>
-          <td class="whitespace-nowrap px-4 py-3 text-center font-mono tabular-nums font-semibold text-forest">&#8377;{{ weekly_total.week_amount }}</td>
+        <tr class="border-t-2 border-navy-900 bg-navy-50/60">
+          <td class="px-4 py-3 font-bold text-navy-950">Total</td>
+          <td class="num px-4 py-3 font-bold text-navy-950">{{ weekly_total.prev_points }}</td>
+          <td class="num px-4 py-3 font-bold text-gold-700">₹{{ weekly_total.prev_amount }}</td>
+          <td class="num px-4 py-3 font-bold text-navy-950">{{ weekly_total.week_points }}</td>
+          <td class="num px-4 py-3 font-bold text-gold-700">₹{{ weekly_total.week_amount }}</td>
         </tr>
       </tfoot>
       {% endif %}
     </table>
   </div>
   {% else %}
-  <div class="flex flex-col items-center gap-2 px-5 py-14 text-center">
-    <i data-lucide="inbox" class="h-9 w-9 text-stone-300"></i>
-    <p class="text-base font-semibold text-stone-600">No entries yet this week</p>
-    <p class="font-mono text-sm text-stone-400">Week-to-date figures for {{ week_start.isoformat() if week_start else "" }} onward will appear here.</p>
-  </div>
+  {{ ui.empty_state("inbox", "No entries yet this week", "Week-to-date figures from " ~ (week_start.strftime("%d %b") if week_start else "Monday") ~ " onward will appear here.") }}
   {% endif %}
 </div>
 

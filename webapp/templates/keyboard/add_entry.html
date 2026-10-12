@@ -2,77 +2,76 @@
 {% import "_ui.html" as ui with context %}
 {% block title %}{{ "Edit" if editing else "Add" }} Entry — {{ section.title }}{% endblock %}
 {% block content %}
-{{ ui.page_header("Edit Entry" if editing else "Add Entry",
-                  "updates the row in place" if editing else
-                  "goes at the end of that month's group · a new month starts a new group after one blank row · an existing employee + month is updated instead of duplicated") }}
+{{ ui.page_header("Edit entry" if editing else "Add Entry",
+                  "Updates this row in place." if editing else
+                  "Goes at the end of that month's group; a new month starts a new group after one blank row. An existing employee + month is updated instead of duplicated.") }}
 
-<div class="mx-auto max-w-xl overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
-  <div class="border-t-4 border-forest bg-stone-50 px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-forest-dark">
-    {{ section.title }}
+{% call ui.form_card("Edit entry" if editing else "New typing result", "Keyboard Performance Status - M sheet") %}
+<form method="post" action="{{ url_for('keyboard.add_entry') }}" class="space-y-5" id="kbForm" novalidate>
+  <input type="hidden" name="editing" value="{{ form.editing }}">
+  {% if editing %}
+    {# Key fields are locked while editing, so the row is updated where it is. #}
+    <input type="hidden" name="name" value="{{ form.name }}">
+    <input type="hidden" name="year" value="{{ form.year }}">
+    <input type="hidden" name="month" value="{{ form.month }}">
+  {% endif %}
+  <div class="grid gap-5 sm:grid-cols-2">
+    <div>
+      {{ ui.label("month", "Month") }}
+      <select id="month" {% if not editing %}name="month"{% endif %} {% if editing %}disabled{% endif %} class="field-input">
+        {% for m in month_names %}<option value="{{ loop.index }}" {% if loop.index|string == form.month %}selected{% endif %}>{{ m }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      {{ ui.label("year", "Year") }}
+      <input type="number" id="year" {% if not editing %}name="year"{% endif %} {% if editing %}disabled{% endif %}
+             value="{{ form.year }}" min="2020" max="2100" class="field-input num">
+    </div>
   </div>
-  <div class="p-6">
-    <form method="post" action="{{ url_for('keyboard.add_entry') }}" class="space-y-4" id="kbForm" novalidate>
-      <input type="hidden" name="editing" value="{{ form.editing }}">
-      {% if editing %}
-        {# Key fields are locked while editing, so the row is updated where it is. #}
-        <input type="hidden" name="name" value="{{ form.name }}">
-        <input type="hidden" name="year" value="{{ form.year }}">
-        <input type="hidden" name="month" value="{{ form.month }}">
-      {% endif %}
-      <div class="grid gap-4 sm:grid-cols-2">
-        <div>
-          {{ ui.label("month", "Month") }}
-          <select id="month" {% if not editing %}name="month"{% endif %} {% if editing %}disabled{% endif %} class="{{ ui.input_cls }}">
-            {% for m in month_names %}<option value="{{ loop.index }}" {% if loop.index|string == form.month %}selected{% endif %}>{{ m }}</option>{% endfor %}
-          </select>
-        </div>
-        <div>
-          {{ ui.label("year", "Year") }}
-          <input type="number" id="year" {% if not editing %}name="year"{% endif %} {% if editing %}disabled{% endif %}
-                 value="{{ form.year }}" min="2020" max="2100" class="{{ ui.input_cls }} font-mono">
-        </div>
-      </div>
-      <div>
-        {{ ui.label("name", "Employee Name") }}
-        <input type="text" id="name" {% if not editing %}name="name"{% endif %} {% if editing %}disabled{% endif %}
-               value="{{ form.name }}" list="employeeList" required autocomplete="off"
-               placeholder="Search or type employee" class="{{ ui.input_cls }}">
-        <datalist id="employeeList">{% for e in employees %}<option value="{{ e }}">{% endfor %}</datalist>
-        <span class="field-error" id="nameError">Select an employee.</span>
-      </div>
-
-      <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-700 hover:border-forest">
-        <input type="checkbox" name="absent" value="1" id="absent" {% if form.absent %}checked{% endif %} class="h-4 w-4 accent-[#2F5233]">
-        Absent / test not taken <span class="ml-auto font-mono text-xs text-stone-400">writes 0% for both</span>
-      </label>
-
-      <div class="grid gap-4 sm:grid-cols-2" id="scoreFields">
-        <div>
-          {{ ui.label("accuracy", "Accuracy Score") }}
-          <div class="flex">
-            <input type="number" id="accuracy" name="accuracy" value="{{ form.accuracy }}" step="0.01" min="0" max="100"
-                   placeholder="e.g. 98.5" class="w-full rounded-l-lg border border-stone-300 px-3 py-2.5 text-right font-mono text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
-            <span class="inline-flex items-center rounded-r-lg border border-l-0 border-stone-300 bg-stone-50 px-3 font-mono text-sm text-stone-500">%</span>
-          </div>
-          <span class="field-error" id="accuracyError">Enter 0–100.</span>
-        </div>
-        <div>
-          {{ ui.label("speed", "Speed", optional=True) }}
-          <div class="flex">
-            <input type="number" id="speed" name="speed" value="{{ form.speed }}" step="0.1" min="0"
-                   placeholder="e.g. 24.5" class="w-full rounded-l-lg border border-stone-300 px-3 py-2.5 text-right font-mono text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
-            <span class="inline-flex items-center rounded-r-lg border border-l-0 border-stone-300 bg-stone-50 px-3 font-mono text-sm text-stone-500">WPM</span>
-          </div>
-        </div>
-      </div>
-      <div>
-        {{ ui.label("comments", "Comments", optional=True) }}
-        <input type="text" id="comments" name="comments" value="{{ form.comments }}" class="{{ ui.input_cls }}">
-      </div>
-      {{ ui.form_actions(url_for('keyboard.history') if editing else None) }}
-    </form>
+  <div>
+    {{ ui.label("name", "Employee name") }}
+    <div class="relative">
+      <i data-lucide="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-300"></i>
+      <input type="text" id="name" {% if not editing %}name="name"{% endif %} {% if editing %}disabled{% endif %}
+             value="{{ form.name }}" list="employeeList" required autocomplete="off"
+             placeholder="Search or type employee" class="field-input pl-10">
+    </div>
+    <datalist id="employeeList">{% for e in employees %}<option value="{{ e }}">{% endfor %}</datalist>
+    <span class="field-error" id="nameError">Select an employee.</span>
   </div>
-</div>
+
+  <label class="flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border border-navy-200 bg-navy-50/50 px-4 py-3 text-sm text-navy-800 transition-colors hover:border-gold-400">
+    <input type="checkbox" name="absent" value="1" id="absent" {% if form.absent %}checked{% endif %} class="h-5 w-5 rounded accent-[#C9962B]">
+    <span class="font-medium">Absent / test not taken</span>
+    <span class="ml-auto text-xs text-navy-400">writes 0% for both</span>
+  </label>
+
+  <div class="grid gap-5 transition-opacity sm:grid-cols-2" id="scoreFields">
+    <div>
+      {{ ui.label("accuracy", "Accuracy score") }}
+      <div class="flex">
+        <input type="number" id="accuracy" name="accuracy" value="{{ form.accuracy }}" step="0.01" min="0" max="100"
+               placeholder="e.g. 98.5" class="field-input num rounded-r-none text-right">
+        <span class="field-addon rounded-r-xl border-l-0">%</span>
+      </div>
+      <span class="field-error" id="accuracyError">Enter 0–100.</span>
+    </div>
+    <div>
+      {{ ui.label("speed", "Speed", optional=True) }}
+      <div class="flex">
+        <input type="number" id="speed" name="speed" value="{{ form.speed }}" step="0.1" min="0"
+               placeholder="e.g. 24.5" class="field-input num rounded-r-none text-right">
+        <span class="field-addon rounded-r-xl border-l-0">WPM</span>
+      </div>
+    </div>
+  </div>
+  <div>
+    {{ ui.label("comments", "Comments", optional=True) }}
+    <input type="text" id="comments" name="comments" value="{{ form.comments }}" class="field-input">
+  </div>
+  {{ ui.form_actions(url_for('keyboard.history') if editing else None) }}
+</form>
+{% endcall %}
 
 <script>
   (function () {

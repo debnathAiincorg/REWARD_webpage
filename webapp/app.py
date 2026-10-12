@@ -19,7 +19,7 @@ for module in (daily, whatsapp, monthly, keyboard):
 
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
-ASSET_PATHS = [STATIC_DIR / "app.css", STATIC_DIR / "style.css", STATIC_DIR / "js" / "app.js"]
+ASSET_PATHS = [STATIC_DIR / "app.css", STATIC_DIR / "js" / "app.js"]
 
 
 @app.context_processor

@@ -2,63 +2,65 @@
 {% import "_ui.html" as ui with context %}
 {% block title %}Dashboard — {{ section.title }}{% endblock %}
 {% block content %}
-{{ ui.page_header("Dashboard", "contacts in the Employee Whatsapp sheet") }}
+{{ ui.page_header("Dashboard", "Every contact in the Employee Whatsapp sheet, one tap from a chat.",
+                  url_for('whatsapp.add_entry'), "Add contact", "user-plus") }}
 
 {% if error %}
   {{ ui.error_banner(error) }}
 {% else %}
 
-<div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-  {{ ui.kpi("users", "Total Contacts", summary.total) }}
-  {{ ui.kpi("phone-off", "Missing / Invalid Number", summary.problem, warn=summary.problem > 0) }}
-  {{ ui.kpi("user-x", "Roster Employees Without a Contact", summary.roster_missing | length, warn=summary.roster_missing) }}
+<div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+  {{ ui.kpi("users", "Total contacts", summary.total, gold=True, i=0) }}
+  {{ ui.kpi("phone-off", "Missing / invalid number", summary.problem, warn=summary.problem > 0, i=1) }}
+  {{ ui.kpi("user-x", "Roster employees without a contact", summary.roster_missing | length, warn=summary.roster_missing, i=2) }}
 </div>
 
 {% if summary.roster_missing %}
-<div class="mb-6 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-  <i data-lucide="info" class="h-5 w-5 shrink-0 text-amber-500"></i>
-  <span>No WhatsApp contact for: {{ summary.roster_missing | join(", ") }}.
-    <a class="font-semibold underline" href="{{ url_for('whatsapp.add_entry') }}">Add one</a></span>
+<div class="card mb-6 flex items-start gap-3 border-amber-200 bg-amber-50/70 p-4 text-sm text-amber-900">
+  <i data-lucide="info" class="mt-0.5 h-5 w-5 shrink-0 text-amber-600"></i>
+  <span>No WhatsApp contact yet for <strong>{{ summary.roster_missing | join(", ") }}</strong>.
+    <a class="font-semibold text-amber-800 underline underline-offset-2" href="{{ url_for('whatsapp.add_entry') }}">Add one</a></span>
 </div>
 {% endif %}
 
-<div class="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
-  {{ ui.panel_head("Contact List", (contacts | length) ~ " contacts") }}
+<div class="card overflow-hidden">
+  {{ ui.card_head("Contact list", (contacts | length) ~ " contacts", "contact") }}
   {% if contacts %}
-  <div class="border-b border-stone-200 p-4">
+  <div class="border-b border-navy-50 p-4">
     <div class="relative">
-      <i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400"></i>
-      <input type="search" id="contactSearch" placeholder="Search name or number" autocomplete="off"
-             class="w-full rounded-lg border border-stone-300 py-2.5 pl-9 pr-3 text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
+      <i data-lucide="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-300"></i>
+      <input type="search" id="contactSearch" placeholder="Search name or number" autocomplete="off" class="field-input pl-10">
     </div>
   </div>
-  <ul class="divide-y divide-stone-100" id="contactList">
+  <ul class="divide-y divide-navy-50" id="contactList">
     {% for c in contacts %}
-    <li class="contact flex flex-wrap items-center justify-between gap-3 px-5 py-3 hover:bg-forest-light"
-        data-search="{{ (c.full_name ~ ' ' ~ c.mobile_raw) | lower }}">
-      <div class="min-w-0">
-        <p class="font-medium text-stone-900">{{ c.full_name }}</p>
-        <p class="font-mono text-sm {{ 'text-stone-500' if c.status == 'ok' else 'text-red-600' }}">
-          {% if c.status == "ok" %}+91 {{ c.mobile[:5] }} {{ c.mobile[5:] }}
-          {% elif c.status == "missing" %}No number
-          {% else %}Invalid: {{ c.mobile_raw }}{% endif %}
-        </p>
+    <li class="contact flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-gold-50/50 rise"
+        style="--i: {{ [loop.index0, 12] | min }}" data-search="{{ (c.full_name ~ ' ' ~ c.mobile_raw) | lower }}">
+      <div class="flex min-w-0 items-center gap-3">
+        <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy-900 text-sm font-semibold text-gold-300">
+          {{ (c.first_name[:1] ~ c.last_name[:1]) | upper }}</span>
+        <div class="min-w-0">
+          <p class="truncate font-semibold text-navy-950">{{ c.full_name }}</p>
+          <p class="num text-sm {{ 'text-navy-400' if c.status == 'ok' else 'font-medium text-red-700' }}">
+            {% if c.status == "ok" %}+91 {{ c.mobile[:5] }} {{ c.mobile[5:] }}
+            {% elif c.status == "missing" %}No number
+            {% else %}Invalid: {{ c.mobile_raw }}{% endif %}
+          </p>
+        </div>
       </div>
       {% if c.wa_link %}
-      <a href="{{ c.wa_link }}" target="_blank" rel="noopener"
-         class="inline-flex items-center gap-1.5 rounded-lg bg-forest px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-forest-dark">
+      <a href="{{ c.wa_link }}" target="_blank" rel="noopener" class="btn btn-sm bg-emerald-600 text-white hover:bg-emerald-700">
         <i data-lucide="message-circle" class="h-4 w-4"></i> WhatsApp
       </a>
       {% else %}
-      <a href="{{ url_for('whatsapp.add_entry', first=c.first_name, last=c.last_name) }}"
-         class="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 px-3.5 py-2 text-sm font-medium text-stone-600 hover:border-forest hover:text-forest">
+      <a href="{{ url_for('whatsapp.add_entry', first=c.first_name, last=c.last_name) }}" class="btn-ghost btn-sm">
         <i data-lucide="pencil" class="h-4 w-4"></i> Fix number
       </a>
       {% endif %}
     </li>
     {% endfor %}
   </ul>
-  <p id="contactEmpty" class="px-5 py-8 text-center font-mono text-sm text-stone-400" hidden>No contact matches.</p>
+  <p id="contactEmpty" class="px-5 py-10 text-center text-sm text-navy-400" hidden>No contact matches your search.</p>
   <script>
     (function () {
       var input = document.getElementById('contactSearch');

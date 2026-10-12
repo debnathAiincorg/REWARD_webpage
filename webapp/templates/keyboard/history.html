@@ -2,65 +2,48 @@
 {% import "_ui.html" as ui with context %}
 {% block title %}History — {{ section.title }}{% endblock %}
 {% block content %}
-{{ ui.page_header("History", "every row in the sheet, newest month first, filterable by employee and/or month") }}
+{{ ui.page_header("History", "Every row in the sheet, newest month first, filterable by employee and/or month.", url_for('keyboard.add_entry'), "Add entry") }}
 
 {% if error %}
   {{ ui.error_banner(error) }}
 {% else %}
 
-<form class="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-stone-200 bg-white p-5 shadow-sm" method="get" action="{{ url_for('keyboard.history') }}">
-  <div class="min-w-[160px] flex-1">
+{% call ui.filters(url_for('keyboard.history'), url_for('keyboard.history')) %}
+  <div class="min-w-[180px] md:flex-1">
     {{ ui.label("employee", "Employee") }}
-    <select id="employee" name="employee" class="{{ ui.input_cls }}">
+    <select id="employee" name="employee" class="field-input">
       <option value="">All employees</option>
       {% for e in employees %}<option value="{{ e }}" {% if e == employee %}selected{% endif %}>{{ e }}</option>{% endfor %}
     </select>
   </div>
-  <div class="min-w-[160px] flex-1">
+  <div class="min-w-[180px] md:flex-1">
     {{ ui.label("period", "Month") }}
-    <select id="period" name="period" class="{{ ui.input_cls }}">
+    <select id="period" name="period" class="field-input">
       <option value="">All months</option>
       {% for p in periods %}<option value="{{ p.key }}" {% if p.key == period %}selected{% endif %}>{{ p.label }}</option>{% endfor %}
     </select>
   </div>
-  {{ ui.filter_buttons(url_for('keyboard.history')) }}
-</form>
+{% endcall %}
 
-<div class="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
-  <div class="flex items-center gap-2 border-t-4 border-forest bg-stone-50 px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-forest-dark">
-    <i data-lucide="table" class="h-3.5 w-3.5"></i> Register
-  </div>
+{% call ui.table_card("Register", (rows | length) ~ " rows") %}
   {% if rows %}
-  <div class="table-scroll register-scroll">
-  <table class="data-table register sheet-register">
-    <thead>
-      <tr><th>Month</th><th>Name</th><th class="num">Index</th><th class="num">Accuracy</th><th class="num">Speed</th><th class="notes">Comments</th><th>Actions</th></tr>
-    </thead>
+  <div class="table-wrap">
+  <table class="ui-table">
+    <thead><tr><th>Month</th><th>Name</th><th class="num">Index</th><th class="num">Accuracy</th><th class="num">Speed</th><th>Comments</th><th class="num">Actions</th></tr></thead>
     <tbody>
       {% for r in rows %}
       {% set key = period_key(r.year, r.month_num) if r.year and r.month_num else "" %}
-      <tr>
-        <td>{{ period_label(r.year, r.month_num) if key else r.month_label }}</td>
-        <td>{{ r.name }}</td>
-        <td class="num">{{ r.index if r.index is not none else "" }}</td>
-        <td class="num {{ 'text-red-600 font-semibold' if r.absent else '' }}">{{ ("%g" % (r.accuracy * 100)) ~ "%" if r.accuracy is not none else "" }}</td>
-        <td class="num">{{ r.speed_raw if r.speed_raw is string else ("0%" if r.speed_raw == 0 else r.speed_raw) }}</td>
+      <tr class="rise" style="--i: {{ [loop.index0, 12] | min }}">
+        <td class="whitespace-nowrap">{{ period_label(r.year, r.month_num) if key else r.month_label }}</td>
+        <td class="whitespace-nowrap font-medium text-navy-950">{{ r.name }}</td>
+        <td class="num text-navy-400">{{ r.index if r.index is not none else "" }}</td>
+        <td class="num {{ 'font-semibold text-red-700' if r.absent else '' }}">{{ ("%g" % (r.accuracy * 100)) ~ "%" if r.accuracy is not none else "" }}</td>
+        <td class="num whitespace-nowrap">{{ r.speed_raw if r.speed_raw is string else ("0%" if r.speed_raw == 0 else r.speed_raw) }}</td>
         <td class="notes">{{ r.comments }}</td>
-        <td class="row-actions">
-          <div class="row-actions-inner">
-            <a class="action-edit" href="{{ url_for('keyboard.add_entry', name=r.name, period=key) }}">
-              <i data-lucide="pencil" class="h-3 w-3"></i> Edit
-            </a>
-            <form method="post" action="{{ url_for('keyboard.history_delete') }}" class="delete-form"
-                  data-confirm="Are you sure you want to delete the entry for {{ r.name }} in {{ period_label(r.year, r.month_num) if key else '' }}? This cannot be undone.">
-              <input type="hidden" name="name" value="{{ r.name }}">
-              <input type="hidden" name="entry_period" value="{{ key }}">
-              <input type="hidden" name="employee" value="{{ employee }}">
-              <input type="hidden" name="period" value="{{ period }}">
-              <button type="submit" class="action-delete"><i data-lucide="trash-2" class="h-3 w-3"></i> Delete</button>
-            </form>
-          </div>
-        </td>
+        <td>{{ ui.row_actions(url_for('keyboard.add_entry', name=r.name, period=key),
+                              url_for('keyboard.history_delete'),
+                              "Are you sure you want to delete the entry for " ~ r.name ~ " in " ~ (period_label(r.year, r.month_num) if key else "") ~ "? This cannot be undone.",
+                              [("name", r.name), ("entry_period", key), ("employee", employee), ("period", period)]) }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -69,7 +52,7 @@
   {% else %}
   {{ ui.empty_state("search-x", "No rows match the current filters", "Try another month or clear the employee filter.") }}
   {% endif %}
-</div>
+{% endcall %}
 
 {% endif %}
 {% endblock %}

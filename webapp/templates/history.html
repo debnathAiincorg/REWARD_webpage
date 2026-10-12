@@ -1,80 +1,61 @@
 {% extends "base.html" %}
+{% import "_ui.html" as ui with context %}
 {% block title %}History — Daily Performance Bonus{% endblock %}
 {% block content %}
-<div class="mb-6">
-  <h2 class="text-2xl font-bold text-stone-900">History</h2>
-  <p class="mt-1 font-mono text-sm text-stone-500">every row in Table1, filterable by employee and/or date range</p>
-</div>
+{{ ui.page_header("History", "Every row in Table1, newest first, filterable by employee and/or date range.", url_for('daily.add_entry'), "Add entry") }}
 
 {% if error %}
-  <div class="flex items-start gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
-    <i data-lucide="alert-circle" class="h-5 w-5 shrink-0 text-red-600"></i>
-    <span>Could not load data: {{ error }}</span>
-  </div>
+  {{ ui.error_banner(error) }}
 {% else %}
 
-<form class="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-stone-200 bg-white p-5 shadow-sm" method="get" action="{{ url_for('daily.history') }}">
-  <div class="min-w-[160px] flex-1">
-    <label for="employee" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">Employee</label>
-    <select id="employee" name="employee"
-            class="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
+{% call ui.filters(url_for('daily.history'), url_for('daily.history')) %}
+  <div class="min-w-[180px] md:flex-1">
+    {{ ui.label("employee", "Employee") }}
+    <select id="employee" name="employee" class="field-input">
       <option value="">All employees</option>
       {% for emp in employees %}
       <option value="{{ emp }}" {% if emp == selected_employee %}selected{% endif %}>{{ emp }}</option>
       {% endfor %}
     </select>
   </div>
-  <div class="min-w-[160px] flex-1">
-    <label for="from" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">From</label>
-    <input type="date" id="from" name="from" value="{{ selected_from }}"
-           class="w-full rounded-lg border border-stone-300 px-3 py-2.5 font-mono text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
+  <div class="grid grid-cols-2 gap-4 md:contents">
+    <div class="md:min-w-[160px] md:flex-1">
+      {{ ui.label("from", "From") }}
+      <input type="date" id="from" name="from" value="{{ selected_from }}" class="field-input num">
+    </div>
+    <div class="md:min-w-[160px] md:flex-1">
+      {{ ui.label("to", "To") }}
+      <input type="date" id="to" name="to" value="{{ selected_to }}" class="field-input num">
+    </div>
   </div>
-  <div class="min-w-[160px] flex-1">
-    <label for="to" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-stone-500">To</label>
-    <input type="date" id="to" name="to" value="{{ selected_to }}"
-           class="w-full rounded-lg border border-stone-300 px-3 py-2.5 font-mono text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
-  </div>
-  <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-forest px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-forest-dark">
-    <i data-lucide="list-filter" class="h-4 w-4"></i> Filter
-  </button>
-  <a class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border border-stone-300 bg-white px-5 py-2.5 text-sm font-medium text-stone-600 transition-colors hover:border-stone-400 hover:text-stone-900" href="{{ url_for('daily.history') }}">
-    Clear
-  </a>
-</form>
+{% endcall %}
 
-<div class="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
-  <div class="flex items-center gap-2 border-t-4 border-forest bg-stone-50 px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-forest-dark">
-    <i data-lucide="table" class="h-3.5 w-3.5"></i> Register
-  </div>
+{% call ui.table_card("Register", (rows | length) ~ " rows") %}
   {% if rows %}
-  <div class="table-scroll register-scroll">
-  <table class="data-table register" id="registerTable">
-    {# No <colgroup>: column widths are content-driven in CSS now, so there is
-       nothing left for per-column <col> rules to carry. #}
+  <div class="table-wrap">
+  <table class="ui-table" id="registerTable">
     <thead>
       <tr>
         <th>Date</th>
         <th>Name</th>
-        {% for cat in categories %}<th class="num">{{ cat }}</th>{% endfor %}
-        {% for tf in text_names %}<th class="notes">{{ tf }}</th>{% endfor %}
-        <th>Actions</th>
+        {% for cat in categories %}<th class="center">{{ cat }}</th>{% endfor %}
+        {% for tf in text_names %}<th>{{ tf }}</th>{% endfor %}
+        <th class="num">Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for r in rows %}
-      <tr>
-        <td>{{ r.Date.isoformat() if r.Date else "" }}</td>
-        <td>{{ r.Name }}</td>
-        {% for cat in categories %}<td class="num">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
+      <tr {% if loop.index0 < 20 %}class="rise" style="--i: {{ [loop.index0, 12] | min }}"{% endif %}>
+        <td class="whitespace-nowrap tabular-nums">{{ r.Date.isoformat() if r.Date else "" }}</td>
+        <td class="whitespace-nowrap font-medium text-navy-950">{{ r.Name }}</td>
+        {% for cat in categories %}<td class="center">{{ r.get(cat, 0) or 0 }}</td>{% endfor %}
         {% for tf in text_names %}<td class="notes">{{ r.get(tf, "") or "" }}</td>{% endfor %}
-        <td class="row-actions">
-          {# The flex row lives on this inner wrapper, never on the <td> itself —
-             a flex <td> drops out of the table's column grid. #}
-          <div class="row-actions-inner">
-            <a class="action-edit" href="{{ url_for('daily.add_entry', date=r.Date.isoformat() if r.Date else '', name=r.Name) }}">
-              <i data-lucide="pencil" class="h-3 w-3"></i> Edit
+        <td>
+          <div class="flex items-center justify-end gap-1.5">
+            <a class="btn-edit" href="{{ url_for('daily.add_entry', date=r.Date.isoformat() if r.Date else '', name=r.Name) }}">
+              <i data-lucide="pencil" class="h-3.5 w-3.5"></i> Edit
             </a>
-            <form method="post" action="{{ url_for('daily.history_delete') }}" class="delete-form"
+            <form method="post" action="{{ url_for('daily.history_delete') }}" class="delete-form m-0"
                   data-confirm-name="{{ r.Name }}" data-confirm-date="{{ r.Date.isoformat() if r.Date else '' }}">
               <input type="hidden" name="row_index" value="{{ r._row_index }}">
               <input type="hidden" name="name" value="{{ r.Name }}">
@@ -82,8 +63,8 @@
               <input type="hidden" name="employee" value="{{ selected_employee }}">
               <input type="hidden" name="from" value="{{ selected_from }}">
               <input type="hidden" name="to" value="{{ selected_to }}">
-              <button type="submit" class="action-delete">
-                <i data-lucide="trash-2" class="h-3 w-3"></i> Delete
+              <button type="submit" class="btn-delete">
+                <i data-lucide="trash-2" class="h-3.5 w-3.5"></i> Delete
               </button>
             </form>
           </div>
@@ -106,13 +87,9 @@
     });
   </script>
   {% else %}
-  <div class="flex flex-col items-center gap-2 px-5 py-16 text-center">
-    <i data-lucide="search-x" class="h-9 w-9 text-stone-300"></i>
-    <p class="text-base font-semibold text-stone-600">No rows match the current filters</p>
-    <p class="font-mono text-sm text-stone-400">Try widening the date range or clearing the employee filter.</p>
-  </div>
+  {{ ui.empty_state("search-x", "No rows match the current filters", "Try widening the date range or clearing the employee filter.") }}
   {% endif %}
-</div>
+{% endcall %}
 
 {% endif %}
 {% endblock %}

@@ -36,8 +36,6 @@ module.exports = {
           800: "#5C4210",
           900: "#3E2C0B",
         },
-        // Old theme, kept only until every page has moved to navy/gold.
-        forest: { DEFAULT: "#2F5233", dark: "#223d26", light: "#e4eae1" },
         ink: "#1B2333",
         page: "#F4F6FA",
       },

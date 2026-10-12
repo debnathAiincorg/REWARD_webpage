@@ -57,6 +57,14 @@
   .field-error.show { @apply block; }
   input.invalid, select.invalid { @apply border-red-500 ring-4 ring-red-100; }
 
+  /* States the Daily Add Entry script toggles (0/1 toggles, employee picker,
+     error summary). */
+  .segmented button.selected { @apply bg-navy-900 text-gold-200; }
+  .combo-option.selected { @apply bg-gold-50; }
+  .combo-option.selected .combo-pick { @apply font-semibold text-navy-950; }
+  .error-list { @apply mb-5 hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-relaxed text-red-800; }
+  .error-list.show { @apply block; }
+
   /* Badges */
   .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset; }
   .badge-approved { @apply badge bg-emerald-50 text-emerald-800 ring-emerald-200; }
@@ -66,10 +74,10 @@
   .badge-gold { @apply badge bg-gold-50 text-gold-700 ring-gold-200; }
 
   /* KPI tiles */
-  .kpi { @apply card relative overflow-hidden p-5; }
-  .kpi-label { @apply flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-navy-500; }
+  .kpi { @apply card relative overflow-hidden p-4 sm:p-5; }
+  .kpi-label { @apply flex items-center gap-2 text-[0.68rem] font-semibold uppercase leading-tight tracking-wide text-navy-500 sm:text-xs; }
   .kpi-icon { @apply inline-flex h-8 w-8 items-center justify-center rounded-lg bg-navy-50 text-navy-700; }
-  .kpi-value { @apply mt-3 text-2xl font-bold tracking-tight text-navy-950 sm:text-[1.75rem]; }
+  .kpi-value { @apply mt-3 text-xl font-bold tracking-tight text-navy-950 sm:text-[1.75rem]; }
   .kpi-gold .kpi-icon { @apply bg-gold-100 text-gold-700; }
   .kpi-gold .kpi-value { @apply text-gold-700; }
   .kpi-gold::after {
@@ -77,12 +85,12 @@
   }
 
   /* Data tables */
-  .ui-table { @apply w-full text-sm; }
+  .ui-table { @apply w-full text-sm text-ink; }
   .ui-table thead th {
     @apply sticky top-0 z-[1] whitespace-nowrap border-b border-navy-100 bg-navy-50/95 px-4 py-3 text-left
            text-[0.7rem] font-semibold uppercase tracking-wider text-navy-500 backdrop-blur;
   }
-  .ui-table tbody td { @apply border-b border-navy-50 px-4 py-3 align-middle text-ink; }
+  .ui-table tbody td { @apply border-b border-navy-50 px-4 py-3 align-middle; }
   .ui-table tbody tr { @apply transition-colors duration-150 hover:bg-gold-50/60; }
   .ui-table tbody tr:last-child td { @apply border-b-0; }
   .ui-table .num { @apply text-right; }

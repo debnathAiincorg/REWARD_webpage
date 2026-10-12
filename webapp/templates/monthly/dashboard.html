@@ -2,57 +2,55 @@
 {% import "_ui.html" as ui with context %}
 {% block title %}Dashboard — {{ section.title }}{% endblock %}
 {% block content %}
-{{ ui.page_header("Dashboard", "one month block at a time, as it appears in the sheet") }}
+{{ ui.page_header("Dashboard", "One month block at a time, as it appears in the sheet.", url_for('monthly.add_entry'), "Add entry") }}
 
 {% if error %}
   {{ ui.error_banner(error) }}
 {% elif not block %}
-  <div class="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
-    {{ ui.empty_state("inbox", "No month blocks in the sheet yet", "Create the first one from the Add Entry page.") }}
-  </div>
+  <div class="card">{{ ui.empty_state("inbox", "No month blocks in the sheet yet", "Create the first one from the Add Entry page.") }}</div>
 {% else %}
 
 <form method="get" action="{{ url_for('monthly.dashboard') }}" class="mb-6 flex flex-wrap items-end gap-3">
-  <div class="min-w-[220px]">
+  <div class="w-full sm:w-72">
     {{ ui.label("block", "Month block") }}
-    <select id="block" name="block" onchange="this.form.submit()" class="{{ ui.input_cls }}">
+    <select id="block" name="block" onchange="this.form.submit()" class="field-input">
       {% for b in blocks %}<option value="{{ b.id }}" {% if b.id == block.id %}selected{% endif %}>{{ b.label }}</option>{% endfor %}
     </select>
   </div>
-  <noscript><button type="submit" class="rounded-lg bg-forest px-5 py-2.5 text-sm font-semibold text-white">Show</button></noscript>
+  <noscript><button type="submit" class="btn-primary">Show</button></noscript>
 </form>
 
-<div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-  {{ ui.kpi("indian-rupee", "Total Bonus Amount", "₹" ~ "{:,}".format(summary.total_amount), accent=True) }}
-  {{ ui.kpi("check-circle", "Approved", summary.approved ~ " · ₹" ~ "{:,}".format(summary.approved_amount)) }}
-  {{ ui.kpi("x-circle", "Missed", summary.missed) }}
-  {{ ui.kpi("clock", "Pending / Empty", summary.pending, warn=summary.pending > 0) }}
+<div class="mb-3 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+  {{ ui.kpi("indian-rupee", "Total bonus amount", "₹" ~ "{:,}".format(summary.total_amount), gold=True, i=0) }}
+  {{ ui.kpi("badge-check", "Approved", summary.approved, hint="₹" ~ "{:,}".format(summary.approved_amount) ~ " approved", i=1) }}
+  {{ ui.kpi("x-circle", "Missed", summary.missed, i=2) }}
+  {{ ui.kpi("clock", "Pending / empty", summary.pending, warn=summary.pending > 0, i=3) }}
 </div>
 {% if summary.non_numeric %}
-<p class="-mt-3 mb-6 font-mono text-xs text-stone-400">
+<p class="mb-6 text-xs text-navy-400">
   Not counted in the totals (not a plain number):
   {% for r in summary.non_numeric %}{{ r.name }} “{{ r.bonus }}”{{ ", " if not loop.last }}{% endfor %}
 </p>
-{% endif %}
+{% else %}<div class="mb-6"></div>{% endif %}
 
-<div class="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
-  {{ ui.panel_head("Block " ~ block.text, summary.employees ~ " employees · " ~ block.date.strftime("%d %b %Y")) }}
+<div class="card overflow-hidden">
+  {{ ui.card_head("Block " ~ block.text, summary.employees ~ " employees · " ~ block.date.strftime("%d %b %Y"), "wallet") }}
   {% if summary.rows %}
-  <div class="overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead><tr class="border-b border-stone-200">
-        {{ ui.th("Name") }}{{ ui.th("Bonus", "text-right") }}{{ ui.th("Status") }}{{ ui.th("Status Date") }}{{ ui.th("For The Month of") }}{{ ui.th("Notes") }}
-      </tr></thead>
+  <div class="table-wrap">
+    <table class="ui-table">
+      <thead><tr><th>Name</th><th class="num">Bonus</th><th>Status</th><th>Status date</th><th>For the month of</th><th>Notes</th></tr></thead>
       <tbody>
         {% for r in summary.rows %}
-        <tr class="border-b border-stone-100 last:border-0 hover:bg-forest-light {{ '' if r.filled else 'text-stone-400' }}">
-          <td class="whitespace-nowrap px-4 py-3 {{ 'text-stone-800' if r.filled else '' }}">{{ r.name }}</td>
-          <td class="whitespace-nowrap px-4 py-3 text-right font-mono tabular-nums {{ 'font-semibold text-forest' if r.amount is not none else 'text-stone-600' }}">
+        <tr class="rise {{ '' if r.filled else 'text-navy-300' }}" style="--i: {{ [loop.index0, 12] | min }}">
+          <td class="whitespace-nowrap {{ 'font-medium text-navy-950' if r.filled }}">
+            {{ r.name }}
+          </td>
+          <td class="num whitespace-nowrap {{ 'money' if r.amount is not none }}">
             {% if r.amount is not none %}₹{{ "{:,}".format(r.amount) }}{% else %}{{ r.bonus or "—" }}{% endif %}</td>
-          <td class="whitespace-nowrap px-4 py-3">{{ ui.status_badge(r.status) }}</td>
-          <td class="whitespace-nowrap px-4 py-3 font-mono text-stone-600">{{ r.status_date.strftime("%m/%d/%Y") if r.status_date else "" }}</td>
-          <td class="whitespace-nowrap px-4 py-3 text-stone-600">{{ r.for_month }}</td>
-          <td class="px-4 py-3 italic text-stone-500">{{ r.notes }}{% if r.extra %} <span class="not-italic font-semibold text-red-600">· {{ r.extra }}</span>{% endif %}</td>
+          <td class="whitespace-nowrap">{{ ui.status_badge(r.status) }}</td>
+          <td class="whitespace-nowrap tabular-nums">{{ r.status_date.strftime("%m/%d/%Y") if r.status_date else "" }}</td>
+          <td class="whitespace-nowrap">{{ r.for_month }}</td>
+          <td class="notes">{{ r.notes }}{% if r.extra %} <span class="badge-missed ml-1">{{ r.extra }}</span>{% endif %}</td>
         </tr>
         {% endfor %}
       </tbody>

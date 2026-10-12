@@ -5,20 +5,24 @@
   "use strict";
 
   var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Flash messages that mean "an entry was saved" — they get the celebration.
+  var CELEBRATE = /^(Saved|Updated|Filled|Created|Added a new row)/;
 
   function ready(fn) {
     if (document.readyState !== "loading") fn();
     else document.addEventListener("DOMContentLoaded", fn);
   }
 
+  // ready() can run synchronously (this script is deferred), so everything it
+  // uses must already be defined above. Each step is isolated: a failure in a
+  // cosmetic one (icons, confetti) must never stop the delete confirmations.
   ready(function () {
-    if (window.lucide) window.lucide.createIcons();
-    initMenus();
-    initToasts();
-    initConfirms();
-    initLoading();
-    initCountUp();
-    initTilt();
+    [
+      function () { if (window.lucide) window.lucide.createIcons(); },
+      initConfirms, initMenus, initToasts, initLoading, initCountUp, initTilt,
+    ].forEach(function (step) {
+      try { step(); } catch (err) { if (window.console) console.error(err); }
+    });
   });
 
   // --- Header: section switcher (desktop) and hamburger panel (mobile) -------
@@ -49,7 +53,6 @@
   }
 
   // --- Toasts: slide in, auto-dismiss, celebrate a successful save ---------
-  var CELEBRATE = /^(Saved|Updated|Filled|Created|Added a new row)/;
 
   function initToasts() {
     var celebrated = false;
