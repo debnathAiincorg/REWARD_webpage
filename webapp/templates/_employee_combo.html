@@ -1,0 +1,64 @@
+{# The employee name dropdown shared by every section's Add Entry page: search
+   box, scrollable list, × to remove a name, and "+ Add new employee". It reads
+   and writes the one shared roster (employees.json) through /employees/add and
+   /employees/delete — never an Excel sheet. Behaviour: static/js/employee-combo.js.
+
+   Usage, inside the entry form:
+     {{ combo.employee_combo(employees, selected) }}
+   and once, OUTSIDE the entry form (a form cannot be nested in another):
+     {{ combo.roster_forms(section.slug) }}
+
+   field_name is the posted field (Daily, Keyboard, Monthly post "name").
+   Pass None to post nothing (Employee Whatsapp posts First / Last name instead). #}
+
+{% macro employee_combo(employees, selected="", field_name="name", label="Name", error_text="Select an employee to continue.") %}
+<label for="nameSearch" class="field-label">{{ label }}</label>
+<div class="combo relative" id="nameCombo">
+  <input type="hidden" id="name" {% if field_name %}name="{{ field_name }}"{% endif %} value="{{ selected }}">
+  <div class="relative">
+    <i data-lucide="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-300"></i>
+    <input type="text" id="nameSearch" role="combobox"
+           autocomplete="off" aria-expanded="false" aria-controls="nameOptions"
+           placeholder="Search or select employee"
+           value="{{ selected }}" class="field-input pl-10">
+  </div>
+  <div class="combo-panel absolute z-20 mt-1.5 w-full overflow-hidden rounded-xl border border-navy-100 bg-white shadow-lift" id="nameOptions" hidden>
+    <ul class="combo-list max-h-64 overflow-y-auto" id="nameList" role="listbox">
+      {% for emp in employees %}
+      <li class="combo-option flex items-stretch border-b border-navy-50 last:border-b-0 hover:bg-gold-50/60 {% if selected == emp %}selected{% endif %}"
+          data-name="{{ emp }}" role="option">
+        <button type="button" class="combo-pick min-h-[44px] flex-1 px-3.5 py-2.5 text-left text-sm text-navy-900">{{ emp }}</button>
+        <button type="button" class="combo-remove flex w-11 items-center justify-center border-l border-navy-50 text-navy-300 transition-colors hover:bg-red-50 hover:text-red-600" data-name="{{ emp }}"
+                aria-label="Remove {{ emp }} from list">
+          <i data-lucide="x" class="h-3.5 w-3.5"></i>
+        </button>
+      </li>
+      {% endfor %}
+    </ul>
+    <p class="combo-empty px-3.5 py-3 text-xs text-navy-400" id="comboEmpty" hidden>No matching employee.</p>
+    <div class="combo-add flex gap-2 border-t border-navy-100 bg-navy-50/60 p-2.5">
+      <input type="text" id="newEmployee" class="field-input min-h-[40px] min-w-0 flex-1 py-2 text-sm"
+             autocomplete="off" placeholder="+ Add new employee">
+      <button type="button" class="btn-ghost btn-sm whitespace-nowrap" id="addEmployeeBtn">
+        <i data-lucide="plus" class="h-3.5 w-3.5"></i> Add
+      </button>
+    </div>
+  </div>
+</div>
+<span class="field-error" id="nameError">{{ error_text }}</span>
+{% endmacro %}
+
+{% macro roster_forms(section_slug) %}
+{# Roster forms live OUTSIDE the entry form, so adding or removing an employee
+   can never submit a half-filled entry. "next" brings the user back to this
+   section's Add Entry page. #}
+<form id="empAddForm" class="hidden" method="post" action="{{ url_for('employees_add') }}">
+  <input type="hidden" name="name" id="empAddName">
+  <input type="hidden" name="next" value="{{ section_slug }}">
+</form>
+<form id="empDeleteForm" class="hidden" method="post" action="{{ url_for('employees_delete') }}">
+  <input type="hidden" name="name" id="empDeleteName">
+  <input type="hidden" name="next" value="{{ section_slug }}">
+</form>
+<script src="{{ url_for('static', filename='js/employee-combo.js') }}?v={{ asset_version }}" defer></script>
+{% endmacro %}

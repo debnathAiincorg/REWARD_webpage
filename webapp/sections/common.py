@@ -1,7 +1,7 @@
 # Helpers shared by the worksheet-range sections (Whatsapp, Monthly, Keyboard).
 
 import logic
-from graph_client import apply_ops, get_sheet_grid
+from graph_client import GraphError, apply_ops, get_sheet_grid, get_table_columns, get_table_rows
 from sheet_grid import fold
 
 
@@ -20,11 +20,23 @@ def write_with_fresh_read(sheet_name, plan):
     return result
 
 
-def employee_choices(sheet_names):
-    """Names for an employee picker: the shared roster plus any name already in
-    this sheet, de-duplicated case-insensitively and sorted."""
-    seen = {}
-    for name in list(logic.load_employee_list()) + list(sheet_names):
-        if name and fold(name) not in seen:
-            seen[fold(name)] = name
-    return sorted(seen.values(), key=fold)
+def roster_choices(selected=None):
+    """Names for the shared employee dropdown: the one roster (employees.json)
+    every section's Add Entry page uses, exactly like Daily's.
+
+    First run only, the roster is seeded from the Daily sheet's names — the same
+    seed Daily uses — so every section starts from the same list whichever page
+    is opened first. A name being edited that has since been removed from the
+    roster is added for this render only (never written back), so that entry
+    stays editable.
+    """
+    if not logic.EMPLOYEES_PATH.exists():
+        try:
+            records = logic.rows_to_records(get_table_columns(), get_table_rows())
+            logic.seed_employee_list_if_missing(records)
+        except GraphError:
+            pass  # no seed this time; the dropdown is just empty until it works
+    employees = logic.load_employee_list()
+    if selected and fold(selected) not in {fold(n) for n in employees}:
+        employees = sorted(employees + [selected], key=fold)
+    return employees

@@ -7,7 +7,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 import config
 import keyboard_logic as kl
 from graph_client import GraphError, get_sheet_grid
-from sections.common import employee_choices, write_with_fresh_read
+from sections.common import roster_choices, write_with_fresh_read
 from sheet_grid import MONTH_NAMES
 
 bp = Blueprint("keyboard", __name__, url_prefix="/keyboard")
@@ -88,6 +88,9 @@ def add_entry():
             )
         elif not load_error:
             flash("That entry is no longer in the sheet.", "err")
+    elif request.method == "GET" and request.args.get("name"):
+        # Back from "+ Add new employee": preselect the name just added.
+        form["name"] = request.args["name"].strip()
 
     if request.method == "POST":
         form = {k: (request.form.get(k) or "").strip() for k in form}
@@ -117,7 +120,7 @@ def add_entry():
 
     return render_template(
         "keyboard/add_entry.html", active_page="add", form=form,
-        employees=employee_choices(r["name"] for r in records),
+        employees=roster_choices(form["name"]),
         month_names=MONTH_NAMES, editing=bool(form["editing"]),
     )
 

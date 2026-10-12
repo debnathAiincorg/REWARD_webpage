@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "_ui.html" as ui with context %}
+{% import "_employee_combo.html" as combo with context %}
 {% block title %}{{ "Edit" if editing else "Add" }} Entry — {{ section.title }}{% endblock %}
 {% block content %}
 {{ ui.page_header("Edit entry" if editing else "Add Entry",
@@ -11,7 +12,7 @@
   <input type="hidden" name="editing" value="{{ form.editing }}">
   {% if editing %}
     <input type="hidden" name="block" value="{{ form.block }}">
-    <input type="hidden" name="name" value="{{ form.name }}">
+    <input type="hidden" id="name" name="name" value="{{ form.name }}">
   {% endif %}
   <div>
     {{ ui.label("block", "Month block") }}
@@ -27,16 +28,13 @@
     </p>
   </div>
   <div>
-    {{ ui.label("name", "Employee name") }}
-    <div class="relative">
-      <i data-lucide="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-300"></i>
-      <input type="text" id="name" {% if not editing %}name="name"{% endif %} {% if editing %}disabled{% endif %}
-             value="{{ form.name }}" list="employeeList" required autocomplete="off"
-             placeholder="Search or type employee" class="field-input pl-10">
-    </div>
-    <datalist id="employeeList">{% for e in employees %}<option value="{{ e }}">{% endfor %}</datalist>
-    <p class="mt-1.5 text-xs" id="rowHint"></p>
-    <span class="field-error" id="nameError">Select an employee.</span>
+    {% if editing %}
+      {{ ui.label("nameLocked", "Employee name") }}
+      <input type="text" id="nameLocked" value="{{ form.name }}" disabled class="field-input">
+    {% else %}
+      {{ combo.employee_combo(employees, form.name, label="Employee name", error_text="Select an employee.") }}
+      <p class="mt-1.5 text-xs" id="rowHint"></p>
+    {% endif %}
   </div>
   <div class="grid gap-5 sm:grid-cols-2">
     <div>
@@ -73,6 +71,7 @@
   </div>
   {{ ui.form_actions(url_for('monthly.history', block=form.block) if editing else None) }}
 </form>
+{{ combo.roster_forms("monthly") }}
 {% endcall %}
 
 <script>
@@ -86,7 +85,8 @@
     function update() {
       newHint.hidden = block.value !== 'new';
       var n = name.value.trim().toLowerCase();
-      if (!n || {{ 'true' if editing else 'false' }}) { hint.textContent = ''; return; }
+      if (!hint) return;  // editing: the name is locked, no hint
+      if (!n) { hint.textContent = ''; return; }
       if (block.value === 'new') { hint.textContent = ''; return; }
       var names = (blockNames[block.value] || []).map(function (x) { return x.toLowerCase(); });
       if (names.indexOf(n) !== -1) {
@@ -98,14 +98,17 @@
       }
     }
     block.addEventListener('change', update);
-    name.addEventListener('input', update);
+    name.addEventListener('change', update);  // fired by the dropdown on pick / clear
     update();
 
     document.getElementById('mbForm').addEventListener('submit', function (e) {
+      // #name is the dropdown's hidden value: empty until a name is picked.
+      var nameShown = document.getElementById('nameSearch') || name;
+      var nameError = document.getElementById('nameError');
       var bad = !name.value.trim();
-      name.classList.toggle('invalid', bad);
-      document.getElementById('nameError').classList.toggle('show', bad);
-      if (bad) { e.preventDefault(); name.focus(); }
+      nameShown.classList.toggle('invalid', bad);
+      if (nameError) nameError.classList.toggle('show', bad);
+      if (bad) { e.preventDefault(); nameShown.focus(); }
     });
   })();
 </script>

@@ -98,8 +98,10 @@
 
 {# Form card: {% call ui.form_card() %} fields {% endcall %} #}
 {% macro form_card(title=None, note="") %}
-<div class="card mx-auto max-w-2xl overflow-hidden">
-  <div class="flex items-center gap-3 border-b border-navy-100/80 bg-gradient-to-r from-navy-900 to-navy-800 px-6 py-4 text-white">
+{# No overflow-hidden on the card: an open dropdown (e.g. the employee picker)
+   must be able to extend past a short form instead of being clipped. #}
+<div class="card mx-auto max-w-2xl">
+  <div class="flex items-center gap-3 rounded-t-2xl border-b border-navy-100/80 bg-gradient-to-r from-navy-900 to-navy-800 px-6 py-4 text-white">
     <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-gold-300"><i data-lucide="{{ section.icon }}" class="h-5 w-5"></i></span>
     <div class="min-w-0">
       <p class="truncate text-sm font-semibold">{{ title or section.title }}</p>

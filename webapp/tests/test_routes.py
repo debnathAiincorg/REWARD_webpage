@@ -66,6 +66,9 @@ def client(monkeypatch, tmp_path):
              "rows": [{"index": 0, "values": [1, "2026-10-01", "Alice", 1, ""]}]}
     monkeypatch.setattr(daily, "get_table_columns", lambda: table["headers"])
     monkeypatch.setattr(daily, "get_table_rows", lambda: table["rows"])
+    # The shared employee dropdown seeds the roster from Daily's sheet too.
+    monkeypatch.setattr(common, "get_table_columns", lambda: table["headers"])
+    monkeypatch.setattr(common, "get_table_rows", lambda: table["rows"])
 
     import app as app_module
     app_module.app.config["TESTING"] = True

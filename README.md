@@ -27,8 +27,9 @@ an error banner or toast instead of crashing the page.
   employees with zero points this week, previous week's points), **Previous
   Day Performance**, and the **Weekly Performance Report** with a TOTAL row.
 - **Add Entry** — de-duplicates on Name + Date. Searchable employee dropdown
-  backed by its own roster (`employees.json`), kept separate from the sheet —
-  add or retire a name without touching that person's past entries.
+  backed by the shared roster (`employees.json`, see
+  [Roster storage](#roster-storage)), kept separate from the sheets — add or
+  retire a name without touching that person's past entries.
 - **History** — filter by employee and/or date range.
 
 Columns are never hardcoded: headers are auto-detected
@@ -239,8 +240,12 @@ file at a different directory instead of next to `logic.py` — needed on any
 host with an ephemeral filesystem, where every redeploy would otherwise wipe it
 and silently revert any employee added or removed through the UI.
 
-The same roster also feeds the employee pickers on the Keyboard and Monthly
-Add Entry pages (merged with any names already in those sheets).
+All four sections' Add Entry pages use this same roster through one shared
+dropdown (`templates/_employee_combo.html` + `static/js/employee-combo.js`):
+search, pick, × to remove a name, and "+ Add new employee". Adding or removing a
+name in any section changes the dropdown everywhere, and never touches a sheet.
+On Employee Whatsapp, picking a name fills First name (first word) and Last
+name (the rest); both stay editable.
 
 ---
 

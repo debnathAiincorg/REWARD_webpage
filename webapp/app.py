@@ -81,15 +81,23 @@ def legacy_history_delete():
 
 
 def _back_to_add(name=None):
-    """Roster changes start from Daily's Add Entry page, so they return there."""
-    return redirect(url_for("daily.add_entry", name=name) if name else url_for("daily.add_entry"))
+    """Return to the Add Entry page the roster change was made from.
+
+    "next" is a section slug posted by the dropdown's roster forms; anything
+    unknown falls back to Daily, so it can never redirect off the app.
+    """
+    slug = request.form.get("next") or "daily"
+    if slug not in SECTIONS_BY_SLUG:
+        slug = "daily"
+    endpoint = f"{slug}.add_entry"
+    return redirect(url_for(endpoint, name=name) if name else url_for(endpoint))
 
 
 @app.route("/employees/add", methods=["POST"])
 def employees_add():
-    """Add a name to the Add Entry dropdown's roster.
+    """Add a name to the shared employee roster (every section's dropdown).
 
-    Writes employees.json only — never the sheet.
+    Writes employees.json only — never a sheet.
     """
     try:
         stored_name, was_added = logic.add_employee_name(request.form.get("name") or "")
@@ -111,10 +119,10 @@ def employees_add():
 
 @app.route("/employees/delete", methods=["POST"])
 def employees_delete():
-    """Retire a name from the Add Entry dropdown.
+    """Retire a name from the shared employee roster (every section's dropdown).
 
-    Rewrites employees.json only: that person's rows in Table1 are left exactly
-    as they are and still show up in History.
+    Rewrites employees.json only: that person's rows in every sheet are left
+    exactly as they are and still show up in History.
     """
     name = (request.form.get("name") or "").strip()
     try:

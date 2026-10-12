@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "_ui.html" as ui with context %}
+{% import "_employee_combo.html" as combo with context %}
 {% block title %}{{ "Edit" if editing else "Add" }} Entry — {{ section.title }}{% endblock %}
 {% block content %}
 {{ ui.page_header("Edit entry" if editing else "Add Entry",
@@ -11,7 +12,7 @@
   <input type="hidden" name="editing" value="{{ form.editing }}">
   {% if editing %}
     {# Key fields are locked while editing, so the row is updated where it is. #}
-    <input type="hidden" name="name" value="{{ form.name }}">
+    <input type="hidden" id="name" name="name" value="{{ form.name }}">
     <input type="hidden" name="year" value="{{ form.year }}">
     <input type="hidden" name="month" value="{{ form.month }}">
   {% endif %}
@@ -29,15 +30,12 @@
     </div>
   </div>
   <div>
-    {{ ui.label("name", "Employee name") }}
-    <div class="relative">
-      <i data-lucide="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-300"></i>
-      <input type="text" id="name" {% if not editing %}name="name"{% endif %} {% if editing %}disabled{% endif %}
-             value="{{ form.name }}" list="employeeList" required autocomplete="off"
-             placeholder="Search or type employee" class="field-input pl-10">
-    </div>
-    <datalist id="employeeList">{% for e in employees %}<option value="{{ e }}">{% endfor %}</datalist>
-    <span class="field-error" id="nameError">Select an employee.</span>
+    {% if editing %}
+      {{ ui.label("nameLocked", "Employee name") }}
+      <input type="text" id="nameLocked" value="{{ form.name }}" disabled class="field-input">
+    {% else %}
+      {{ combo.employee_combo(employees, form.name, label="Employee name", error_text="Select an employee.") }}
+    {% endif %}
   </div>
 
   <label class="flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border border-navy-200 bg-navy-50/50 px-4 py-3 text-sm text-navy-800 transition-colors hover:border-gold-400">
@@ -71,6 +69,7 @@
   </div>
   {{ ui.form_actions(url_for('keyboard.history') if editing else None) }}
 </form>
+{{ combo.roster_forms("keyboard") }}
 {% endcall %}
 
 <script>
@@ -85,15 +84,18 @@
     sync();
 
     document.getElementById('kbForm').addEventListener('submit', function (e) {
+      // #name is the dropdown's hidden value: empty until a name is picked.
       var name = document.getElementById('name');
+      var nameShown = document.getElementById('nameSearch') || name;
+      var nameError = document.getElementById('nameError');
       var acc = document.getElementById('accuracy');
       var nameBad = !name.value.trim();
       var accBad = !absent.checked && (acc.value === '' || +acc.value < 0 || +acc.value > 100);
-      name.classList.toggle('invalid', nameBad);
-      document.getElementById('nameError').classList.toggle('show', nameBad);
+      nameShown.classList.toggle('invalid', nameBad);
+      if (nameError) nameError.classList.toggle('show', nameBad);
       acc.classList.toggle('invalid', accBad);
       document.getElementById('accuracyError').classList.toggle('show', accBad);
-      if (nameBad || accBad) { e.preventDefault(); (nameBad ? name : acc).focus(); }
+      if (nameBad || accBad) { e.preventDefault(); (nameBad ? nameShown : acc).focus(); }
     });
   })();
 </script>

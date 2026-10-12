@@ -8,7 +8,7 @@ import config
 import logic
 import monthly_logic as ml
 from graph_client import GraphError, get_sheet_grid
-from sections.common import employee_choices, write_with_fresh_read
+from sections.common import roster_choices, write_with_fresh_read
 from sheet_grid import MONTH_NAMES, fold, month_number
 
 bp = Blueprint("monthly", __name__, url_prefix="/monthly")
@@ -72,6 +72,9 @@ def add_entry():
                 )
         elif not load_error:
             flash("That month block is no longer in the sheet.", "err")
+    elif request.method == "GET" and request.args.get("name"):
+        # Back from "+ Add new employee": preselect the name just added.
+        form["name"] = request.args["name"].strip()
 
     if request.method == "POST":
         form = {k: (request.form.get(k) or "").strip() for k in form}
@@ -109,7 +112,7 @@ def add_entry():
         new_block_date=ml.next_block_date(blocks),
         block_names={b["id"]: [r["name"] for r in b["rows"]] for b in blocks},
         prefilled=prefilled,
-        employees=employee_choices(r["name"] for r in records),
+        employees=roster_choices(form["name"]),
         status_choices=ml.STATUS_CHOICES, month_names=MONTH_NAMES,
         editing=bool(form["editing"]),
     )

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "_ui.html" as ui with context %}
+{% import "_employee_combo.html" as combo with context %}
 {% block title %}Add Entry — Daily Performance Bonus{% endblock %}
 {% block content %}
 {{ ui.page_header("Add Entry", "Writes straight into Table1. If this employee already has an entry for the chosen date, that row is updated instead of duplicated.") }}
@@ -20,42 +21,7 @@
     </div>
 
     <div>
-      <label for="nameSearch" class="field-label">Name</label>
-      <div class="combo relative" id="nameCombo">
-        {# The hidden input is what actually posts as `name`, so the server side of
-           /add is untouched by this widget. #}
-        <input type="hidden" id="name" name="name" value="{{ prefill.get('name', '') }}">
-        <div class="relative">
-          <i data-lucide="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-300"></i>
-          <input type="text" id="nameSearch" role="combobox"
-                 autocomplete="off" aria-expanded="false" aria-controls="nameOptions"
-                 placeholder="Search or select employee"
-                 value="{{ prefill.get('name', '') }}" class="field-input pl-10">
-        </div>
-        <div class="combo-panel absolute z-20 mt-1.5 w-full overflow-hidden rounded-xl border border-navy-100 bg-white shadow-lift" id="nameOptions" hidden>
-          <ul class="combo-list max-h-64 overflow-y-auto" id="nameList" role="listbox">
-            {% for emp in employees %}
-            <li class="combo-option flex items-stretch border-b border-navy-50 last:border-b-0 hover:bg-gold-50/60 {% if prefill.get('name') == emp %}selected{% endif %}"
-                data-name="{{ emp }}" role="option">
-              <button type="button" class="combo-pick min-h-[44px] flex-1 px-3.5 py-2.5 text-left text-sm text-navy-900">{{ emp }}</button>
-              <button type="button" class="combo-remove flex w-11 items-center justify-center border-l border-navy-50 text-navy-300 transition-colors hover:bg-red-50 hover:text-red-600" data-name="{{ emp }}"
-                      aria-label="Remove {{ emp }} from list">
-                <i data-lucide="x" class="h-3.5 w-3.5"></i>
-              </button>
-            </li>
-            {% endfor %}
-          </ul>
-          <p class="combo-empty px-3.5 py-3 text-xs text-navy-400" id="comboEmpty" hidden>No matching employee.</p>
-          <div class="combo-add flex gap-2 border-t border-navy-100 bg-navy-50/60 p-2.5">
-            <input type="text" id="newEmployee" class="field-input min-h-[40px] min-w-0 flex-1 py-2 text-sm"
-                   autocomplete="off" placeholder="+ Add new employee">
-            <button type="button" class="btn-ghost btn-sm whitespace-nowrap" id="addEmployeeBtn">
-              <i data-lucide="plus" class="h-3.5 w-3.5"></i> Add
-            </button>
-          </div>
-        </div>
-      </div>
-      <span class="field-error" id="nameError">Select an employee to continue.</span>
+      {{ combo.employee_combo(employees, prefill.get("name", "")) }}
     </div>
   </div>
 
@@ -110,14 +76,7 @@
   </div>
 </form>
 
-{# Roster forms live OUTSIDE #entryForm — a form cannot be nested in another —
-   so adding or removing an employee can never submit a half-filled entry. #}
-<form id="empAddForm" class="hidden" method="post" action="{{ url_for('employees_add') }}">
-  <input type="hidden" name="name" id="empAddName">
-</form>
-<form id="empDeleteForm" class="hidden" method="post" action="{{ url_for('employees_delete') }}">
-  <input type="hidden" name="name" id="empDeleteName">
-</form>
+{{ combo.roster_forms("daily") }}
 {% endcall %}
 
 <script>
@@ -142,95 +101,7 @@
     }
   });
 
-  // Searchable employee combobox. The visible box filters; the hidden #name
-  // input carries the chosen value, so the posted payload is identical to the
-  // plain <select> this replaces.
-  (() => {
-    const combo = document.getElementById('nameCombo');
-    const hidden = document.getElementById('name');
-    const search = document.getElementById('nameSearch');
-    const panel = document.getElementById('nameOptions');
-    const list = document.getElementById('nameList');
-    const emptyMsg = document.getElementById('comboEmpty');
-    const newInput = document.getElementById('newEmployee');
-    const nameError = document.getElementById('nameError');
-
-    const options = () => Array.from(list.querySelectorAll('.combo-option'));
-    const openPanel = () => { panel.hidden = false; search.setAttribute('aria-expanded', 'true'); };
-    const closePanel = () => { panel.hidden = true; search.setAttribute('aria-expanded', 'false'); };
-
-    function applyFilter() {
-      const q = search.value.trim().toLowerCase();
-      let visible = 0;
-      options().forEach(opt => {
-        const match = opt.dataset.name.toLowerCase().includes(q);
-        opt.hidden = !match;
-        if (match) visible++;
-      });
-      emptyMsg.hidden = visible > 0;
-    }
-
-    function choose(name) {
-      hidden.value = name;
-      search.value = name;
-      options().forEach(o => o.classList.toggle('selected', o.dataset.name === name));
-      search.classList.remove('invalid');
-      nameError.classList.remove('show');
-      closePanel();
-    }
-
-    search.addEventListener('focus', () => { openPanel(); applyFilter(); });
-
-    search.addEventListener('input', () => {
-      // Typing is a search, not a pick — drop the previous selection until they
-      // actually choose, so a half-typed name can't be submitted as a real one.
-      hidden.value = '';
-      openPanel();
-      applyFilter();
-    });
-
-    search.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();  // never submit the entry form straight from the search box
-        const first = options().find(o => !o.hidden);
-        if (first) choose(first.dataset.name);
-      } else if (e.key === 'Escape') {
-        closePanel();
-      }
-    });
-
-    list.addEventListener('click', (e) => {
-      const pick = e.target.closest('.combo-pick');
-      if (pick) {
-        choose(pick.closest('.combo-option').dataset.name);
-        return;
-      }
-      const remove = e.target.closest('.combo-remove');
-      if (remove) {
-        const name = remove.dataset.name;
-        if (confirm(`Remove ${name} from list? Past entries won't be affected.`)) {
-          document.getElementById('empDeleteName').value = name;
-          document.getElementById('empDeleteForm').submit();
-        }
-      }
-    });
-
-    function submitNewEmployee() {
-      const name = newInput.value.trim();
-      if (!name) { newInput.focus(); return; }
-      document.getElementById('empAddName').value = name;
-      document.getElementById('empAddForm').submit();
-    }
-
-    document.getElementById('addEmployeeBtn').addEventListener('click', submitNewEmployee);
-    newInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); submitNewEmployee(); }
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!combo.contains(e.target)) closePanel();
-    });
-  })();
+  // The employee combobox itself lives in static/js/employee-combo.js.
 
   document.getElementById('entryForm').addEventListener('submit', (e) => {
     const errorList = document.getElementById('errorList');

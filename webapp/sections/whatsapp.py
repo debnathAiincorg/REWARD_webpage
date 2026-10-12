@@ -6,7 +6,7 @@ import config
 import logic
 import whatsapp_logic as wl
 from graph_client import GraphError, get_sheet_grid
-from sections.common import write_with_fresh_read
+from sections.common import roster_choices, write_with_fresh_read
 
 bp = Blueprint("whatsapp", __name__, url_prefix="/whatsapp")
 SHEET = config.WHATSAPP_SHEET
@@ -46,6 +46,11 @@ def add_entry():
                         orig_first=contact["first_name"], orig_last=contact["last_name"])
         else:
             flash("That contact is no longer in the sheet.", "err")
+    elif request.method == "GET" and request.args.get("name"):
+        # Back from "+ Add new employee": preselect the name just added and
+        # split it into First_Name (first word) / Last_Name (the rest).
+        first, _, last = request.args["name"].strip().partition(" ")
+        form.update(first=first, last=last.strip())
 
     if request.method == "POST":
         form = {k: (request.form.get(k) or "").strip() for k in form}
@@ -59,8 +64,12 @@ def add_entry():
         except (ValueError, GraphError) as e:
             flash(str(e), "err")
 
+    # The employee dropdown shows the contact's full name as the current pick
+    # (it only fills First / Last name; it posts nothing itself).
+    picked = f"{form['first']} {form['last']}".strip()
     return render_template("whatsapp/add_entry.html", active_page="add", form=form,
-                           editing=bool(form["orig_first"]))
+                           editing=bool(form["orig_first"]),
+                           employees=roster_choices(picked), picked=picked)
 
 
 @bp.route("/history")

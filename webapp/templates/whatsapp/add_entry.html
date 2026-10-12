@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "_ui.html" as ui with context %}
+{% import "_employee_combo.html" as combo with context %}
 {% block title %}{{ "Edit" if editing else "Add" }} Contact — {{ section.title }}{% endblock %}
 {% block content %}
 {{ ui.page_header("Edit contact" if editing else "Add Entry",
@@ -10,6 +11,11 @@
 <form method="post" action="{{ url_for('whatsapp.add_entry') }}" class="space-y-5" id="contactForm" novalidate>
   <input type="hidden" name="orig_first" value="{{ form.orig_first }}">
   <input type="hidden" name="orig_last" value="{{ form.orig_last }}">
+  <div>
+    {# Fills First / Last name below; posts nothing itself (field_name=None). #}
+    {{ combo.employee_combo(employees, picked, field_name=None, label="Employee") }}
+    <p class="mt-1.5 text-xs text-navy-400">Picking a name fills First name (first word) and Last name (the rest). You can still edit both.</p>
+  </div>
   <div class="grid gap-5 sm:grid-cols-2">
     <div>
       {{ ui.label("first", "First name") }}
@@ -31,10 +37,26 @@
   </div>
   {{ ui.form_actions(url_for('whatsapp.history') if editing else None, "Save contact") }}
 </form>
+{{ combo.roster_forms("whatsapp") }}
 {% endcall %}
 
 <script>
+  // Picking an employee splits the name into First_Name / Last_Name.
+  document.getElementById('nameCombo').addEventListener('employee:pick', function (e) {
+    var parts = e.detail.name.trim().split(/\s+/);
+    document.getElementById('first').value = parts.shift() || '';
+    document.getElementById('last').value = parts.join(' ');
+    document.getElementById('first').classList.remove('invalid');
+  });
+
   document.getElementById('contactForm').addEventListener('submit', function (e) {
+    var picked = document.getElementById('name');
+    var nameSearch = document.getElementById('nameSearch');
+    var pickedBad = !picked.value.trim();
+    nameSearch.classList.toggle('invalid', pickedBad);
+    document.getElementById('nameError').classList.toggle('show', pickedBad);
+    if (pickedBad) { e.preventDefault(); nameSearch.focus(); return; }
+
     var first = document.getElementById('first');
     var mobile = document.getElementById('mobile');
     var digits = mobile.value.replace(/\D/g, '').replace(/^91(?=\d{10}$)/, '').replace(/^0(?=\d{10}$)/, '');
