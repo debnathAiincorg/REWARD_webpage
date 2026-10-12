@@ -76,7 +76,9 @@
 
   var gold = new THREE.MeshStandardMaterial({ color: 0xf2c25a, metalness: 1, roughness: 0.22 });
   var goldSoft = new THREE.MeshStandardMaterial({ color: 0xe0ac44, metalness: 1, roughness: 0.32 });
-  var navy = new THREE.MeshStandardMaterial({ color: 0x0f1b33, metalness: 0.15, roughness: 0.55, envMapIntensity: 0.35 });
+  // Very dark base colour: the warm key light and ACES tone mapping lift dark
+  // values a lot, so this is what renders as deep navy rather than slate.
+  var navy = new THREE.MeshStandardMaterial({ color: 0x030712, metalness: 0, roughness: 0.75, envMapIntensity: 0.08 });
 
   var trophy = new THREE.Group();
 
@@ -105,8 +107,14 @@
     handle.scale.set(1, 1.15, 1);
     trophy.add(handle);
   });
-  // Star emblem on the front of the cup.
+  // Emblem on the front of the cup: a polished gold star on a navy medallion,
+  // so it reads clearly against the gold cup.
   (function () {
+    var medallion = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.04, 48), navy);
+    medallion.rotation.x = Math.PI / 2 + 0.3; // lean with the flared cup wall
+    medallion.position.set(0, 0.68, 0.84);
+    trophy.add(medallion);
+
     var star = new THREE.Shape();
     for (var i = 0; i < 10; i++) {
       var r = i % 2 === 0 ? 0.22 : 0.09;
@@ -114,10 +122,13 @@
       if (i === 0) star.moveTo(Math.cos(a) * r, Math.sin(a) * r);
       else star.lineTo(Math.cos(a) * r, Math.sin(a) * r);
     }
-    var geo = new THREE.ExtrudeGeometry(star, { depth: 0.04, bevelEnabled: true, bevelSize: 0.012, bevelThickness: 0.012, bevelSegments: 2 });
-    var mesh = new THREE.Mesh(geo, navy);
-    mesh.position.set(0, 0.68, 0.79);
-    mesh.rotation.x = -0.12;
+    var geo = new THREE.ExtrudeGeometry(star, { depth: 0.04, bevelEnabled: true, bevelSize: 0.014, bevelThickness: 0.014, bevelSegments: 3 });
+    var starGold = new THREE.MeshStandardMaterial({
+      color: 0xffc940, metalness: 1, roughness: 0.18, emissive: 0x4a3000, emissiveIntensity: 0.3,
+    });
+    var mesh = new THREE.Mesh(geo, starGold);
+    mesh.position.set(0, 0.68, 0.86);
+    mesh.rotation.x = 0.3;
     trophy.add(mesh);
   })();
   // Two-tier plinth with a gold plate.

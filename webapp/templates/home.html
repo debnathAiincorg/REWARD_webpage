@@ -5,7 +5,6 @@
 <section class="relative isolate overflow-hidden bg-navy-900 text-white">
   {# Soft gold glow and a faint grid behind the trophy. #}
   <div class="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
-    <div class="absolute -right-32 -top-24 h-[24rem] w-[24rem] rounded-full bg-gold-500/20 blur-3xl md:-right-24 md:top-1/2 md:h-[36rem] md:w-[36rem] md:-translate-y-1/2"></div>
     <div class="absolute -left-40 -top-40 h-[28rem] w-[28rem] rounded-full bg-navy-500/30 blur-3xl"></div>
     <div class="absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(255,255,255,.6)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.6)_1px,transparent_1px)] [background-size:44px_44px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]"></div>
   </div>
@@ -36,6 +35,8 @@
     </div>
 
     <div class="relative order-first mx-auto h-[230px] w-full max-w-[520px] sm:h-[340px] md:order-none md:h-[440px]" id="hero3d">
+      {# Soft gold glow centred behind the trophy, fully inside the hero. #}
+      <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(closest-side,rgba(217,169,63,0.26),rgba(217,169,63,0.08)_55%,transparent)]" aria-hidden="true"></div>
       {# Static fallback, replaced by the 3D scene when WebGL is available. #}
       <div id="heroFallback" class="absolute inset-0 flex items-center justify-center">
         <div class="absolute h-56 w-56 rounded-full bg-gold-400/25 blur-2xl"></div>
@@ -46,7 +47,8 @@
           <path d="M29 34h6v8h-6z" fill="#C9962B"/>
           <rect x="21" y="42" width="22" height="5" rx="1.5" fill="url(#heroGold)"/>
           <rect x="17" y="47" width="30" height="8" rx="2" fill="#16264A"/>
-          <path d="M32 15l1.7 3.4 3.8.6-2.7 2.6.6 3.8-3.4-1.8-3.4 1.8.6-3.8-2.7-2.6 3.8-.6z" fill="#16264A"/>
+          <circle cx="32" cy="19.6" r="6.2" fill="#16264A"/>
+          <path d="M32 15l1.7 3.4 3.8.6-2.7 2.6.6 3.8-3.4-1.8-3.4 1.8.6-3.8-2.7-2.6 3.8-.6z" fill="#F6E3A8"/>
         </svg>
       </div>
     </div>
