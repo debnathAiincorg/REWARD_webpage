@@ -6,3 +6,9 @@ __pycache__/
 
 run.txt
 webapp/employees.json
+run.txt
+
+# Local workbook copies contain real employee data; the repo is public.
+*.xlsx
+*.xlsm
+*.xls

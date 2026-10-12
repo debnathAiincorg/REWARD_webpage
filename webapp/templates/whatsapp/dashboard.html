@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% import "_ui.html" as ui with context %}
+{% block title %}Dashboard — {{ section.title }}{% endblock %}
+{% block content %}
+{{ ui.page_header("Dashboard", "contacts in the Employee Whatsapp sheet") }}
+
+{% if error %}
+  {{ ui.error_banner(error) }}
+{% else %}
+
+<div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+  {{ ui.kpi("users", "Total Contacts", summary.total) }}
+  {{ ui.kpi("phone-off", "Missing / Invalid Number", summary.problem, warn=summary.problem > 0) }}
+  {{ ui.kpi("user-x", "Roster Employees Without a Contact", summary.roster_missing | length, warn=summary.roster_missing) }}
+</div>
+
+{% if summary.roster_missing %}
+<div class="mb-6 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+  <i data-lucide="info" class="h-5 w-5 shrink-0 text-amber-500"></i>
+  <span>No WhatsApp contact for: {{ summary.roster_missing | join(", ") }}.
+    <a class="font-semibold underline" href="{{ url_for('whatsapp.add_entry') }}">Add one</a></span>
+</div>
+{% endif %}
+
+<div class="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
+  {{ ui.panel_head("Contact List", (contacts | length) ~ " contacts") }}
+  {% if contacts %}
+  <div class="border-b border-stone-200 p-4">
+    <div class="relative">
+      <i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400"></i>
+      <input type="search" id="contactSearch" placeholder="Search name or number" autocomplete="off"
+             class="w-full rounded-lg border border-stone-300 py-2.5 pl-9 pr-3 text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
+    </div>
+  </div>
+  <ul class="divide-y divide-stone-100" id="contactList">
+    {% for c in contacts %}
+    <li class="contact flex flex-wrap items-center justify-between gap-3 px-5 py-3 hover:bg-forest-light"
+        data-search="{{ (c.full_name ~ ' ' ~ c.mobile_raw) | lower }}">
+      <div class="min-w-0">
+        <p class="font-medium text-stone-900">{{ c.full_name }}</p>
+        <p class="font-mono text-sm {{ 'text-stone-500' if c.status == 'ok' else 'text-red-600' }}">
+          {% if c.status == "ok" %}+91 {{ c.mobile[:5] }} {{ c.mobile[5:] }}
+          {% elif c.status == "missing" %}No number
+          {% else %}Invalid: {{ c.mobile_raw }}{% endif %}
+        </p>
+      </div>
+      {% if c.wa_link %}
+      <a href="{{ c.wa_link }}" target="_blank" rel="noopener"
+         class="inline-flex items-center gap-1.5 rounded-lg bg-forest px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-forest-dark">
+        <i data-lucide="message-circle" class="h-4 w-4"></i> WhatsApp
+      </a>
+      {% else %}
+      <a href="{{ url_for('whatsapp.add_entry', first=c.first_name, last=c.last_name) }}"
+         class="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 px-3.5 py-2 text-sm font-medium text-stone-600 hover:border-forest hover:text-forest">
+        <i data-lucide="pencil" class="h-4 w-4"></i> Fix number
+      </a>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  <p id="contactEmpty" class="px-5 py-8 text-center font-mono text-sm text-stone-400" hidden>No contact matches.</p>
+  <script>
+    (function () {
+      var input = document.getElementById('contactSearch');
+      var items = document.querySelectorAll('#contactList .contact');
+      var empty = document.getElementById('contactEmpty');
+      input.addEventListener('input', function () {
+        var q = input.value.trim().toLowerCase().replace(/\s+/g, ' ');
+        var digits = q.replace(/\D/g, '');
+        var shown = 0;
+        items.forEach(function (li) {
+          var hay = li.dataset.search;
+          var match = !q || hay.indexOf(q) !== -1 || (digits && hay.replace(/\D/g, '').indexOf(digits) !== -1);
+          li.hidden = !match;
+          if (match) shown++;
+        });
+        empty.hidden = shown > 0;
+      });
+    })();
+  </script>
+  {% else %}
+  {{ ui.empty_state("inbox", "No contacts yet", "Contacts added on the Add Entry page will appear here.") }}
+  {% endif %}
+</div>
+
+{% endif %}
+{% endblock %}

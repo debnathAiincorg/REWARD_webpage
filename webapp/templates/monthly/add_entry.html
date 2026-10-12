@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% import "_ui.html" as ui with context %}
+{% block title %}{{ "Edit" if editing else "Add" }} Entry — {{ section.title }}{% endblock %}
+{% block content %}
+{{ ui.page_header("Edit Entry" if editing else "Add Entry",
+                  "updates the row in place" if editing else
+                  "fills the employee's pre-filled row in that block, or adds a row at the end of the block · a new block is created like the existing ones") }}
+
+<div class="mx-auto max-w-xl overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
+  <div class="border-t-4 border-forest bg-stone-50 px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-forest-dark">
+    {{ section.title }}
+  </div>
+  <div class="p-6">
+    <form method="post" action="{{ url_for('monthly.add_entry') }}" class="space-y-4" id="mbForm" novalidate>
+      <input type="hidden" name="editing" value="{{ form.editing }}">
+      {% if editing %}
+        <input type="hidden" name="block" value="{{ form.block }}">
+        <input type="hidden" name="name" value="{{ form.name }}">
+      {% endif %}
+      <div>
+        {{ ui.label("block", "Month block") }}
+        <select id="block" {% if not editing %}name="block"{% endif %} {% if editing %}disabled{% endif %} class="{{ ui.input_cls }}">
+          {% if not editing %}
+          <option value="new" {% if form.block == "new" %}selected{% endif %}>+ New block — {{ new_block_date.day }}-{{ new_block_date.strftime("%b") }} ({{ new_block_date.strftime("%d %b %Y") }})</option>
+          {% endif %}
+          {% for b in blocks %}<option value="{{ b.id }}" {% if b.id == form.block %}selected{% endif %}>{{ b.label }}</option>{% endfor %}
+        </select>
+        <p class="mt-1 font-mono text-xs text-stone-400" id="newBlockHint" hidden>
+          Adds a yellow {{ new_block_date.day }}-{{ new_block_date.strftime("%b") }} banner, the header row, and every name from the latest block, then fills this employee's row.
+        </p>
+      </div>
+      <div>
+        {{ ui.label("name", "Employee Name") }}
+        <input type="text" id="name" {% if not editing %}name="name"{% endif %} {% if editing %}disabled{% endif %}
+               value="{{ form.name }}" list="employeeList" required autocomplete="off"
+               placeholder="Search or type employee" class="{{ ui.input_cls }}">
+        <datalist id="employeeList">{% for e in employees %}<option value="{{ e }}">{% endfor %}</datalist>
+        <p class="mt-1 font-mono text-xs" id="rowHint"></p>
+        <span class="field-error" id="nameError">Select an employee.</span>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          {{ ui.label("bonus", "Performance Bonus", optional=True) }}
+          <div class="flex">
+            <span class="inline-flex items-center rounded-l-lg border border-r-0 border-stone-300 bg-stone-50 px-3 font-mono text-sm text-stone-500">₹</span>
+            <input type="text" id="bonus" name="bonus" value="{{ form.bonus }}" placeholder="e.g. 1500" autocomplete="off"
+                   class="w-full rounded-r-lg border border-stone-300 px-3 py-2.5 text-right font-mono text-stone-900 focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20">
+          </div>
+        </div>
+        <div>
+          {{ ui.label("status", "Status", optional=True) }}
+          <select id="status" name="status" class="{{ ui.input_cls }}">
+            <option value="">— (blank)</option>
+            {% for s in status_choices %}<option value="{{ s }}" {% if s == form.status %}selected{% endif %}>{{ s }}</option>{% endfor %}
+          </select>
+        </div>
+        <div>
+          {{ ui.label("status_date", "Status Date", optional=True) }}
+          <input type="date" id="status_date" name="status_date" value="{{ form.status_date }}" class="{{ ui.input_cls }} font-mono">
+        </div>
+        <div>
+          {{ ui.label("for_month", "For The Month of", optional=True) }}
+          <select id="for_month" name="for_month" class="{{ ui.input_cls }}">
+            <option value="">— (blank)</option>
+            {% for m in month_names %}<option value="{{ loop.index }}" {% if loop.index|string == form.for_month %}selected{% endif %}>{{ m }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div>
+        {{ ui.label("notes", "Notes", optional=True) }}
+        <input type="text" id="notes" name="notes" value="{{ form.notes }}" class="{{ ui.input_cls }}">
+        <p class="mt-1 font-mono text-xs text-stone-400">Left blank, the row's existing note is kept.</p>
+      </div>
+      {{ ui.form_actions(url_for('monthly.history', block=form.block) if editing else None) }}
+    </form>
+  </div>
+</div>
+
+<script>
+  (function () {
+    // Tell the user, before saving, whether this fills a pre-filled row or adds one.
+    var blockNames = {{ block_names | tojson }};
+    var block = document.getElementById('block');
+    var name = document.getElementById('name');
+    var hint = document.getElementById('rowHint');
+    var newHint = document.getElementById('newBlockHint');
+    function update() {
+      newHint.hidden = block.value !== 'new';
+      var n = name.value.trim().toLowerCase();
+      if (!n || {{ 'true' if editing else 'false' }}) { hint.textContent = ''; return; }
+      if (block.value === 'new') { hint.textContent = ''; return; }
+      var names = (blockNames[block.value] || []).map(function (x) { return x.toLowerCase(); });
+      if (names.indexOf(n) !== -1) {
+        hint.textContent = '✓ Has a row in this block — it will be filled in / updated.';
+        hint.className = 'mt-1 font-mono text-xs text-forest';
+      } else {
+        hint.textContent = '+ Not in this block — a new row will be added at the end of the block.';
+        hint.className = 'mt-1 font-mono text-xs text-amber-600';
+      }
+    }
+    block.addEventListener('change', update);
+    name.addEventListener('input', update);
+    update();
+
+    document.getElementById('mbForm').addEventListener('submit', function (e) {
+      var bad = !name.value.trim();
+      name.classList.toggle('invalid', bad);
+      document.getElementById('nameError').classList.toggle('show', bad);
+      if (bad) { e.preventDefault(); name.focus(); }
+    });
+  })();
+</script>
+{% endblock %}

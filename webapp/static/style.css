@@ -239,7 +239,7 @@ table.register .row-actions-inner {
 }
 
 /* Name is variable-length and should hold a full employee name on one line —
-   at 130px the content box was only 110px, so "Atreyee Majumder" wrapped to
+   at 130px the content box was only 110px, so a typical first + last name wrapped to
    two. The extra width comes out of Notes, which is the greedy column; Notes
    keeps its own 280px floor, so it can't be squeezed back to the old state. */
 table.register th:nth-child(2),
@@ -358,3 +358,7 @@ table.register thead th::after {
   color: var(--forest-dark);
 }
 
+
+/* Header section switcher (a <details>): hide the default disclosure triangle
+   — Tailwind's list-none covers Firefox/Chromium, WebKit needs its own rule. */
+.section-switcher > summary::-webkit-details-marker { display: none; }

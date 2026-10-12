@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{% block title %}Daily Performance Bonus{% endblock %}</title>
+<title>{% block title %}{{ section.title if section else "ADIRI" }}{% endblock %}</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   tailwind.config = {
@@ -45,28 +45,57 @@
 </div>
 
 <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-stone-200 shadow-sm">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
-    <a href="{{ url_for('home') }}" class="flex items-baseline gap-2 group">
-      <span class="text-2xl font-bold tracking-tight text-stone-900 group-hover:text-forest transition-colors">ADIRI</span>
-      <span class="text-xs text-stone-500 hidden sm:inline">Daily Performance Bonus</span>
-    </a>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex min-w-0 items-center gap-3">
+      <a href="{{ url_for('home') }}" class="flex items-baseline gap-2 group">
+        <span class="text-2xl font-bold tracking-tight text-stone-900 group-hover:text-forest transition-colors">ADIRI</span>
+      </a>
+      {% if section %}
+      {# The current section's name is always on screen, and doubles as the
+         switcher to jump straight to another section. #}
+      <details class="section-switcher relative min-w-0" id="sectionSwitcher">
+        <summary class="flex min-w-0 cursor-pointer list-none items-center gap-2 rounded-md border border-forest/30 bg-forest-light px-2.5 py-1.5 text-sm font-semibold text-forest-dark transition-colors hover:border-forest/60"
+                 aria-label="Current section: {{ section.title }}. Switch section">
+          <i data-lucide="{{ section.icon }}" class="h-4 w-4 shrink-0"></i>
+          <span class="truncate max-w-[9.5rem] sm:max-w-none">{{ section.title }}</span>
+          <i data-lucide="chevrons-up-down" class="h-3.5 w-3.5 shrink-0 text-forest/70"></i>
+        </summary>
+        <div class="absolute left-0 z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-lg border border-stone-200 bg-white p-1 shadow-lg">
+          <p class="px-3 pb-1 pt-2 font-mono text-[0.65rem] font-bold uppercase tracking-wider text-stone-400">Switch section</p>
+          {% for s in sections %}
+          <a href="{{ url_for(s.slug ~ '.dashboard') }}"
+             class="flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm transition-colors {{ 'bg-forest text-white' if s.slug == section.slug else 'text-stone-700 hover:bg-forest-light' }}">
+            <i data-lucide="{{ s.icon }}" class="h-4 w-4 shrink-0"></i> {{ s.title }}
+          </a>
+          {% endfor %}
+          <a href="{{ url_for('home') }}" class="mt-1 flex items-center gap-2.5 rounded-md border-t border-stone-100 px-3 py-2.5 text-sm text-stone-500 hover:bg-stone-50 hover:text-stone-900">
+            <i data-lucide="home" class="h-4 w-4 shrink-0"></i> All sections
+          </a>
+        </div>
+      </details>
+      {% else %}
+      <span class="text-xs text-stone-500 hidden sm:inline">Performance Tracking</span>
+      {% endif %}
+    </div>
     <nav class="flex items-center gap-1">
       <a href="{{ url_for('home') }}" aria-label="Home"
          class="flex items-center gap-1.5 px-2.5 py-2.5 sm:px-3 sm:py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'home' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
         <i data-lucide="home" class="w-4 h-4"></i><span class="hidden sm:inline">Home</span>
       </a>
-      <a href="{{ url_for('dashboard') }}" aria-label="Dashboard"
+      {% if section %}
+      <a href="{{ url_for(section.slug ~ '.dashboard') }}" aria-label="Dashboard"
          class="flex items-center gap-1.5 px-2.5 py-2.5 sm:px-3 sm:py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'dashboard' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
         <i data-lucide="layout-dashboard" class="w-4 h-4"></i><span class="hidden sm:inline">Dashboard</span>
       </a>
-      <a href="{{ url_for('add_entry') }}" aria-label="Add Entry"
+      <a href="{{ url_for(section.slug ~ '.add_entry') }}" aria-label="Add Entry"
          class="flex items-center gap-1.5 px-2.5 py-2.5 sm:px-3 sm:py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'add' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
         <i data-lucide="plus-circle" class="w-4 h-4"></i><span class="hidden sm:inline">Add Entry</span>
       </a>
-      <a href="{{ url_for('history') }}" aria-label="History"
+      <a href="{{ url_for(section.slug ~ '.history') }}" aria-label="History"
          class="flex items-center gap-1.5 px-2.5 py-2.5 sm:px-3 sm:py-2 rounded-md text-sm font-medium transition-colors {{ 'bg-forest text-white' if active_page == 'history' else 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }}">
         <i data-lucide="history" class="w-4 h-4"></i><span class="hidden sm:inline">History</span>
       </a>
+      {% endif %}
     </nav>
   </div>
 </header>
@@ -77,7 +106,7 @@
 
 <footer class="border-t border-stone-200 bg-white mt-auto">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-2">
-    <span class="font-mono text-xs text-stone-500">&copy; {{ current_year }} ADIRI &middot; Daily Performance Bonus</span>
+    <span class="font-mono text-xs text-stone-500">&copy; {{ current_year }} ADIRI &middot; {{ section.title if section else "Performance Tracking" }}</span>
     <span class="font-mono text-xs text-stone-500">Version 1.0</span>
   </div>
 </footer>
@@ -85,6 +114,24 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     if (window.lucide) lucide.createIcons();
+
+    // Section switcher: close it on an outside click or Escape.
+    var switcher = document.getElementById('sectionSwitcher');
+    if (switcher) {
+      document.addEventListener('click', function (e) {
+        if (switcher.open && !switcher.contains(e.target)) switcher.open = false;
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') switcher.open = false;
+      });
+    }
+
+    // Delete buttons on every History page: confirm before submitting.
+    document.querySelectorAll('form[data-confirm]').forEach(function (form) {
+      form.addEventListener('submit', function (e) {
+        if (!confirm(form.dataset.confirm)) e.preventDefault();
+      });
+    });
 
     // Toasts: fade+slide in on load, auto-dismiss, or dismiss on click.
     document.querySelectorAll('.toast').forEach(function (toast) {
