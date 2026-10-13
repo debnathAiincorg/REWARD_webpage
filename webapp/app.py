@@ -18,6 +18,23 @@ for module in (daily, whatsapp, monthly, keyboard):
     app.register_blueprint(module.bp)
 
 
+def _build_id():
+    """Short commit id of the running code, shown in the footer so anyone can
+    tell which build a server is serving. Railway sets RAILWAY_GIT_COMMIT_SHA;
+    a local checkout reads it from git. Empty if neither is available."""
+    sha = os.environ.get("RAILWAY_GIT_COMMIT_SHA", "")
+    if not sha:
+        try:
+            import subprocess
+            sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=Path(__file__).resolve().parent,
+                                 capture_output=True, text=True, timeout=5).stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            sha = ""
+    return sha[:7]
+
+
+BUILD_ID = _build_id()
+
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 ASSET_PATHS = [STATIC_DIR / "app.css", STATIC_DIR / "js" / "app.js"]
 
@@ -35,6 +52,7 @@ def inject_globals():
     return {
         "current_year": date.today().year,
         "asset_version": asset_version,
+        "build_id": BUILD_ID,
         "sections": SECTIONS,
         # The section the current page belongs to (None on Home), which drives
         # the header's section name and its Dashboard / Add Entry / History tabs.
@@ -143,5 +161,9 @@ if __name__ == "__main__":
     # the `app` object above and never executes this block. Debug is off unless
     # explicitly asked for: it exposes an interactive code-execution console.
     debug = os.environ.get("FLASK_DEBUG", "").strip().lower() in ("1", "true", "yes", "on")
-    print(f"Starting on http://localhost:5000  (MAIN workbook, debug={debug})")
+    print(f"Starting on http://localhost:5000  (MAIN workbook, build {BUILD_ID or 'unknown'}, debug={debug})")
+    # Re-read templates when they change on disk, so a long-running local
+    # server never keeps serving an old page after a git pull / branch switch.
+    # (Python code changes still need a restart.)
+    app.config["TEMPLATES_AUTO_RELOAD"] = True
     app.run(debug=debug, port=5000)

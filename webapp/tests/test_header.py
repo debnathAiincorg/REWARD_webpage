@@ -33,4 +33,11 @@ def test_no_icon_left_of_adiri(client, url):
 def test_wordmark_links_home(client, url):
     html = client.get(url).get_data(as_text=True)
     assert re.search(r'<a href="/"[^>]*aria-label="ADIRI — go to the home page"[^>]*>\s*'
-                     r'<span class="text-\[1\.87rem\][^"]*">ADIRI</span>', html)
+                     r'<span class="[^"]*text-\[2\.6rem\][^"]*lg:text-\[3\.8rem\][^"]*">ADIRI</span>', html)
+
+
+def test_footer_shows_build_id(client):
+    import app as app_module
+    html = client.get("/").get_data(as_text=True)
+    if app_module.BUILD_ID:
+        assert f"build {app_module.BUILD_ID}" in html
