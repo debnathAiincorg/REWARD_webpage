@@ -27,19 +27,29 @@ def _previous_month(d):
     return 12 if d.month == 1 else d.month - 1
 
 
+def _today():
+    """Today's date — a function so tests can fix "today"."""
+    return date.today()
+
+
 @bp.route("/dashboard")
 def dashboard():
     try:
         _, blocks, _ = _load()
     except (GraphError, ValueError) as e:
         return render_template("monthly/dashboard.html", active_page="dashboard", error=str(e),
-                               blocks=[], block=None, summary=None, roster=None)
-    block = ml.find_block(blocks, request.args.get("block")) or ml.default_block(blocks)
+                               blocks=[], block=None, summary=None, roster=None, is_default=False)
+    # Opens on the latest block whose date has passed; any block can be picked.
+    block = ml.find_block(blocks, request.args.get("block"))
+    is_default = block is None
+    if is_default:
+        block = ml.report_block(blocks, _today())
     # Headcounts come from the shared roster, like Daily's dashboard.
     roster_figures = ml.roster_kpis(block, load_roster()) if block else None
     return render_template("monthly/dashboard.html", active_page="dashboard", error=None,
                            blocks=_block_options(blocks), block=block,
-                           summary=ml.block_summary(block) if block else None, roster=roster_figures)
+                           summary=ml.block_summary(block) if block else None, roster=roster_figures,
+                           is_default=is_default)
 
 
 @bp.route("/add", methods=["GET", "POST"])

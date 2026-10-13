@@ -234,6 +234,18 @@ def periods(groups):
     return sorted({(g["year"], g["month_num"]) for g in groups if g["year"] and g["month_num"]})
 
 
+def default_period(period_list, today):
+    """The month the dashboard opens on: the last COMPLETED month — the latest
+    month in the sheet that is before the current calendar month — so a month
+    still being tested doesn't look half-empty. If the sheet has no completed
+    month yet, fall back to its latest month. period_list is sorted
+    (year, month_num) pairs, as returned by periods()."""
+    if not period_list:
+        return None
+    completed = [p for p in period_list if p < (today.year, today.month)]
+    return completed[-1] if completed else period_list[-1]
+
+
 def month_summary(records, year, month_num):
     rows = [r for r in records if (r["year"], r["month_num"]) == (year, month_num)]
     rows = sorted(rows, key=lambda r: (-(r["accuracy"] or 0), -(r["speed"] or 0), fold(r["name"])))

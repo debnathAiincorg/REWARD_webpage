@@ -310,6 +310,17 @@ def block_summary(block):
     }
 
 
+def report_block(blocks, today):
+    """The block the dashboard opens on: the latest block whose banner date has
+    already passed (before today), so pre-created future blocks (26-Nov,
+    26-Dec) aren't the default. If no block's date has passed yet, fall back
+    to default_block()."""
+    passed = [b for b in blocks if b["date"] < today]
+    if passed:
+        return max(passed, key=lambda b: b["date"])
+    return default_block(blocks)
+
+
 def default_block(blocks):
     """Latest block with anything filled in; otherwise the latest block."""
     filled = [b for b in blocks if any(r["filled"] for r in b["rows"])]

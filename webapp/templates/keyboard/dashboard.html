@@ -17,6 +17,9 @@
       {% for p in periods %}<option value="{{ p.key }}" {% if p.key == selected_key %}selected{% endif %}>{{ p.label }}</option>{% endfor %}
     </select>
   </div>
+  {% if is_default %}
+  <p class="pb-3 text-xs text-navy-500"><i data-lucide="info" class="mr-1 inline h-3.5 w-3.5"></i>Opens on the last completed month. Pick another month to compare.</p>
+  {% endif %}
   <noscript><button type="submit" class="btn-primary">Show</button></noscript>
 </form>
 

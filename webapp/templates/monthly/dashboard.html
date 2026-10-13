@@ -17,6 +17,9 @@
       {% for b in blocks %}<option value="{{ b.id }}" {% if b.id == block.id %}selected{% endif %}>{{ b.label }}</option>{% endfor %}
     </select>
   </div>
+  {% if is_default %}
+  <p class="pb-3 text-xs text-navy-500"><i data-lucide="info" class="mr-1 inline h-3.5 w-3.5"></i>Opens on the latest block whose date has passed. Pick another block to see it.</p>
+  {% endif %}
   <noscript><button type="submit" class="btn-primary">Show</button></noscript>
 </form>
 

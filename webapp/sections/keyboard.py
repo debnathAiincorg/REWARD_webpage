@@ -38,6 +38,11 @@ def _to_float(value):
         return None
 
 
+def _today():
+    """Today's date — a function so tests can fix "today"."""
+    return date.today()
+
+
 @bp.route("/dashboard")
 def dashboard():
     try:
@@ -47,8 +52,10 @@ def dashboard():
                                periods=[], selected=None, summary=None, roster=None, names=[], table={}, period_list=[])
     period_list = kl.periods(groups)
     selected = _parse_period(request.args.get("period"))
-    if selected not in period_list:
-        selected = period_list[-1] if period_list else None
+    # Opens on the last completed month; any month can still be picked.
+    is_default = selected not in period_list
+    if is_default:
+        selected = kl.default_period(period_list, _today())
     summary = kl.month_summary(records, *selected) if selected else None
     # Headcounts come from the shared roster, like Daily's dashboard.
     roster_figures = kl.roster_kpis(records, load_roster(), *selected) if selected else None
@@ -59,7 +66,7 @@ def dashboard():
         selected_key=kl.period_key(*selected) if selected else "",
         selected_label=kl.period_label(*selected) if selected else "",
         summary=summary, roster=roster_figures, names=names, table=table, period_list=period_list,
-        period_label=kl.period_label,
+        period_label=kl.period_label, is_default=is_default,
     )
 
 
