@@ -51,15 +51,20 @@
 {% set tabs = [("dashboard", "Dashboard", "layout-dashboard"), ("add_entry", "Add Entry", "plus-circle"), ("history", "History", "history")] %}
 {% set page_for = {"dashboard": "dashboard", "add_entry": "add", "history": "history"} %}
 
-<header class="sticky top-0 z-40 border-b border-white/5 bg-chrome text-on-chrome">
-  {# Taller header for the large wordmark: 76px on phones, 88px on tablets,
-     104px on desktop. Nav, switcher and menu button stay vertically centred. #}
-  <div class="mx-auto flex h-[4.75rem] max-w-7xl items-center gap-3 px-4 sm:h-[5.5rem] sm:px-6 lg:h-[6.5rem] lg:gap-4 lg:px-8">
-    {# The wordmark alone is the logo (no icon tile) and the link home. On
-       phones inside a section the tagline gives way to the section name. #}
-    <a href="{{ url_for('home') }}" class="flex shrink-0 flex-col justify-center rounded-lg leading-none" aria-label="ADIRI — go to the home page" title="Home">
+{# A normal header that scrolls away with the page (not sticky). z-40 keeps
+   the section switcher's dropdown and the phone menu above the page. #}
+<header class="relative z-40 border-b border-white/5 bg-chrome text-on-chrome">
+  {# One line now ("ADIRI  Rewards & Recognition"), so the header is only as
+     tall as the wordmark needs: 64px on phones, 68px on tablets, 80px on
+     desktop. Nav, switcher and menu button stay vertically centred. #}
+  <div class="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:h-[4.25rem] sm:px-6 lg:h-20 lg:gap-4 lg:px-8">
+    {# The wordmark alone is the logo (no icon tile) and the link home. The
+       tagline sits beside it on the same baseline; where it wouldn't fit on
+       one line (phones, and section pages between 1024 and 1280px wide, where
+       the switcher and nav need the room) it is hidden, never wrapped. #}
+    <a href="{{ url_for('home') }}" class="flex shrink-0 items-baseline gap-2.5 rounded-lg leading-none" aria-label="ADIRI — go to the home page" title="Home">
       <span class="whitespace-nowrap text-[2.6rem] font-black leading-[0.9] tracking-[-0.02em] sm:text-[3.1rem] lg:text-[3.8rem]">ADIRI</span>
-      <span class="mt-1.5 whitespace-nowrap text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-on-chrome-accent sm:text-xs lg:text-[0.82rem] {{ 'hidden sm:block' if section else 'block' }}">Rewards &amp; Recognition</span>
+      <span class="hidden whitespace-nowrap text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-on-chrome-accent sm:inline sm:text-xs lg:text-[0.82rem] {{ 'lg:hidden xl:inline' if section }}">Rewards &amp; Recognition</span>
     </a>
 
     {% if section %}

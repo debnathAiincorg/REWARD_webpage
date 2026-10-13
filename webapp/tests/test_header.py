@@ -41,3 +41,25 @@ def test_footer_shows_build_id(client):
     html = client.get("/").get_data(as_text=True)
     if app_module.BUILD_ID:
         assert f"build {app_module.BUILD_ID}" in html
+
+
+@pytest.mark.parametrize("url", PAGES)
+def test_header_scrolls_with_the_page(client, url):
+    html = client.get(url).get_data(as_text=True)
+    header_tag = re.search(r"<header\b[^>]*>", html).group(0)
+    assert "sticky" not in header_tag and "fixed" not in header_tag
+
+
+@pytest.mark.parametrize("url", PAGES)
+def test_tagline_beside_adiri_on_one_baseline(client, url):
+    html = client.get(url).get_data(as_text=True)
+    link = re.search(r'<a href="/"[^>]*aria-label="ADIRI — go to the home page"[^>]*>(.*?)</a>', html, re.S)
+    assert "items-baseline" in re.search(r'<a href="/"[^>]*aria-label="ADIRI[^>]*>', html).group(0)
+    assert "flex-col" not in re.search(r'<a href="/"[^>]*aria-label="ADIRI[^>]*>', html).group(0)
+    tagline = re.search(r'<span class="([^"]*)">Rewards &amp; Recognition</span>', link.group(1)).group(1)
+    # Same size, weight and colour as before; hidden (not wrapped) where it won't fit.
+    for cls in ("text-[0.7rem]", "sm:text-xs", "lg:text-[0.82rem]", "font-semibold", "text-on-chrome-accent",
+                "whitespace-nowrap", "hidden", "sm:inline"):
+        assert cls in tagline.split(), cls
+    if url != "/":
+        assert "lg:hidden" in tagline.split() and "xl:inline" in tagline.split()
