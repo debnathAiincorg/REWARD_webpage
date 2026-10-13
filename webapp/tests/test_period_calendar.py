@@ -94,37 +94,37 @@ CALENDAR = {
     date(2026, 10, 12): (  # Monday
         "Week #41 - Oct 05 to Oct 11 (Complete Week) · Previous day: · Sun, 11 Oct 2026 · data up to yesterday",
         "September 2026 · last completed month",
-        "26-Sep block · Bonuses for: · August · latest block up to yesterday",
+        "26-Sep block · Bonuses for: · August · latest block up to today",
         "Contact list as of today · Mon, 12 Oct 2026 · live from the sheet"),
     date(2026, 10, 13): (  # Tuesday
         "Week #42 - Oct 12 · Previous day: · Mon, 12 Oct 2026 · data up to yesterday",
         "September 2026 · last completed month",
-        "26-Sep block · Bonuses for: · August · latest block up to yesterday",
+        "26-Sep block · Bonuses for: · August · latest block up to today",
         "Contact list as of today · Tue, 13 Oct 2026 · live from the sheet"),
     date(2026, 10, 25): (  # Sunday
         "Week #43 - Oct 19 to Oct 24 (Complete Week) · Previous day: · Sat, 24 Oct 2026 · data up to yesterday",
         "September 2026 · last completed month",
-        "26-Sep block · Bonuses for: · August · latest block up to yesterday",
+        "26-Sep block · Bonuses for: · August · latest block up to today",
         "Contact list as of today · Sun, 25 Oct 2026 · live from the sheet"),
-    date(2026, 10, 26): (  # Monday — the 26-Oct banner's own day: not yet "passed"
+    date(2026, 10, 26): (  # Monday — the 26-Oct banner's own day: Monthly switches today
         "Week #43 - Oct 19 to Oct 25 (Complete Week) · Previous day: · Sun, 25 Oct 2026 · data up to yesterday",
         "September 2026 · last completed month",
-        "26-Sep block · Bonuses for: · August · latest block up to yesterday",
+        "26-Oct block · Bonuses for: · September · latest block up to today",
         "Contact list as of today · Mon, 26 Oct 2026 · live from the sheet"),
     date(2026, 10, 27): (  # Tuesday
         "Week #44 - Oct 26 · Previous day: · Mon, 26 Oct 2026 · data up to yesterday",
         "September 2026 · last completed month",
-        "26-Oct block · Bonuses for: · September · latest block up to yesterday",
+        "26-Oct block · Bonuses for: · September · latest block up to today",
         "Contact list as of today · Tue, 27 Oct 2026 · live from the sheet"),
     date(2026, 10, 31): (  # Saturday
         "Week #44 - Oct 26 to Oct 30 · Previous day: · Fri, 30 Oct 2026 · data up to yesterday",
         "September 2026 · last completed month",
-        "26-Oct block · Bonuses for: · September · latest block up to yesterday",
+        "26-Oct block · Bonuses for: · September · latest block up to today",
         "Contact list as of today · Sat, 31 Oct 2026 · live from the sheet"),
     date(2026, 11, 1): (   # Sunday — October has ended but has no Keyboard rows yet
         "Week #44 - Oct 26 to Oct 31 (Complete Week) · Previous day: · Sat, 31 Oct 2026 · data up to yesterday",
         "September 2026 · latest completed month in the sheet · no rows for October 2026 yet",
-        "26-Oct block · Bonuses for: · September · latest block up to yesterday",
+        "26-Oct block · Bonuses for: · September · latest block up to today",
         "Contact list as of today · Sun, 01 Nov 2026 · live from the sheet"),
 }
 
@@ -169,7 +169,7 @@ def test_manual_choice_says_so_and_links_back(client, monkeypatch):
     kb = strip_text(client.get("/keyboard/dashboard?period=2026-06").get_data(as_text=True))
     assert kb == "June 2026 · Chosen manually · Back to last completed month (September 2026)"
     mb = strip_text(client.get("/monthly/dashboard?block=2026-11-26").get_data(as_text=True))
-    assert mb == "26-Nov block · Bonuses for: · October · Chosen manually · Back to latest block up to yesterday (26-Sep)"
+    assert mb == "26-Nov block · Bonuses for: · October · Chosen manually · Back to latest block up to today (26-Sep)"
     # The link goes back to the default view (no ?period= / ?block=).
     html = client.get("/keyboard/dashboard?period=2026-06").get_data(as_text=True)
     assert re.search(r'<a href="/keyboard/dashboard" class="[^"]*">\s*<i data-lucide="rotate-ccw"', html)

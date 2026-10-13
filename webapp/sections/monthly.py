@@ -39,7 +39,8 @@ def dashboard():
     except (GraphError, ValueError) as e:
         return render_template("monthly/dashboard.html", active_page="dashboard", error=str(e),
                                blocks=[], block=None, summary=None, roster=None, is_default=False, strip=None)
-    # Opens on the latest block whose date has passed; any block can be picked.
+    # Opens on the latest block dated today or earlier (switching on the
+    # banner day itself); any block can be picked.
     block = ml.find_block(blocks, request.args.get("block"))
     is_default = block is None
     if is_default:
@@ -54,7 +55,7 @@ def dashboard():
         strip = {
             "bonus_month": ml.bonus_month(block),
             "reason": ml.report_reason(block, _today()),
-            "default_text": f"latest block up to yesterday ({default['text']})",
+            "default_text": f"latest block up to today ({default['text']})",
             "previous": {"text": prev["text"], "total": ml.block_summary(prev)["total_amount"]} if prev else None,
         }
     return render_template("monthly/dashboard.html", active_page="dashboard", error=None,

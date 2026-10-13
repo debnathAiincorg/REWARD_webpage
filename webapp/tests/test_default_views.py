@@ -1,6 +1,6 @@
 # Which month / block the Keyboard and Monthly dashboards open on:
 #   Keyboard: the last COMPLETED month (before the current calendar month).
-#   Monthly:  the latest block whose banner date has PASSED (before today).
+#   Monthly:  the latest block whose banner date is TODAY OR EARLIER.
 # Any month / block can still be picked, and an explicit ?period= / ?block=
 # always wins. Fake data only — no Graph.
 
@@ -83,7 +83,7 @@ def test_keyboard_unknown_period_falls_back_to_the_default(client, monkeypatch):
     assert '<option value="2026-08" selected>' in html
 
 
-# --- Monthly: latest block whose date has passed --------------------------------
+# --- Monthly: latest block dated today or earlier ---------------------------------
 
 def _blocks():
     return ml.parse_blocks(monthly_grid())[1]
@@ -91,7 +91,8 @@ def _blocks():
 
 @pytest.mark.parametrize("today, expected", [
     (date(2026, 10, 13), "2026-09-26"),   # 26-Oct hasn't happened yet
-    (date(2026, 10, 26), "2026-09-26"),   # the banner's own day hasn't "passed" yet
+    (date(2026, 10, 25), "2026-09-26"),   # the day before the 26-Oct banner
+    (date(2026, 10, 26), "2026-10-26"),   # switches on the banner day itself
     (date(2026, 10, 27), "2026-10-26"),
     (date(2026, 11, 25), "2026-10-26"),   # 26-Nov is pre-created but still ahead
     (date(2026, 12, 1), "2026-11-26"),
@@ -117,7 +118,7 @@ def test_monthly_dashboard_opens_on_latest_passed_block(client, monkeypatch):
     html = client.get("/monthly/dashboard").get_data(as_text=True)
     assert '<option value="2026-09-26" selected>' in html
     assert "Block 26-Sep" in html
-    assert "latest block up to yesterday" in html and "Chosen manually" not in html
+    assert "latest block up to today" in html and "Chosen manually" not in html
 
 
 def test_monthly_explicit_block_wins_and_hides_the_note(client, monkeypatch):
@@ -127,7 +128,7 @@ def test_monthly_explicit_block_wins_and_hides_the_note(client, monkeypatch):
     html = client.get("/monthly/dashboard?block=2026-11-26").get_data(as_text=True)
     assert '<option value="2026-11-26" selected>' in html
     assert "Chosen manually" in html
-    assert "Back to latest block up to yesterday (26-Sep)" in html
+    assert "Back to latest block up to today (26-Sep)" in html
 
 
 # --- WhatsApp is deliberately unchanged ------------------------------------------

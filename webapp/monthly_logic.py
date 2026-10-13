@@ -311,11 +311,11 @@ def block_summary(block):
 
 
 def report_block(blocks, today):
-    """The block the dashboard opens on: the latest block whose banner date has
-    already passed (before today), so pre-created future blocks (26-Nov,
-    26-Dec) aren't the default. If no block's date has passed yet, fall back
-    to default_block()."""
-    passed = [b for b in blocks if b["date"] < today]
+    """The block the dashboard opens on: the latest block whose banner date is
+    today or earlier — it switches to a new block on its banner day itself
+    (the 26th) — so pre-created future blocks (26-Nov, 26-Dec) aren't the
+    default. If no block's date has come yet, fall back to default_block()."""
+    passed = [b for b in blocks if b["date"] <= today]
     if passed:
         return max(passed, key=lambda b: b["date"])
     return default_block(blocks)
@@ -323,9 +323,9 @@ def report_block(blocks, today):
 
 def report_reason(block, today):
     """Why the dashboard opened on `block` (see report_block), for the strip."""
-    if block["date"] < today:
-        return "latest block up to yesterday"
-    return "latest block with entries · no block date has passed yet"
+    if block["date"] <= today:
+        return "latest block up to today"
+    return "latest block with entries · no block date has come yet"
 
 
 def bonus_month(block):
