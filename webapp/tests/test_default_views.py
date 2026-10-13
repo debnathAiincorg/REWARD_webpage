@@ -56,7 +56,12 @@ def test_keyboard_dashboard_opens_on_last_completed_month(client, monkeypatch):
     monkeypatch.setattr(keyboard, "_today", lambda: date(2026, 8, 20))     # mid-August
     html = client.get("/keyboard/dashboard").get_data(as_text=True)
     assert '<option value="2026-06" selected>' in html
-    assert "Opens on the last completed month" in html
+    # The period strip names the month and why (the note it replaced said
+    # "Opens on the last completed month").
+    # The fake sheet has no July, so the strip says so instead of claiming June
+    # is the last completed month.
+    assert "latest completed month in the sheet · no rows for July 2026 yet" in html
+    assert "Chosen manually" not in html
     assert "June 2026" in html
 
 
@@ -66,7 +71,8 @@ def test_keyboard_explicit_period_wins_and_hides_the_note(client, monkeypatch):
     monkeypatch.setattr(keyboard, "_today", lambda: date(2026, 8, 20))
     html = client.get("/keyboard/dashboard?period=2026-08").get_data(as_text=True)
     assert '<option value="2026-08" selected>' in html
-    assert "Opens on the last completed month" not in html
+    assert "Chosen manually" in html
+    assert "Back to last completed month (June 2026)" in html
 
 
 def test_keyboard_unknown_period_falls_back_to_the_default(client, monkeypatch):
@@ -111,7 +117,7 @@ def test_monthly_dashboard_opens_on_latest_passed_block(client, monkeypatch):
     html = client.get("/monthly/dashboard").get_data(as_text=True)
     assert '<option value="2026-09-26" selected>' in html
     assert "Block 26-Sep" in html
-    assert "Opens on the latest block whose date has passed" in html
+    assert "latest block up to yesterday" in html and "Chosen manually" not in html
 
 
 def test_monthly_explicit_block_wins_and_hides_the_note(client, monkeypatch):
@@ -120,11 +126,12 @@ def test_monthly_explicit_block_wins_and_hides_the_note(client, monkeypatch):
     monkeypatch.setattr(monthly, "_today", lambda: date(2026, 10, 13))
     html = client.get("/monthly/dashboard?block=2026-11-26").get_data(as_text=True)
     assert '<option value="2026-11-26" selected>' in html
-    assert "Opens on the latest block whose date has passed" not in html
+    assert "Chosen manually" in html
+    assert "Back to latest block up to yesterday (26-Sep)" in html
 
 
 # --- WhatsApp is deliberately unchanged ------------------------------------------
 
-def test_whatsapp_dashboard_does_not_depend_on_today(client):
+def test_whatsapp_dashboard_has_no_period_choice(client):
     html = client.get("/whatsapp/dashboard").get_data(as_text=True)
-    assert "Opens on" not in html
+    assert "Contact list as of today" in html and "Chosen manually" not in html

@@ -10,6 +10,10 @@
   <div class="card">{{ ui.empty_state("inbox", "No months in the sheet yet", "Entries added on the Add Entry page will appear here.") }}</div>
 {% else %}
 
+{{ ui.period_strip(selected_label, reason=reason, manual=not is_default,
+                   default_url=url_for('keyboard.dashboard'),
+                   default_text="last completed month (" ~ default_label ~ ")") }}
+
 <form method="get" action="{{ url_for('keyboard.dashboard') }}" class="mb-6 flex flex-wrap items-end gap-3">
   <div class="w-full sm:w-64">
     {{ ui.label("period", "Month") }}
@@ -17,17 +21,17 @@
       {% for p in periods %}<option value="{{ p.key }}" {% if p.key == selected_key %}selected{% endif %}>{{ p.label }}</option>{% endfor %}
     </select>
   </div>
-  {% if is_default %}
-  <p class="pb-3 text-xs text-navy-500"><i data-lucide="info" class="mr-1 inline h-3.5 w-3.5"></i>Opens on the last completed month. Pick another month to compare.</p>
-  {% endif %}
   <noscript><button type="submit" class="btn-primary">Show</button></noscript>
 </form>
 
 <div class="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-6">
   {{ ui.kpi("users", "Total employees", roster.total_employees, i=0) }}
   {{ ui.kpi("user-x", "Not tested this month", roster.not_tested | length, warn=roster.not_tested, i=1) }}
-  {{ ui.kpi("target", "Average accuracy", "%.2f%%" % (summary.avg_accuracy * 100) if summary.avg_accuracy is not none else "—", i=2) }}
-  {{ ui.kpi("gauge", "Average speed", ("%.1f WPM" % summary.avg_speed) if summary.avg_speed is not none else "—", i=3) }}
+  {# Previous period, like Daily's "Previous week points": the month before. #}
+  {% set prev_acc = (previous.label ~ ": " ~ ("%.2f%%" % (previous.avg_accuracy * 100))) if previous and previous.avg_accuracy is not none else "Previous month: no rows" %}
+  {% set prev_speed = (previous.label ~ ": " ~ ("%.1f WPM" % previous.avg_speed)) if previous and previous.avg_speed is not none else "Previous month: no rows" %}
+  {{ ui.kpi("target", "Average accuracy", "%.2f%%" % (summary.avg_accuracy * 100) if summary.avg_accuracy is not none else "—", hint=prev_acc, i=2) }}
+  {{ ui.kpi("gauge", "Average speed", ("%.1f WPM" % summary.avg_speed) if summary.avg_speed is not none else "—", hint=prev_speed, i=3) }}
   {{ ui.kpi("trophy", "Top performer", summary.top.name if summary.top else "—", gold=True, i=4) }}
   {{ ui.kpi("alert-circle", "Employees at 0%", summary.zero | length, warn=summary.zero, i=5) }}
 </div>

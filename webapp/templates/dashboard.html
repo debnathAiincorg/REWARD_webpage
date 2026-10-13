@@ -6,14 +6,9 @@
                   url_for('daily.add_entry'), "Add entry") }}
 
 {# Report period, worded like the Teams card. #}
-<div class="card mb-6 flex flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3.5 text-sm">
-  <span class="flex items-center gap-2 font-semibold text-navy-950">
-    <i data-lucide="calendar-range" class="h-4 w-4 text-gold-700"></i> {{ period.week_label }}
-  </span>
-  <span class="flex items-center gap-2 text-navy-500">
-    <i data-lucide="sunrise" class="h-4 w-4"></i> Previous day: <strong class="font-semibold text-navy-900">{{ period.breakdown_day.strftime("%a, %d %b %Y") }}</strong>
-  </span>
-</div>
+{{ ui.period_strip(period.week_label,
+                   [("Previous day", period.breakdown_day.strftime("%a, %d %b %Y"))],
+                   reason="data up to yesterday") }}
 
 {% if error %}
   {{ ui.error_banner(error) }}

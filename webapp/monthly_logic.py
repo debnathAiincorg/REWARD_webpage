@@ -321,6 +321,30 @@ def report_block(blocks, today):
     return default_block(blocks)
 
 
+def report_reason(block, today):
+    """Why the dashboard opened on `block` (see report_block), for the strip."""
+    if block["date"] < today:
+        return "latest block up to yesterday"
+    return "latest block with entries · no block date has passed yet"
+
+
+def bonus_month(block):
+    """The month a block's bonuses are for: the most common "For The Month of"
+    value in the block, else the month before the banner (26-Sep -> August),
+    which is how every existing block is filled in."""
+    counts = Counter(month_number(r["for_month"]) for r in block["rows"] if month_number(r["for_month"]))
+    if counts:
+        return MONTH_NAMES[counts.most_common(1)[0][0] - 1]
+    d = block["date"]
+    return MONTH_NAMES[(d.month - 2) % 12]
+
+
+def previous_block(blocks, block):
+    """The block just before `block` (by banner date), or None."""
+    earlier = [b for b in blocks if b["date"] < block["date"]]
+    return max(earlier, key=lambda b: b["date"]) if earlier else None
+
+
 def default_block(blocks):
     """Latest block with anything filled in; otherwise the latest block."""
     filled = [b for b in blocks if any(r["filled"] for r in b["rows"])]

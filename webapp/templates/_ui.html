@@ -157,3 +157,25 @@
 </div>
 {% endif %}
 {% endmacro %}
+
+{# The strip under every dashboard's title that says which period is shown and
+   why — the same on all four dashboards. `facts` are (label, value) pairs
+   shown after the title. With manual=True (the user picked a month / block),
+   it says so and links back to the default view instead of giving the reason. #}
+{% macro period_strip(title, facts=[], reason="", manual=False, default_url="", default_text="", icon="calendar-range") %}
+<div class="card mb-6 flex flex-wrap items-center gap-x-5 gap-y-2 px-5 py-3.5 text-sm" data-period-strip>
+  <span class="flex items-center gap-2 font-semibold text-navy-950">
+    <i data-lucide="{{ icon }}" class="h-4 w-4 text-gold-700"></i> {{ title }}
+  </span>
+  {% for label, value in facts %}
+  <span class="text-navy-500">{% if label %}{{ label }}: {% endif %}<strong class="font-semibold text-navy-900">{{ value }}</strong></span>
+  {% endfor %}
+  {% if manual %}
+  <span class="badge-pending"><i data-lucide="mouse-pointer-click" class="h-3 w-3"></i> Chosen manually</span>
+  <a href="{{ default_url }}" class="inline-flex items-center gap-1 font-semibold text-brand hover:underline">
+    <i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i> Back to {{ default_text }}</a>
+  {% elif reason %}
+  <span class="badge-neutral"><i data-lucide="clock" class="h-3 w-3"></i> {{ reason }}</span>
+  {% endif %}
+</div>
+{% endmacro %}

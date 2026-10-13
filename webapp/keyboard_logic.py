@@ -246,6 +246,34 @@ def default_period(period_list, today):
     return completed[-1] if completed else period_list[-1]
 
 
+def previous_month(year, month_num):
+    """The calendar month before (year, month_num)."""
+    return (year - 1, 12) if month_num == 1 else (year, month_num - 1)
+
+
+def default_reason(period, today):
+    """Why the dashboard opened on `period` (see default_period), in words for
+    the period strip. Honest when the sheet has no rows for the month that
+    actually just ended."""
+    last_completed = previous_month(today.year, today.month)
+    if period == last_completed:
+        return "last completed month"
+    if period < (today.year, today.month):
+        return f"latest completed month in the sheet · no rows for {period_label(*last_completed)} yet"
+    return "latest month in the sheet · no completed month yet"
+
+
+def previous_month_summary(records, year, month_num):
+    """The calendar month before the selected one, for the "previous period"
+    figures (like Daily's "Previous week points"). None if it has no rows."""
+    prev = previous_month(year, month_num)
+    summary = month_summary(records, *prev)
+    if not summary["count"]:
+        return None
+    summary["label"] = period_label(*prev)
+    return summary
+
+
 def month_summary(records, year, month_num):
     rows = [r for r in records if (r["year"], r["month_num"]) == (year, month_num)]
     rows = sorted(rows, key=lambda r: (-(r["accuracy"] or 0), -(r["speed"] or 0), fold(r["name"])))

@@ -10,6 +10,10 @@
   <div class="card">{{ ui.empty_state("inbox", "No month blocks in the sheet yet", "Create the first one from the Add Entry page.") }}</div>
 {% else %}
 
+{{ ui.period_strip(block.text ~ " block", [("Bonuses for", strip.bonus_month)],
+                   reason=strip.reason, manual=not is_default,
+                   default_url=url_for('monthly.dashboard'), default_text=strip.default_text) }}
+
 <form method="get" action="{{ url_for('monthly.dashboard') }}" class="mb-6 flex flex-wrap items-end gap-3">
   <div class="w-full sm:w-72">
     {{ ui.label("block", "Month block") }}
@@ -17,16 +21,15 @@
       {% for b in blocks %}<option value="{{ b.id }}" {% if b.id == block.id %}selected{% endif %}>{{ b.label }}</option>{% endfor %}
     </select>
   </div>
-  {% if is_default %}
-  <p class="pb-3 text-xs text-navy-500"><i data-lucide="info" class="mr-1 inline h-3.5 w-3.5"></i>Opens on the latest block whose date has passed. Pick another block to see it.</p>
-  {% endif %}
   <noscript><button type="submit" class="btn-primary">Show</button></noscript>
 </form>
 
 <div class="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-6">
   {{ ui.kpi("users", "Total employees", roster.total_employees, i=0) }}
   {{ ui.kpi("user-x", "No bonus entry in this block", roster.no_entry | length, warn=roster.no_entry, i=1) }}
-  {{ ui.kpi("indian-rupee", "Total bonus amount", "₹" ~ "{:,}".format(summary.total_amount), gold=True, i=2) }}
+  {# Previous period, like Daily's "Previous week points": the block before. #}
+  {% set prev_total = (strip.previous.text ~ " block: ₹" ~ "{:,}".format(strip.previous.total)) if strip.previous else "No earlier block" %}
+  {{ ui.kpi("indian-rupee", "Total bonus amount", "₹" ~ "{:,}".format(summary.total_amount), gold=True, hint=prev_total, i=2) }}
   {{ ui.kpi("badge-check", "Approved", summary.approved, hint="₹" ~ "{:,}".format(summary.approved_amount) ~ " approved", i=3) }}
   {{ ui.kpi("x-circle", "Missed", summary.missed, i=4) }}
   {{ ui.kpi("clock", "Pending / empty", summary.pending, warn=summary.pending > 0, i=5) }}

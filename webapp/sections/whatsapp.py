@@ -1,5 +1,7 @@
 # Employee Whatsapp — a flat contact list (First_Name | Last_Name | Mobile_1).
 
+from datetime import date
+
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 import config
@@ -15,6 +17,11 @@ def _load_contacts():
     return wl.parse_contacts(get_sheet_grid(SHEET))
 
 
+def _today():
+    """Today's date — a function so tests can fix "today" (same as Daily)."""
+    return date.today()
+
+
 @bp.route("/dashboard")
 def dashboard():
     try:
@@ -26,7 +33,7 @@ def dashboard():
     summary = wl.dashboard_summary(contacts, load_roster())
     return render_template("whatsapp/dashboard.html", active_page="dashboard", error=None,
                            contacts=sorted(contacts, key=lambda c: c["full_name"].lower()),
-                           summary=summary)
+                           summary=summary, today=_today())
 
 
 @bp.route("/add", methods=["GET", "POST"])

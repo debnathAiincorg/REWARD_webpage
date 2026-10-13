@@ -57,6 +57,11 @@ def dashboard():
     if is_default:
         selected = kl.default_period(period_list, _today())
     summary = kl.month_summary(records, *selected) if selected else None
+    # Period strip: why this month is showing (or that it was picked by hand),
+    # and the month before it for the "previous period" figures.
+    reason = kl.default_reason(selected, _today()) if selected else ""
+    previous = kl.previous_month_summary(records, *selected) if selected else None
+    default_label = kl.period_label(*kl.default_period(period_list, _today())) if period_list else ""
     # Headcounts come from the shared roster, like Daily's dashboard.
     roster_figures = kl.roster_kpis(records, load_roster(), *selected) if selected else None
     names, table = kl.comparison_table(records, period_list)
@@ -67,6 +72,7 @@ def dashboard():
         selected_label=kl.period_label(*selected) if selected else "",
         summary=summary, roster=roster_figures, names=names, table=table, period_list=period_list,
         period_label=kl.period_label, is_default=is_default,
+        reason=reason, previous=previous, default_label=default_label,
     )
 
 
