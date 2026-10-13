@@ -42,8 +42,9 @@
         <div class="absolute h-56 w-56 rounded-full bg-gold-400/25 blur-2xl"></div>
         <svg viewBox="0 0 64 64" class="shine relative h-40 w-40 drop-shadow-[0_20px_30px_rgba(0,0,0,0.35)] sm:h-60 sm:w-60" aria-hidden="true">
           <defs><linearGradient id="heroGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6E3A8"/><stop offset=".5" stop-color="#D9A93F"/><stop offset="1" stop-color="#A97B1F"/></linearGradient></defs>
+          {# Handles first and running into the cup, so the cup covers both ends. #}
+          <path d="M23 14h-9v3c0 4.4 3.1 8 10 8.6M41 14h9v3c0 4.4-3.1 8-10 8.6" fill="none" stroke="url(#heroGold)" stroke-width="2.6" stroke-linecap="round"/>
           <path d="M20 10h24v11c0 7.2-5.4 13-12 13s-12-5.8-12-13z" fill="url(#heroGold)"/>
-          <path d="M20 14h-6v3c0 4.4 3.1 8 7.5 8.6M44 14h6v3c0 4.4-3.1 8-7.5 8.6" fill="none" stroke="url(#heroGold)" stroke-width="2.6" stroke-linecap="round"/>
           <path d="M29 34h6v8h-6z" fill="#C9962B"/>
           <rect x="21" y="42" width="22" height="5" rx="1.5" fill="url(#heroGold)"/>
           <rect x="17" y="47" width="30" height="8" rx="2" fill="#262626"/>

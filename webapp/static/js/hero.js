@@ -90,22 +90,40 @@
   }
 
   // Cup, with a lip that folds back inside.
-  trophy.add(lathe([
-    [0.0, -0.2], [0.22, -0.18], [0.5, 0.02], [0.72, 0.38], [0.86, 0.8], [0.92, 1.18],
+  var CUP_OUTER = [[0.0, -0.2], [0.22, -0.18], [0.5, 0.02], [0.72, 0.38], [0.86, 0.8], [0.92, 1.18]];
+  trophy.add(lathe(CUP_OUTER.concat([
     [0.96, 1.24], [0.9, 1.26], [0.84, 1.16], [0.78, 0.82], [0.64, 0.46], [0.42, 0.18], [0.0, 0.08],
-  ], gold));
+  ]), gold));
+
+  // The cup's outer radius at height y (linear between the outline points),
+  // so the handles can be anchored exactly on its curved surface.
+  function cupRadiusAt(y) {
+    for (var i = 1; i < CUP_OUTER.length; i++) {
+      var a = CUP_OUTER[i - 1], b = CUP_OUTER[i];
+      if (y <= b[1]) return a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]);
+    }
+    return CUP_OUTER[CUP_OUTER.length - 1][0];
+  }
   // Stem and foot.
   trophy.add(lathe([
     [0.0, -1.0], [0.42, -1.0], [0.42, -0.94], [0.2, -0.86], [0.11, -0.7], [0.1, -0.45],
     [0.2, -0.36], [0.13, -0.28], [0.18, -0.2], [0.0, -0.2],
   ], gold));
-  // Handles: half rings on each side of the cup.
+  // Handles: a curved tube on each side whose two ends are anchored on the
+  // cup's own surface (radius at that height, minus a small inset), so both
+  // ends sit just inside the cup from every angle. The cup is narrower lower
+  // down, which is why a plain half-ring left a gap at its lower end.
+  var HANDLE_TOP_Y = 1.02, HANDLE_BOTTOM_Y = 0.3, HANDLE_TUBE = 0.055, INSET = 0.04;
   [-1, 1].forEach(function (side) {
-    var handle = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.055, 16, 48, Math.PI), goldSoft);
-    handle.rotation.z = side * -Math.PI / 2;
-    handle.position.set(side * 0.78, 0.66, 0);
-    handle.scale.set(1, 1.15, 1);
-    trophy.add(handle);
+    var topX = cupRadiusAt(HANDLE_TOP_Y) - INSET;
+    var bottomX = cupRadiusAt(HANDLE_BOTTOM_Y) - INSET;
+    var curve = new THREE.CubicBezierCurve3(
+      new THREE.Vector3(side * topX, HANDLE_TOP_Y, 0),
+      new THREE.Vector3(side * 1.32, HANDLE_TOP_Y + 0.08, 0),
+      new THREE.Vector3(side * 1.22, HANDLE_BOTTOM_Y - 0.02, 0),
+      new THREE.Vector3(side * bottomX, HANDLE_BOTTOM_Y, 0)
+    );
+    trophy.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 48, HANDLE_TUBE, 16, false), goldSoft));
   });
   // Emblem on the front of the cup: a polished gold star on a navy medallion,
   // so it reads clearly against the gold cup.
