@@ -13,11 +13,6 @@
   <span class="flex items-center gap-2 text-navy-500">
     <i data-lucide="sunrise" class="h-4 w-4"></i> Previous day: <strong class="font-semibold text-navy-900">{{ period.breakdown_day.strftime("%a, %d %b %Y") }}</strong>
   </span>
-  {% if period.prev_day != period.breakdown_day %}
-  <span class="flex items-center gap-2 text-navy-500">
-    <i data-lucide="info" class="h-4 w-4"></i> Weekly report "previous day" columns: <strong class="font-semibold text-navy-900">{{ period.prev_day.strftime("%a, %d %b") }}</strong>
-  </span>
-  {% endif %}
 </div>
 
 {% if error %}

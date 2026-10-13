@@ -154,10 +154,12 @@ def report_period(today):
     breakdown_day     the Previous Day Performance table's date
     fill_breakdown    True on Monday: that table lists every name, with 0s
 
+    "Previous day" always means yesterday — on a Monday too (Sunday, which
+    normally has no rows, so those columns show 0 / ₹0). The Teams script used
+    Saturday for the weekly table on Mondays; that was changed on purpose.
+
     Tue-Sat: this Monday -> yesterday.
-    Monday:  the previous complete week (previous Monday -> Sunday); the
-             "Previous Day" columns use Saturday (today - 2), the Previous Day
-             Performance table uses Sunday.
+    Monday:  the previous complete week (previous Monday -> Sunday).
     Sunday:  this Monday -> Saturday (a complete week).
     """
     weekday = today.weekday()
@@ -165,7 +167,7 @@ def report_period(today):
     this_monday = today - timedelta(days=weekday)
     if weekday == 0:
         start, end = today - timedelta(days=7), yesterday
-        prev_day, breakdown_day, complete = today - timedelta(days=2), yesterday, True
+        prev_day, breakdown_day, complete = yesterday, yesterday, True
     elif weekday == 6:
         start, end = this_monday, yesterday
         prev_day, breakdown_day, complete = end, end, True

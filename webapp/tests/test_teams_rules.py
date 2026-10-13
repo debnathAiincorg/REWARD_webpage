@@ -3,10 +3,13 @@
 # commit 06f7eda; transcribed below as `teams_report`). "Today" is fixed to a
 # Monday, Tuesday, Wednesday and Sunday. Made-up data only — no Graph.
 #
-# One deliberate difference, chosen by the user: the script listed every name
-# in the sheet in the Weekly Performance Report (0s for people with nothing in
-# the week); the dashboard lists only names with a row inside the range. Totals
-# are the same either way.
+# Two deliberate differences, chosen by the user:
+#  1. The script listed every name in the sheet in the Weekly Performance
+#     Report (0s for people with nothing in the week); the dashboard lists only
+#     names with a row inside the range. Totals are the same either way.
+#  2. "Previous Day" always means yesterday. The script used Saturday for the
+#     weekly table on Mondays; the dashboard uses Sunday (0 / Rs 0 when the
+#     sheet has no Sunday rows).
 
 import re
 import sys
@@ -64,7 +67,9 @@ def teams_report(today):
         start, end = today - timedelta(days=7), today - timedelta(days=1)
         week_number = start.isocalendar()[1]
         week_label = f"Week #{week_number} - {start.strftime('%b %d')} to {end.strftime('%b %d')} (Complete Week)"
-        prev_day_start = prev_day_end = today - timedelta(days=2)
+        # The script used today - 2 (Saturday) here. Deliberately changed: the
+        # weekly table's "previous day" is yesterday (Sunday) on Mondays too.
+        prev_day_start = prev_day_end = today - timedelta(days=1)
         breakdown_start = breakdown_end = today - timedelta(days=1)
     elif weekday == 6:
         start, end = this_monday, today - timedelta(days=1)
@@ -156,14 +161,44 @@ def test_monday_previous_complete_week():
     period, weekly, breakdown = dashboard(MONDAY)
     assert (period["start"], period["end"]) == (date(2026, 10, 5), date(2026, 10, 11))
     assert period["week_label"] == "Week #41 - Oct 05 to Oct 11 (Complete Week)"
-    assert period["prev_day"] == date(2026, 10, 10)          # Saturday, for the weekly table
-    assert period["breakdown_day"] == date(2026, 10, 11)     # Sunday, for the previous-day table
-    # Alice 3 (0.5 -> 0) + 3, Bob 5 + 1, Chitra 2; previous day = Saturday.
-    assert [(r["name"], r["prev_points"], r["week_points"]) for r in weekly] == \
-           [("Alice", 3, 6), ("Chitra", 2, 2), ("Bob", 0, 6)]
-    # Sunday: Bob's row, plus every other name in the sheet with 0s.
+    # "Previous day" is yesterday (Sunday) for BOTH tables, even on a Monday.
+    assert period["prev_day"] == period["breakdown_day"] == date(2026, 10, 11)
+    # Week: Alice 3 (0.5 -> 0) + 3, Bob 5 + 1, Chitra 2. Previous day = Sunday,
+    # which only has Bob's 1 point, so Bob sorts first, then Alice, then Chitra.
+    assert [(r["name"], r["prev_points"], r["prev_amount"], r["week_points"]) for r in weekly] == \
+           [("Bob", 1, 10, 6), ("Alice", 0, 0, 6), ("Chitra", 0, 0, 2)]
+    # Saturday's rows are in the week's totals but no longer in "previous day".
+    assert sum(r["prev_points"] for r in weekly) == 1
+    # Sunday table: Bob's row, plus every other name in the sheet with 0s.
     assert [r["Name"] for r in breakdown] == ["Alice", "Bob", "Chitra", "Dev", "Farah"]
     assert breakdown[1]["Punctuality"] == 1 and all(breakdown[0][c] == 0 for c in CATEGORIES)
+
+
+def test_monday_without_sunday_rows_shows_zero_previous_day():
+    # The sheet has no rows dated Sunday: every "previous day" cell is 0 / Rs 0,
+    # while the previous complete week's totals are untouched.
+    recs = [r for r in records() if r["Date"] != date(2026, 10, 11)]
+    unique = logic.unique_by_name_date(recs)
+    period = logic.report_period(MONDAY)
+    weekly = logic.weekly_report_rows(unique, period["start"], period["end"], period["prev_day"], CATEGORIES)
+    assert period["prev_day"] == date(2026, 10, 11)
+    # All previous-day amounts are 0, so rows fall back to name order.
+    assert [(r["name"], r["prev_points"], r["prev_amount"]) for r in weekly] == \
+           [("Alice", 0, 0), ("Bob", 0, 0), ("Chitra", 0, 0)]
+    assert [(r["name"], r["week_points"], r["week_amount"]) for r in weekly] == \
+           [("Alice", 6, 60), ("Bob", 5, 50), ("Chitra", 2, 20)]
+    breakdown = logic.previous_day_breakdown(unique, logic.distinct_employees(recs), period["breakdown_day"],
+                                             period["fill_breakdown"], CATEGORIES, [])
+    assert all(r[c] == 0 for r in breakdown for c in CATEGORIES)   # every name listed, all 0s
+
+
+def test_every_weekday_previous_day_is_yesterday():
+    for offset in range(7):                                   # Mon 12 .. Sun 18 Oct
+        today = MONDAY + timedelta(days=offset)
+        period = logic.report_period(today)
+        assert period["prev_day"] == today - timedelta(days=1), today.strftime("%A")
+        assert period["breakdown_day"] == period["prev_day"], today.strftime("%A")
+        assert period["end"] < today                          # today's rows are never included
 
 
 def test_tuesday_single_day_label():
